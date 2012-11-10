@@ -15,22 +15,18 @@ spdylay/configure: spdylay/configure.ac build/lib/libz.a build/lib/libcrypto.a
 	touch spdylay/configure
 
 build/armv7/lib/libspdylay.a: spdylay/configure ios-configure
-	-cd spdylay && make clean
 	cd spdylay && ../ios-configure -p "$(BUILD)/armv7" -k $(PKG_CONFIG_PATH) iphone --with-xml-prefix=/unkonwn
 	cd spdylay/lib && make install
 
 build/armv7s/lib/libspdylay.a: spdylay/configure ios-configure
-	-cd spdylay && make clean
 	cd spdylay && ../ios-configure -p "$(BUILD)/armv7s" -k $(PKG_CONFIG_PATH) iphone-armv7s  --with-xml-prefix=/unkonwn
 	cd spdylay/lib && make install
 
 build/i386/lib/libspdylay.a: spdylay/configure ios-configure
-	-cd spdylay && make clean
 	cd spdylay && ../ios-configure -p "$(BUILD)/i386" -k $(PKG_CONFIG_PATH) simulator --with-xml-prefix=/unkonwn
 	cd spdylay/lib && make install
 
 build/native/lib/libspdylay.a: spdylay/configure
-	-cd spdylay && make clean
 	cd spdylay && ./configure --prefix="$(BUILD)/native"
 	cd spdylay && make install
 
@@ -70,7 +66,6 @@ SPDY: build/lib/libSPDY.a
 
 clean:
 	-rm -r build
-	cd spdylay && make clean
 
 update-spdylay:
 	cd spdylay && git pull
