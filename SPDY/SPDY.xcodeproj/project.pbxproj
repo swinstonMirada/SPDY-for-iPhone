@@ -395,6 +395,7 @@
 		3870AF7414E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				"ADDITIONAL_SDKS[arch=*]" = "";
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
@@ -425,6 +426,7 @@
 		3870AF7514E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
@@ -448,6 +450,7 @@
 		3870AF7714E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(SRCROOT)/../build/";
@@ -475,6 +478,7 @@
 		3870AF7814E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(SRCROOT)/../build/";
@@ -502,6 +506,7 @@
 		3870AF7A14E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -525,6 +530,7 @@
 		3870AF7B14E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
