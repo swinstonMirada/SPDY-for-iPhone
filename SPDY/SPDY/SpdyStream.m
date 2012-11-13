@@ -304,4 +304,19 @@ static NSSet *headersNotToCopy = nil;
     return stream;
 }
 
++ (SpdyStream *)newFromAssociatedStream:(SpdyStream *)associatedStream streamId:(int32_t)streamId nameValues:(char**)nv {
+  SpdyStream *stream = [[SpdyStream alloc] init];
+  stream.delegate = associatedStream.delegate;
+  stream.streamId = streamId;
+  stream.stringArena = [stream createArena:2048]; // XXX ??? not sure about this
+
+  int maxElements = 0;
+  while(nv[2*maxElements] != NULL) maxElements++;
+  
+  stream.nameValues = malloc(sizeof(const char *) * maxElements);
+  for(int i = 0 ; i < maxElements*2 ; i++) 
+    stream.nameValues[i] = nv[i];
+
+  return stream;
+}
 @end

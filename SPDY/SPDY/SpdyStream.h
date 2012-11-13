@@ -47,6 +47,7 @@
 + (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
 + (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(RequestCallback *)delegate;
 + (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
++ (SpdyStream *)newFromAssociatedStream:(SpdyStream *)associatedStream streamId:(int32_t)streamId nameValues:(char**)nv;
 
 + (void)staticInit;
 

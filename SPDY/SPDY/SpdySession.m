@@ -42,6 +42,8 @@
 #include "openssl/err.h"
 #include "spdylay/spdylay.h"
 
+#define STREAM_KEY(streamId) [NSString stringWithFormat:@"%d", streamId]
+
 static const int priority = 1;
 
 @interface SpdySession ()
@@ -63,7 +65,7 @@ static const int priority = 1;
 
 
 @implementation SpdySession {
-    NSMutableSet *streams;
+    NSMutableDictionary *streams;
     
     CFSocketRef socket;
     SSL *ssl;
@@ -84,6 +86,10 @@ static void sessionCallBack(CFSocketRef s,
                             CFDataRef address,
                             const void *data,
                             void *info);
+
+- (SpdyStream*)streamForId:(int32_t)stream_id {
+  return [streams objectForKey:STREAM_KEY(stream_id)];
+}
 
 - (void)invalidateSocket {
   if (socket == nil)
@@ -110,6 +116,14 @@ static int make_non_block(int fd) {
     return 0;
 }
 
+static SpdyStream * get_stream_for_id(spdylay_session *session, int32_t stream_id) {
+   SpdySession *spdySession = spdylay_session_get_stream_user_data(session, stream_id);
+   if(spdySession == nil) {
+     SPDY_LOG(@"no session for stream id %d", stream_id);
+   }
+   return [spdySession streamForId:stream_id];
+}
+
 static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_id, uint8_t *buf, size_t length, int *eof, spdylay_data_source *source, void *user_data) {
     NSInputStream* stream = (NSInputStream*)source->ptr;
     NSInteger bytesRead = [stream read:buf maxLength:length];
@@ -117,9 +131,13 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         *eof = 1;
         [stream close];
     }
-    SpdyStream *spdyStream = spdylay_session_get_stream_user_data(session, stream_id);
-    if (bytesRead > 0) {
+    SpdyStream *spdyStream = get_stream_for_id(session, stream_id);
+    if(spdyStream != nil) {
+      if (bytesRead > 0) {
         [[spdyStream delegate] onRequestBytesSent:bytesRead];
+      }
+    } else {
+      SPDY_LOG(@"unhandled stream in read_from_data_callback");
     }
     return bytesRead;
 }
@@ -238,7 +256,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         data_prd.source.ptr = stream.body;
         data_prd.read_callback = read_from_data_callback;
     }
-    if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, stream) < 0) {
+    if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, self) < 0) {
         SPDY_LOG(@"Failed to submit request for %@", stream);
         [stream connectionError];
         return NO;
@@ -259,11 +277,11 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         spdylay_session_client_new(&session, self.spdyVersion, callbacks, self);
 
         NSEnumerator *enumerator = [streams objectEnumerator];
-        id stream;
+        SpdyStream * stream;
         
         while ((stream = [enumerator nextObject])) {
             if (![self submitRequest:stream]) {
-                [streams removeObject:stream];
+	      [streams removeObjectForKey:STREAM_KEY(stream.streamId)];
             }
         }
         SPDY_LOG(@"Reused session: %ld", SSL_session_reused(ssl));
@@ -318,7 +336,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 - (void)addStream:(SpdyStream *)stream {
     stream.parentSession = self;
-    [streams addObject:stream];
+    [streams setObject:stream forKey:STREAM_KEY(stream.streamId)];
     if (self.connectState == CONNECTED) {
         if (![self submitRequest:stream]) {
             return;
@@ -330,6 +348,11 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     } else {
         SPDY_LOG(@"Post-poning %@ until a connection has been established, current state %d", stream, self.connectState);
     }
+}
+    
+- (void)addPushStream:(SpdyStream *)stream {
+    stream.parentSession = self;
+    [streams setObject:stream forKey:STREAM_KEY(stream.streamId)];
 }
     
 - (void)fetch:(NSURL *)u delegate:(RequestCallback *)delegate {
@@ -415,39 +438,73 @@ static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size
 
 static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags, int32_t stream_id,
                                         const uint8_t *data, size_t len, void *user_data) {
-    SpdyStream *stream = spdylay_session_get_stream_user_data(session, stream_id);
-    [stream writeBytes:data len:len];
+    SpdyStream *stream = get_stream_for_id(session, stream_id);
+    if(stream != nil) {
+      [stream writeBytes:data len:len];
+    } else {
+      SPDY_LOG(@"unhandled stream in on_data_chunk_recv_callback");
+    }
 }
 
 static void on_stream_close_callback(spdylay_session *session, int32_t stream_id, spdylay_status_code status_code, void *user_data) {
-    SpdyStream *stream = spdylay_session_get_stream_user_data(session, stream_id);
-    SPDY_LOG(@"Stream closed %@, because spdylay_status_code=%d", stream, status_code);
-    [stream closeStream];
-    SpdySession *ss = (SpdySession *)user_data;
-    [ss removeStream:stream];
+    SpdyStream *stream = get_stream_for_id(session, stream_id);
+    if(stream != nil) {
+      SPDY_LOG(@"Stream closed %@, because spdylay_status_code=%d", stream, status_code);
+      [stream closeStream];
+      SpdySession *ss = (SpdySession *)user_data;
+      [ss removeStream:stream];
+    } else {
+      SPDY_LOG(@"unhandled stream in on_stream_close_callback");
+    }
 }
 
 static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame, void *user_data) {
     if (type == SPDYLAY_SYN_REPLY) {
         spdylay_syn_reply *reply = &frame->syn_reply;
-        SpdyStream *stream = spdylay_session_get_stream_user_data(session, reply->stream_id);
-        SPDY_LOG(@"Received headers for %@", stream)
-        [stream parseHeaders:(const char **)reply->nv];
+        SpdyStream *stream = get_stream_for_id(session, reply->stream_id);
+	if(stream != nil) {
+	  SPDY_LOG(@"Received headers for %@", stream);
+	  [stream parseHeaders:(const char **)reply->nv];
+	} else {
+	  SPDY_LOG(@"unhandled stream in on_ctrl_recv_callback");
+	}
+    } else if (type == SPDYLAY_SYN_STREAM) {
+        SPDY_LOG(@"Server push detected");
+        spdylay_syn_stream *syn = &frame->syn_stream;
+	int32_t stream_id = syn->stream_id;
+	int32_t assoc_stream_id = syn->assoc_stream_id;
+	if(assoc_stream_id == 0) {
+	  SPDY_LOG(@"ignoring server push w/ associated stream id 0");
+	} else {
+	  SpdyStream *assoc_stream = get_stream_for_id(session, assoc_stream_id);
+	  if(assoc_stream == nil) {
+	    SPDY_LOG(@"ignoring server push w/ nil associated stream");
+	  } else {
+	    SpdyStream *push_stream = [SpdyStream newFromAssociatedStream:assoc_stream 
+						  streamId:stream_id
+						  nameValues:syn->nv];
+	    [assoc_stream.parentSession addPushStream:push_stream];
+	  }
+	} 
     }
 }
 
 static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame, void *user_data) {
     if (type == SPDYLAY_SYN_STREAM) {
         spdylay_syn_stream *syn = &frame->syn_stream;
-        SpdyStream *stream = spdylay_session_get_stream_user_data(session, syn->stream_id);
-        [stream setStreamId:syn->stream_id];
-        SPDY_LOG(@"Sending SYN_STREAM for %@", stream);
-        [stream.delegate onConnect:stream];
+        SpdyStream *stream = get_stream_for_id(session, syn->stream_id);
+	if(stream != nil) {
+	  [stream setStreamId:syn->stream_id];
+	  SPDY_LOG(@"Sending SYN_STREAM for %@", stream);
+	  [stream.delegate onConnect:stream];
+	} else {
+	  SPDY_LOG(@"unhandled stream in on_ctrl_recv_callback");
+	}
     }
 }
 
 - (void)removeStream:(SpdyStream *)stream {
-    [streams removeObject:stream];
+  [streams removeObjectForKey:STREAM_KEY(stream.streamId)];
 }
 
 - (SpdySession *)init:(SSL_CTX *)ssl_context oldSession:(SSL_SESSION *)oldSession {
@@ -469,7 +526,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     self.spdyVersion = -1;
     self.connectState = NOT_CONNECTED;
     
-    streams = [[NSMutableSet alloc] init];
+    streams = [[NSMutableDictionary alloc] init];
     
     return self;
 }
