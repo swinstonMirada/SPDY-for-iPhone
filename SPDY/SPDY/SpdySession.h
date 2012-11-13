@@ -62,6 +62,7 @@ typedef enum {
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
 - (void)addToLoop;
+- (int)sendPing;
 
 - (NSInteger)resetStreamsAndGoAway;
 - (SSL_SESSION *)getSslSession;

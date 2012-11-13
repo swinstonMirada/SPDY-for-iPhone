@@ -156,6 +156,12 @@ static int select_next_proto_cb(SSL *ssl,
     return session;
 }
 
+- (void)pingAll:(NSString*)url {
+    for(SpdySession *session in self.sessions) {
+        if (session != nil) [session sendPing];
+    }
+}
+
 - (void)fetch:(NSString *)url delegate:(RequestCallback *)delegate {
     NSURL *u = [NSURL URLWithString:url];
     if (u == nil || u.host == nil) {

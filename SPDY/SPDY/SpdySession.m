@@ -474,6 +474,12 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     return self;
 }
 
+- (int)sendPing {
+   if (session != NULL) 
+     return spdylay_submit_ping(session);
+   return -1;
+}
+
 - (void)dealloc {
     if (session != NULL) {
         spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
