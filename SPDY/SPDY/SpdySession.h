@@ -43,8 +43,9 @@ typedef enum {
     struct spdylay_session *session;
     
     BOOL spdyNegotiated;
-    enum ConnectState connectState;
+    enum ConnectState conn;
     SpdyNetworkStatus networkStatus;
+    void (^pingCallback)();
 }
 
 @property (assign) BOOL spdyNegotiated;
@@ -64,6 +65,8 @@ typedef enum {
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
 - (void)addToLoop;
 - (int)sendPing;
+- (int)sendPingWithCallback:(void (^)())callback;
+- (void)onPingReceived;
 
 - (NSInteger)resetStreamsAndGoAway;
 - (SSL_SESSION *)getSslSession;

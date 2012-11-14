@@ -543,6 +543,9 @@ static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type t
 	  spdylay_settings_entry * entry = settings->iv + i;
 	  SPDY_LOG(@"settings entry id %d flags %d value %d", entry->settings_id, entry->flags, entry->value);
 	}
+    } else if(type == SPDYLAY_PING) {
+      SpdySession * spdySession = (SpdySession*)user_data;
+      [spdySession onPingReceived];
     }
 }
 
@@ -598,10 +601,22 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     return self;
 }
 
+- (int)sendPingWithCallback:(void (^)())callback {
+  [pingCallback release];
+  pingCallback = callback;
+  [pingCallback retain];
+  return [self sendPing];
+}
+
 - (int)sendPing {
    if (session != NULL) 
      return spdylay_submit_ping(session);
    return -1;
+}
+
+- (void)onPingReceived {
+  if(pingCallback != nil) 
+    pingCallback();
 }
 
 - (void)dealloc {
@@ -612,6 +627,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     }
     [streams release];
     [pushStreams release];
+    [pingCallback release];
     if (ssl != NULL) {
         SSL_shutdown(ssl);
         SSL_free(ssl);

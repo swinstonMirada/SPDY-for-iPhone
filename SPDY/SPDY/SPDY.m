@@ -156,10 +156,20 @@ static int select_next_proto_cb(SSL *ssl,
     return session;
 }
 
-- (void)pingAll:(NSString*)url {
-    for(SpdySession *session in self.sessions) {
-        if (session != nil) [session sendPing];
-    }
+-(void)ping:(NSString*)url callback:(void (^)())callback {
+  NSURL *u = [NSURL URLWithString:url];
+  if (u == nil || u.host == nil) {
+    //NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
+    // XXX log error
+    return;
+  }
+  NSError *error = nil;
+  SpdySession *session = [self getSession:u withError:&error];
+  if (session == nil) {
+    // XXX log error
+    return;
+  }
+  [session sendPingWithCallback:callback];
 }
 
 -(SpdySession*)fetch_internal:(NSString*)url delegate:(RequestCallback *)delegate {
@@ -169,7 +179,7 @@ static int select_next_proto_cb(SSL *ssl,
         [delegate onError:error];
         return nil;
     }
-    NSError *error;
+    NSError *error = nil;
     SpdySession *session = [self getSession:u withError:&error];
     if (session == nil) {
         [delegate onError:error];
