@@ -65,9 +65,14 @@ static const int priority = 1;
 
 
 @implementation SpdySession {
-    NSMutableDictionary *streams;
+    NSMutableSet *streams;
+    NSMutableDictionary *pushStreams;
     
     CFSocketRef socket;
+
+    CFReadStreamRef readStream;
+    CFWriteStreamRef writeStream;
+
     SSL *ssl;
     SSL_CTX *ssl_ctx;
     SSL_SESSION *oldSslSession;
@@ -78,6 +83,7 @@ static const int priority = 1;
 @synthesize spdyVersion;
 @synthesize session;
 @synthesize host;
+@synthesize voip;
 @synthesize connectState;
 @synthesize networkStatus;
 
@@ -87,8 +93,10 @@ static void sessionCallBack(CFSocketRef s,
                             const void *data,
                             void *info);
 
-- (SpdyStream*)streamForId:(int32_t)stream_id {
-  return [streams objectForKey:STREAM_KEY(stream_id)];
+- (SpdyStream*)pushStreamForId:(int32_t)stream_id {
+  SPDY_LOG(@"streamForId:%d", stream_id);
+  SPDY_LOG(@"streams %@", streams);
+  return [pushStreams objectForKey:STREAM_KEY(stream_id)];
 }
 
 - (void)invalidateSocket {
@@ -97,6 +105,8 @@ static void sessionCallBack(CFSocketRef s,
 
   CFSocketInvalidate(socket);
   CFRelease(socket);
+  if(readStream != NULL) CFRelease(readStream);
+  if(writeStream != NULL) CFRelease(writeStream);
   socket = nil;
 }
 
@@ -116,12 +126,13 @@ static int make_non_block(int fd) {
     return 0;
 }
 
-static SpdyStream * get_stream_for_id(spdylay_session *session, int32_t stream_id) {
-   SpdySession *spdySession = spdylay_session_get_stream_user_data(session, stream_id);
-   if(spdySession == nil) {
-     SPDY_LOG(@"no session for stream id %d", stream_id);
+static SpdyStream * get_stream_for_id(spdylay_session *session, int32_t stream_id, void* user_data) {
+   SpdyStream *spdyStream = spdylay_session_get_stream_user_data(session, stream_id);
+   if(spdyStream == nil) {
+     SpdySession * spdySession = (SpdySession*)user_data;
+     spdyStream = [spdySession pushStreamForId:stream_id];
    }
-   return [spdySession streamForId:stream_id];
+   return spdyStream;
 }
 
 static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_id, uint8_t *buf, size_t length, int *eof, spdylay_data_source *source, void *user_data) {
@@ -131,7 +142,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         *eof = 1;
         [stream close];
     }
-    SpdyStream *spdyStream = get_stream_for_id(session, stream_id);
+    SpdyStream *spdyStream = get_stream_for_id(session, stream_id, user_data);
     if(spdyStream != nil) {
       if (bytesRead > 0) {
         [[spdyStream delegate] onRequestBytesSent:bytesRead];
@@ -183,6 +194,16 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         int set = 1;
         int sock = CFSocketGetNative(socket);
         setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+
+	if(voip) {
+	  CFStreamCreatePairWithSocket(NULL, sock, &readStream, &writeStream);
+	  CFReadStreamSetProperty(readStream, 
+				  kCFStreamNetworkServiceType, 
+				  kCFStreamNetworkServiceTypeVoIP);
+	  CFWriteStreamSetProperty(writeStream, 
+				   kCFStreamNetworkServiceType, 
+				   kCFStreamNetworkServiceTypeVoIP);    
+	}
         
         CFRelease(address);
         self.connectState = CONNECTING;
@@ -256,7 +277,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         data_prd.source.ptr = stream.body;
         data_prd.read_callback = read_from_data_callback;
     }
-    if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, self) < 0) {
+    if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, stream) < 0) {
         SPDY_LOG(@"Failed to submit request for %@", stream);
         [stream connectionError];
         return NO;
@@ -281,7 +302,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         
         while ((stream = [enumerator nextObject])) {
             if (![self submitRequest:stream]) {
-	      [streams removeObjectForKey:STREAM_KEY(stream.streamId)];
+	      [streams removeObject:stream];
             }
         }
         SPDY_LOG(@"Reused session: %ld", SSL_session_reused(ssl));
@@ -336,7 +357,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 - (void)addStream:(SpdyStream *)stream {
     stream.parentSession = self;
-    [streams setObject:stream forKey:STREAM_KEY(stream.streamId)];
+    [streams addObject:stream];
     if (self.connectState == CONNECTED) {
         if (![self submitRequest:stream]) {
             return;
@@ -352,9 +373,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     
 - (void)addPushStream:(SpdyStream *)stream {
     stream.parentSession = self;
-    [streams setObject:stream forKey:STREAM_KEY(stream.streamId)];
+    [pushStreams setObject:stream forKey:STREAM_KEY(stream.streamId)];
 }
-    
+
 - (void)fetch:(NSURL *)u delegate:(RequestCallback *)delegate {
     SpdyStream *stream = [[SpdyStream newFromNSURL:u delegate:delegate] autorelease];
     [self addStream:stream];
@@ -416,6 +437,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len, int flags, void *user_data) {
+    SPDY_LOG(@"recv_callback");
     SpdySession *ss = (SpdySession *)user_data;
     int r = [ss recv_data:data len:len flags:flags];
     return [ss fixUpCallbackValue:r];
@@ -431,14 +453,40 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 }
 
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
+    SPDY_LOG(@"send_callback");
     SpdySession *ss = (SpdySession*)user_data;
     int r = [ss send_data:data len:len flags:flags];
     return [ss fixUpCallbackValue:r];
 }
 
+static void on_ctrl_recv_parse_error_callback(spdylay_session *session, 
+					      spdylay_frame_type type,
+					      const uint8_t *head, size_t headlen,
+					      const uint8_t *payload, size_t payloadlen,
+					      int error_code, void *user_data) {
+  SPDY_LOG(@"on_ctrl_recv_parse_error_callback: spdylay_frame_type %d error_code %d", type, error_code);
+}
+
+static void on_invalid_ctrl_recv_callback(spdylay_session *session, 
+					  spdylay_frame_type type, 
+					  spdylay_frame *frame,
+					  uint32_t status_code, void *user_data) {
+  SPDY_LOG(@"on_invalid_ctrl_recv_callback: spdylay_frame_type %d status_code %d", 
+	   type, status_code);
+}
+
+static void on_unknown_ctrl_recv_callback(spdylay_session *session,
+					 const uint8_t *head, size_t headlen,
+					 const uint8_t *payload, 
+					 size_t payloadlen,
+					 void *user_data) {
+  SPDY_LOG(@"on_unknown_ctrl_recv_callback");
+}
+
 static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags, int32_t stream_id,
                                         const uint8_t *data, size_t len, void *user_data) {
-    SpdyStream *stream = get_stream_for_id(session, stream_id);
+    SPDY_LOG(@"on_data_chunk_recv_callback");
+    SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);
     if(stream != nil) {
       [stream writeBytes:data len:len];
     } else {
@@ -447,7 +495,8 @@ static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags,
 }
 
 static void on_stream_close_callback(spdylay_session *session, int32_t stream_id, spdylay_status_code status_code, void *user_data) {
-    SpdyStream *stream = get_stream_for_id(session, stream_id);
+    SPDY_LOG(@"on_stream_close_callback");
+    SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);
     if(stream != nil) {
       SPDY_LOG(@"Stream closed %@, because spdylay_status_code=%d", stream, status_code);
       [stream closeStream];
@@ -459,9 +508,10 @@ static void on_stream_close_callback(spdylay_session *session, int32_t stream_id
 }
 
 static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame, void *user_data) {
+    SPDY_LOG(@"on_ctrl_recv_callback type %d", type);
     if (type == SPDYLAY_SYN_REPLY) {
         spdylay_syn_reply *reply = &frame->syn_reply;
-        SpdyStream *stream = get_stream_for_id(session, reply->stream_id);
+        SpdyStream *stream = get_stream_for_id(session, reply->stream_id, user_data);
 	if(stream != nil) {
 	  SPDY_LOG(@"Received headers for %@", stream);
 	  [stream parseHeaders:(const char **)reply->nv];
@@ -476,7 +526,7 @@ static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type t
 	if(assoc_stream_id == 0) {
 	  SPDY_LOG(@"ignoring server push w/ associated stream id 0");
 	} else {
-	  SpdyStream *assoc_stream = get_stream_for_id(session, assoc_stream_id);
+	  SpdyStream *assoc_stream = get_stream_for_id(session, assoc_stream_id, user_data);
 	  if(assoc_stream == nil) {
 	    SPDY_LOG(@"ignoring server push w/ nil associated stream");
 	  } else {
@@ -486,13 +536,21 @@ static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type t
 	    [assoc_stream.parentSession addPushStream:push_stream];
 	  }
 	} 
+    } else if(type == SPDYLAY_SETTINGS) {
+        SPDY_LOG(@"got settings control packet");
+        spdylay_settings *settings = &frame->settings;
+	for(int i = 0 ; i < settings->niv ; i++) {
+	  spdylay_settings_entry * entry = settings->iv + i;
+	  SPDY_LOG(@"settings entry id %d flags %d value %d", entry->settings_id, entry->flags, entry->value);
+	}
     }
 }
 
 static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame, void *user_data) {
+    SPDY_LOG(@"before_ctrl_send_callback type %d", type);
     if (type == SPDYLAY_SYN_STREAM) {
         spdylay_syn_stream *syn = &frame->syn_stream;
-        SpdyStream *stream = get_stream_for_id(session, syn->stream_id);
+        SpdyStream *stream = get_stream_for_id(session, syn->stream_id, user_data);
 	if(stream != nil) {
 	  [stream setStreamId:syn->stream_id];
 	  SPDY_LOG(@"Sending SYN_STREAM for %@", stream);
@@ -504,7 +562,10 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (void)removeStream:(SpdyStream *)stream {
-  [streams removeObjectForKey:STREAM_KEY(stream.streamId)];
+  [stream retain];
+  [streams removeObject:stream];
+  [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
+  [stream release];
 }
 
 - (SpdySession *)init:(SSL_CTX *)ssl_context oldSession:(SSL_SESSION *)oldSession {
@@ -512,6 +573,8 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     ssl_ctx = ssl_context;
     oldSslSession = oldSession;
     
+    SSL_CTX_set_timeout(ssl_context, 1200);
+
     callbacks = malloc(sizeof(*callbacks));
     memset(callbacks, 0, sizeof(*callbacks));
     callbacks->send_callback = send_callback;
@@ -520,13 +583,17 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     callbacks->on_ctrl_recv_callback = on_ctrl_recv_callback;
     callbacks->before_ctrl_send_callback = before_ctrl_send_callback;
     callbacks->on_data_chunk_recv_callback = on_data_chunk_recv_callback;
+    callbacks->on_ctrl_recv_parse_error_callback = on_ctrl_recv_parse_error_callback;
+    callbacks->on_unknown_ctrl_recv_callback = on_unknown_ctrl_recv_callback;
+    callbacks->on_invalid_ctrl_recv_callback = on_invalid_ctrl_recv_callback;
 
     session = NULL;
     self.spdyNegotiated = NO;
     self.spdyVersion = -1;
     self.connectState = NOT_CONNECTED;
     
-    streams = [[NSMutableDictionary alloc] init];
+    streams = [[NSMutableSet alloc] init];
+    pushStreams = [[NSMutableDictionary alloc] init];
     
     return self;
 }
@@ -544,6 +611,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
         session = NULL;
     }
     [streams release];
+    [pushStreams release];
     if (ssl != NULL) {
         SSL_shutdown(ssl);
         SSL_free(ssl);

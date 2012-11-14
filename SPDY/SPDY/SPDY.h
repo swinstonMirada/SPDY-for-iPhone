@@ -74,6 +74,7 @@ enum SpdyErrors {
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
 - (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate;
+- (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate voip:(BOOL)voip;
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate;
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
 

@@ -51,6 +51,7 @@ typedef enum {
 @property (assign) uint16_t spdyVersion;
 @property (assign) struct spdylay_session *session;
 @property (retain) NSURL *host;
+@property (assign) BOOL voip;
 @property (assign) enum ConnectState connectState;
 @property (assign) SpdyNetworkStatus networkStatus;
 

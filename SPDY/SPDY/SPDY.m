@@ -162,20 +162,29 @@ static int select_next_proto_cb(SSL *ssl,
     }
 }
 
-- (void)fetch:(NSString *)url delegate:(RequestCallback *)delegate {
+-(SpdySession*)fetch_internal:(NSString*)url delegate:(RequestCallback *)delegate {
     NSURL *u = [NSURL URLWithString:url];
     if (u == nil || u.host == nil) {
         NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
         [delegate onError:error];
-        return;
+        return nil;
     }
     NSError *error;
     SpdySession *session = [self getSession:u withError:&error];
     if (session == nil) {
         [delegate onError:error];
-        return;
+        return nil;
     }
     [session fetch:u delegate:delegate];
+    return session;
+}
+
+- (void)fetch:(NSString *)url delegate:(RequestCallback *)delegate {
+    [self fetch_internal:url delegate:delegate];
+}
+
+- (void)fetch:(NSString *)url delegate:(RequestCallback *)delegate voip:(BOOL)voip {
+    [self fetch_internal:url delegate:delegate].voip = voip;
 }
 
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate {
@@ -359,8 +368,12 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (void)onStreamClose {
-    CFHTTPMessageSetBody(self.headers, self.body);
-    [self onResponse:self.headers];
+    if(self.headers != NULL && self.body != NULL) {
+      CFHTTPMessageSetBody(self.headers, self.body);
+      [self onResponse:self.headers];
+    } else {
+      SPDY_LOG(@"stream closing in error state: self.headers are %p, self.body %p", self.headers, self.body);
+    }
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {
