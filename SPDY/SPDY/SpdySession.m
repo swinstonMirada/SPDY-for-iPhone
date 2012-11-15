@@ -158,10 +158,30 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     
     char service[10];
     NSNumber *port = [url port];
-    if (port != nil)
+    if (port != nil) {
         snprintf(service, sizeof(service), "%u", [port intValue]);
-    else
+    } else {
+      NSString * scheme = [url scheme];
+      SPDY_LOG(@"got scheme %@", scheme);
+      if([scheme isEqualToString:@"https"]) {
         snprintf(service, sizeof(service), "443");
+	/* 
+	   in theory, bare http could be supported.
+	   in practice, we require tls / ssl / https.
+
+      } else if([scheme isEqualToString:@"http"]) {
+        snprintf(service, sizeof(service), "80");
+	*/
+      } else {
+        self.connectState = ERROR;
+	NSDictionary * dict = [NSDictionary 
+				dictionaryWithObjectsAndKeys:
+				  [[NSString alloc] 
+				    initWithFormat:@"Scheme %@ not supported", scheme], 
+				@"reason", nil];
+	return [NSError errorWithDomain:@"SPDY" code:0 userInfo:dict];
+      }
+    }
     
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET;
