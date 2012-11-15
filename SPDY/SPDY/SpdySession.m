@@ -179,7 +179,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 				  [[NSString alloc] 
 				    initWithFormat:@"Scheme %@ not supported", scheme], 
 				@"reason", nil];
-	return [NSError errorWithDomain:@"SPDY" code:0 userInfo:dict];
+	return [NSError errorWithDomain:kSpdyErrorDomain 
+			code:kSpdyHttpSchemeNotSupported 
+			userInfo:dict];
       }
     }
     

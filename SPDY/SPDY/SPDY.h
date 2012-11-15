@@ -36,6 +36,7 @@ enum SpdyErrors {
     kSpdyRequestCancelled = 2,
     kSpdyConnectionNotSpdy = 3,
     kSpdyInvalidResponseHeaders = 4,
+    kSpdyHttpSchemeNotSupported = 5,
 };
 
 @protocol SpdyRequestIdentifier <NSObject>
