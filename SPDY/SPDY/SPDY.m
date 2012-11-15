@@ -386,8 +386,9 @@ static int select_next_proto_cb(SSL *ssl,
       NSDictionary * dict = [[NSDictionary alloc] 
 			      initWithObjectsAndKeys:
 				@"stream closing in error state", @"reason",
-			      @"data", (NSData*)self.body, nil];
-      NSError * error = [[NSError alloc ] initWithDomain:@"SPDY" code:0 
+			      (NSData*)self.body, @"data", nil];
+      NSError * error = [[NSError alloc ] initWithDomain:kSpdyErrorDomain
+					  code:kSpdyStreamClosedWithNoRepsonseHeaders
 					  userInfo:dict];
       [self onError:error];
     }
