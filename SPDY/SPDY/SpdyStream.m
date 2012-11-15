@@ -224,7 +224,9 @@ static NSSet *headersNotToCopy = nil;
     const char* pathPlus = [self copyString:[url resourceSpecifier]];
     const char* host = [self copyString:[url host]];
     int portLength = [url port] ? [[[url port] stringValue] length] + 1 : 0;
-    nv[5] = pathPlus + strlen(host) + 2 + portLength;
+    const char * path = pathPlus + strlen(host) + 2 + portLength;
+    if(strlen(path) == 0) path = "/"; // don't send an empty path
+    nv[5] = path;
     nv[6] = ":host";
     nv[7] = host;
     nv[8] = ":version";
