@@ -156,17 +156,30 @@ static int select_next_proto_cb(SSL *ssl,
     return session;
 }
 
+- (int)pingWithCallback:(void (^)())callback {
+  int ret = 0;
+  for(SpdySession *session in self.sessions) {
+    if (session != nil) {
+      ret++;
+      [session sendPingWithCallback:callback];
+    }
+  }
+  return ret;
+}
+
 -(void)ping:(NSString*)url callback:(void (^)())callback {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
     //NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
     // XXX log error
+    SPDY_LOG(@"could not ping: bad host");
     return;
   }
   NSError *error = nil;
   SpdySession *session = [self getSession:u withError:&error];
   if (session == nil) {
     // XXX log error
+    SPDY_LOG(@"could not ping: no session");
     return;
   }
   [session sendPingWithCallback:callback];

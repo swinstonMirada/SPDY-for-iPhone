@@ -72,6 +72,7 @@ enum SpdyErrors {
 - (BOOL)isSpdyRegisteredForUrl:(NSURL *)url;
 - (void)unregisterForNSURLConnection;
 
+- (int)pingWithCallback:(void (^)())callback;
 - (void)ping:(NSString*)url callback:(void (^)())callback;
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
