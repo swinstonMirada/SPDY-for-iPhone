@@ -383,6 +383,13 @@ static int select_next_proto_cb(SSL *ssl,
       [self onResponse:self.headers];
     } else {
       SPDY_LOG(@"stream closing in error state: self.headers are %p, self.body %p", self.headers, self.body);
+      NSDictionary * dict = [[NSDictionary alloc] 
+			      initWithObjectsAndKeys:
+				@"stream closing in error state", @"reason",
+			      @"data", (NSData*)self.body, nil];
+      NSError * error = [[NSError alloc ] initWithDomain:@"SPDY" code:0 
+					  userInfo:dict];
+      [self onError:error];
     }
 }
 
