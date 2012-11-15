@@ -336,7 +336,9 @@ static int select_next_proto_cb(SSL *ssl,
 @property (nonatomic, assign) CFMutableDataRef body;
 @end
 
-@implementation BufferedCallback
+@implementation BufferedCallback {
+  BOOL did_response_callback;
+}
 
 @synthesize url = _url;
 @synthesize headers = _headers;
@@ -344,9 +346,12 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (id)init {
     self = [super init];
-    self.url = nil;
-    _headers = NULL;
-    self.body = CFDataCreateMutable(NULL, 0);
+    if(self) {
+      self.url = nil;
+      _headers = NULL;
+      self.body = CFDataCreateMutable(NULL, 0);
+      did_response_callback = NO;
+    }
     return self;
 }
 
@@ -374,13 +379,34 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
     CFDataAppendBytes(self.body, bytes, length);
+    SPDY_LOG(@"appended %zd bytes", length);
+
+    if(!did_response_callback && self.headers != NULL) {
+      NSString* length_str = (NSString*)CFHTTPMessageCopyHeaderFieldValue(self.headers, CFStringCreateWithCString(NULL,"content-length",kCFStringEncodingUTF8));
+      if(length_str != nil) {
+	int content_length = 0;
+	sscanf([length_str UTF8String], "%d", &content_length);
+	SPDY_LOG(@"got content length %d", content_length);
+	[length_str release];
+
+	CFIndex current_data_size = CFDataGetLength(self.body);
+	if(current_data_size == content_length) {
+	  SPDY_LOG(@"got all the data, doing response callback before stream close");
+	  CFHTTPMessageSetBody(self.headers, self.body);
+	  [self onResponse:self.headers];
+	  did_response_callback = YES;
+	}
+      }
+    }
     return length;
 }
 
 - (void)onStreamClose {
+  if(!did_response_callback) {
     if(self.headers != NULL && self.body != NULL) {
       CFHTTPMessageSetBody(self.headers, self.body);
       [self onResponse:self.headers];
+      did_response_callback = YES;
     } else {
       SPDY_LOG(@"stream closing in error state: self.headers are %p, self.body %p", self.headers, self.body);
       NSDictionary * dict = [[NSDictionary alloc] 
@@ -392,6 +418,7 @@ static int select_next_proto_cb(SSL *ssl,
 					  userInfo:dict];
       [self onError:error];
     }
+  }
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {
