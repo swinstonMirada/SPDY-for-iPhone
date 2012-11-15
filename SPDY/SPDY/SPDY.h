@@ -111,6 +111,13 @@ enum SpdyErrors {
 
 @property (nonatomic, retain) NSURL *url;
 
+
+// this callback is created internally to cause existing BufferedCallback objects
+// to get a second onResponse: in the case that a push occurs.
+@interface PushCallback : BufferedCallback 
+
+-(id)initWithParentCallback:(BufferedCallback*)parent;
+
 @end
 
 #define SPDY_LOG(fmt, ...) do { \

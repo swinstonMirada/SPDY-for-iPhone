@@ -308,7 +308,14 @@ static NSSet *headersNotToCopy = nil;
 
 + (SpdyStream *)newFromAssociatedStream:(SpdyStream *)associatedStream streamId:(int32_t)streamId nameValues:(char**)nv {
   SpdyStream *stream = [[SpdyStream alloc] init];
-  stream.delegate = associatedStream.delegate;
+
+  if([stream.delegate isKindOfClass:[BufferedCallback class]]) {
+    stream.delegate = [[PushDelegate alloc] initWithParentCallback:associatedStream.delegate];
+  } else {
+    SPDY_LOG(@"ignoring push stream because the delegate of the associated stream is not a BufferedCallback (it is %@)", [stream.delegate class]);
+  }
+
+
   stream.streamId = streamId;
   stream.stringArena = [stream createArena:2048]; // XXX ??? not sure about this
 

@@ -347,10 +347,14 @@ static int select_next_proto_cb(SSL *ssl,
 
 @property (nonatomic, assign) CFHTTPMessageRef headers;
 @property (nonatomic, assign) CFMutableDataRef body;
+
+-(void)addPushCallback:(PushCallback*)callback;
+
 @end
 
 @implementation BufferedCallback {
   BOOL did_response_callback;
+  NSMutableSet * push_callbacks;
 }
 
 @synthesize url = _url;
@@ -368,10 +372,19 @@ static int select_next_proto_cb(SSL *ssl,
     return self;
 }
 
+-(void)addPushCallback:(PushCallback*)callback {
+  // this is all to make sure the push callbacks get retained
+  if(push_callbacks == nil) {
+    push_callbacks = [[NSMutableSet alloc] init];
+  }
+  [push_callbacks addObject:callback];
+}
+
 - (void)dealloc {
     [_url release];
     CFRelease(_body);
     CFRelease(_headers);
+    [push_callbacks release];
     [super dealloc];
 }
 
@@ -442,6 +455,28 @@ static int select_next_proto_cb(SSL *ssl,
     
 }
 @end
+
+@implementation PushCallback {
+  BufferedCallback * parent;	// unsafe unretained
+}
+-(id)initWithParentCallback:(BufferedCallback*)_parent {
+  self = [super init];
+  if(self) {
+    parent = _parent;		// unsafe unretained
+    [parent addPushCallback:self];
+  }
+  return self;
+}
+
+- (void)onResponse:(CFHTTPMessageRef)response {
+  if(parent) [parent onResponse:response];
+}
+
+- (void)onError:(NSError *)error {
+  if(parent) [parent onError:error];
+}
+@end
+
 
 // Create a delegate derived class of RequestCallback.  Create a context struct.
 // Convert this to an objective-C object that derives from RequestCallback.
