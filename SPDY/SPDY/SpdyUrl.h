@@ -14,7 +14,13 @@ typedef void (^LLSpdyErrorCallback)(NSError*);
 - (void)fetch;
 
 /* causes spdy to send a ping over the associated session, if connected */
-- (void)ping;
+- (void)sendPing;
+
+/* causes sendPing to be called with the specified interval */
+- (void)pingWithTimeInterval:(NSTimeInterval)interval;
+
+/* causes repeated calls to sendPing that were caused by pingWithTimeInterval: to stop */
+- (void)stopPinging;
 
 /* the url being loaded, as a string */
 @property (nonatomic, strong) NSString* urlString;

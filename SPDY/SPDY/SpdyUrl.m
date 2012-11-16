@@ -222,9 +222,24 @@
 
 @implementation SpdyUrl {
   Callback * delegate;
+  NSTimer * pingTimer;
 }
 
-- (void)ping {
+- (void)stopPinging {
+  [pingTimer invalidate];
+  pingTimer = nil;
+}
+
+- (void)pingWithTimeInterval:(NSTimeInterval)interval {
+  // XXX if we are voip, we should use the auto-wakup timer
+
+  [pingTimer invalidate];
+  pingTimer = [NSTimer timerWithTimeInterval:interval 
+		       target:self selector:@selector(ping) 
+		       userInfo:nil repeats:YES];
+}
+
+- (void)sendPing {
   SPDY_LOG(@"pinging");
   [[SPDY sharedSPDY] ping:self.urlString callback:self.pingCallback];
 }
