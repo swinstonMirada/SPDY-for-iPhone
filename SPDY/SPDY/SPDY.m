@@ -454,26 +454,34 @@ static int select_next_proto_cb(SSL *ssl,
 - (void)onError:(NSError *)error {
     
 }
+
+- (void)onPushResponse:(CFHTTPMessageRef)response {
+
+}
+
+- (void)onPushError:(NSError *)error {
+
+}
 @end
 
 @implementation PushCallback {
-  BufferedCallback * parent;	// unsafe unretained
+  __unsafe_unretained BufferedCallback * parent;
 }
 -(id)initWithParentCallback:(BufferedCallback*)_parent {
   self = [super init];
   if(self) {
-    parent = _parent;		// unsafe unretained
+    parent = _parent;
     [parent addPushCallback:self];
   }
   return self;
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {
-  if(parent) [parent onResponse:response];
+  if(parent) [parent onPushResponse:response];
 }
 
 - (void)onError:(NSError *)error {
-  if(parent) [parent onError:error];
+  if(parent) [parent onPushError:error];
 }
 @end
 

@@ -107,7 +107,9 @@ enum SpdyErrors {
 
 // Derived classses should override these methods since BufferedCallback overrides the rest of the callbacks from RequestCallback.
 - (void)onResponse:(CFHTTPMessageRef)response;
+- (void)onPushResponse:(CFHTTPMessageRef)response;
 - (void)onError:(NSError *)error;
+- (void)onPushError:(NSError *)error;
 
 @property (nonatomic, strong) NSURL *url;
 @end
