@@ -36,19 +36,19 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 // In iOS 4.3 and below CFHTTPMessage uppercases the first letter of each word in the http header key.  In iOS 5 and up the headers
 // from CFHTTPMessage are case insenstive.  Thus all header objectForKeys must use Word-Word casing.
 + (NSHTTPURLResponse *)responseWithURL:(NSURL *)url withResponse:(CFHTTPMessageRef)headers withRequestBytes:(NSInteger)requestBytesSent {
-    NSMutableDictionary *headersDict = [[[NSMakeCollectable(CFHTTPMessageCopyAllHeaderFields(headers)) autorelease] mutableCopy] autorelease];
+  NSMutableDictionary *headersDict = [CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(headers)) mutableCopy];
     [headersDict setObject:@"YES" forKey:@"protocol-was: spdy"];
-    NSNumberFormatter *f = [[[NSNumberFormatter alloc] init] autorelease];
+    NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
     NSString *contentType = [headersDict objectForKey:@"Content-Type"];
     NSString *contentLength = [headersDict objectForKey:@"Content-Length"];
     NSNumber *length = [f numberFromString:contentLength];
     NSInteger statusCode = CFHTTPMessageGetResponseStatusCode(headers);
-    NSString *version = [NSMakeCollectable(CFHTTPMessageCopyVersion(headers)) autorelease];
+    NSString *version = CFBridgingRelease(CFHTTPMessageCopyVersion(headers));
     if ([[NSHTTPURLResponse class] instancesRespondToSelector:@selector(initWithURL:statusCode:HTTPVersion:headerFields:)]) {
-        return [[[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode  HTTPVersion:version headerFields:headersDict] autorelease];
+        return [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode  HTTPVersion:version headerFields:headersDict];
     }
     
-    SpdyUrlResponse *response = [[[SpdyUrlResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil] autorelease];
+    SpdyUrlResponse *response = [[SpdyUrlResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil];
     response.statusCode = statusCode;
     response.allHeaderFields = headersDict;
     response.requestBytes = requestBytesSent;
@@ -59,7 +59,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 @interface SpdyUrlCallback : RequestCallback
 - (id)initWithConnection:(SpdyUrlConnection *)protocol;
-@property (retain) SpdyUrlConnection *protocol;
+@property (strong) SpdyUrlConnection *protocol;
 @property (assign) NSInteger requestBytesSent;
 @property (nonatomic, assign) BOOL needUnzip;
 @property (nonatomic, assign) z_stream zlibContext;
@@ -82,7 +82,6 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 - (void)dealloc {
     if (self.needUnzip)
         inflateEnd(&_zlibContext);
-    [super dealloc];
 }
 
 - (void)onConnect:(id<SpdyRequestIdentifier>)spdyId {
@@ -174,7 +173,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 + (void)registerSpdyWithCallback:(id <SpdyUrlConnectionCallback>)callback {
     disabledHosts = [[NSMutableDictionary alloc] init];
-    globalCallback = [callback retain];
+    globalCallback = callback;
     [NSURLProtocol registerClass:[SpdyUrlConnection class]];    
 }
 
@@ -184,9 +183,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 + (void)unregister {
     [NSURLProtocol unregisterClass:[SpdyUrlConnection class]];
-    [disabledHosts release];
     disabledHosts = nil;
-    [globalCallback release];
     globalCallback = nil;
 }
 
@@ -238,14 +235,10 @@ static id <SpdyUrlConnectionCallback> globalCallback;
     return request;
 }
 
-- (void)dealloc {
-    [_spdyIdentifier release];
-    [super dealloc];
-}
 
 - (void)startLoading {
     SPDY_DEBUG_LOG(@"Start loading SpdyURLConnection: %@ with URL: %@", self, [[self request] URL])
-    SpdyUrlCallback *delegate = [[[SpdyUrlCallback alloc] initWithConnection:self] autorelease];
+    SpdyUrlCallback *delegate = [[SpdyUrlCallback alloc] initWithConnection:self];
     [[SPDY sharedSPDY] fetchFromRequest:[self request] delegate:delegate];
 }
 

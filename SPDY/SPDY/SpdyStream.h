@@ -52,10 +52,10 @@
 + (void)staticInit;
 
 @property const char **nameValues;
-@property (retain) RequestCallback *delegate;
-@property (retain) NSInputStream *body;
+@property (strong) RequestCallback *delegate;
+@property (strong) NSInputStream *body;
 @property (assign) NSInteger streamId;
-@property (retain) SpdySession *parentSession;
+@property (strong) SpdySession *parentSession;
 
 @end
 

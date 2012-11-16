@@ -395,7 +395,6 @@
 		3870AF7414E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				"ADDITIONAL_SDKS[arch=*]" = "";
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
@@ -409,6 +408,7 @@
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -426,12 +426,12 @@
 		3870AF7514E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = "$(SRCROOT)/../build/lib";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -450,7 +450,7 @@
 		3870AF7714E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(SRCROOT)/../build/";
@@ -460,6 +460,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
 				INSTALL_PATH = /lib;
@@ -478,7 +479,7 @@
 		3870AF7814E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(SRCROOT)/../build/";
@@ -488,6 +489,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
 				INSTALL_PATH = /lib;
@@ -506,7 +508,6 @@
 		3870AF7A14E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -515,6 +516,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -530,7 +532,6 @@
 		3870AF7B14E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -539,6 +540,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (

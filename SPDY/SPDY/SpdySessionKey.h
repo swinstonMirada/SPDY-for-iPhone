@@ -25,7 +25,7 @@
 - (BOOL)isEqualToKey:(SpdySessionKey *)other;
 
 // host is guaranteed to be not nil.
-@property (nonatomic, retain, readonly) NSString *host;
+@property (nonatomic, strong, readonly) NSString *host;
 // port is optional.
-@property (nonatomic, retain, readonly) NSNumber *port;
+@property (nonatomic, strong, readonly) NSNumber *port;
 @end

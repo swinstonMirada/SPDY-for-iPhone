@@ -84,7 +84,7 @@ enum SpdyErrors {
 // Cancels all active requests and closes all connections.  Returns the number of requests that were cancelled.  Ideally this should be called when all requests have already been canceled.
 - (NSInteger)closeAllSessions;
 
-@property (retain) NSObject<SpdyLogger> *logger;
+@property (strong) NSObject<SpdyLogger> *logger;
 @end
 
 @interface RequestCallback : NSObject {
@@ -109,7 +109,7 @@ enum SpdyErrors {
 - (void)onResponse:(CFHTTPMessageRef)response;
 - (void)onError:(NSError *)error;
 
-@property (nonatomic, retain) NSURL *url;
+@property (nonatomic, strong) NSURL *url;
 @end
 
 

@@ -127,16 +127,16 @@ static int make_non_block(int fd) {
 }
 
 static SpdyStream * get_stream_for_id(spdylay_session *session, int32_t stream_id, void* user_data) {
-   SpdyStream *spdyStream = spdylay_session_get_stream_user_data(session, stream_id);
+   SpdyStream *spdyStream = (__bridge SpdyStream *)(spdylay_session_get_stream_user_data(session, stream_id));
    if(spdyStream == nil) {
-     SpdySession * spdySession = (SpdySession*)user_data;
+     SpdySession * spdySession = (__bridge SpdySession*)user_data;
      spdyStream = [spdySession pushStreamForId:stream_id];
    }
    return spdyStream;
 }
 
 static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_id, uint8_t *buf, size_t length, int *eof, spdylay_data_source *source, void *user_data) {
-    NSInputStream* stream = (NSInputStream*)source->ptr;
+    NSInputStream* stream = (__bridge NSInputStream*)source->ptr;
     NSInteger bytesRead = [stream read:buf maxLength:length];
     if (![stream hasBytesAvailable]) {
         *eof = 1;
@@ -206,7 +206,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
     struct addrinfo* rp = res;
     if (rp != NULL) {
-        CFSocketContext ctx = {0, self, NULL, NULL, NULL};
+        CFSocketContext ctx = {0, (__bridge void *)(self), NULL, NULL, NULL};
         CFDataRef address = CFDataCreate(NULL, (const uint8_t*)rp->ai_addr, rp->ai_addrlen);
         socket = CFSocketCreate(NULL, PF_INET, SOCK_STREAM, IPPROTO_TCP, kCFSocketConnectCallBack | kCFSocketReadCallBack | kCFSocketWriteCallBack,
                                 &sessionCallBack, &ctx);
@@ -296,10 +296,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     spdylay_data_provider data_prd = {-1, NULL};
     if (stream.body != nil) {
         [stream.body open];
-        data_prd.source.ptr = stream.body;
+        data_prd.source.ptr = (__bridge void *)(stream.body);
         data_prd.read_callback = read_from_data_callback;
     }
-    if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, stream) < 0) {
+    if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, (__bridge void *)(stream)) < 0) {
         SPDY_LOG(@"Failed to submit request for %@", stream);
         [stream connectionError];
         return NO;
@@ -317,7 +317,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
             return NO;
         }
 
-        spdylay_session_client_new(&session, self.spdyVersion, callbacks, self);
+        spdylay_session_client_new(&session, self.spdyVersion, callbacks, (__bridge void *)(self));
 
         NSEnumerator *enumerator = [streams objectEnumerator];
         SpdyStream * stream;
@@ -357,7 +357,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         [self sslError];
         return;
     }
-    SSL_set_app_data(ssl, self);
+    SSL_set_app_data(ssl, (__bridge void*)self);
     if (oldSslSession) {
         SSL_set_session(ssl, oldSslSession);
         SSL_SESSION_free(oldSslSession);  // Reference taken in getSslSession.
@@ -399,17 +399,17 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)fetch:(NSURL *)u delegate:(RequestCallback *)delegate {
-    SpdyStream *stream = [[SpdyStream newFromNSURL:u delegate:delegate] autorelease];
+    SpdyStream *stream = [SpdyStream newFromNSURL:u delegate:delegate];
     [self addStream:stream];
 }
 
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body {
-    SpdyStream *stream = [[SpdyStream newFromCFHTTPMessage:request delegate:delegate body:body] autorelease];
+    SpdyStream *stream = [SpdyStream newFromCFHTTPMessage:request delegate:delegate body:body];
     [self addStream:stream];
 }
 
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate {
-    SpdyStream *stream = [[SpdyStream newFromRequest:(NSURLRequest *)request delegate:delegate] autorelease];
+    SpdyStream *stream = [SpdyStream newFromRequest:(NSURLRequest *)request delegate:delegate];
     [self addStream:stream];
 }
 
@@ -460,7 +460,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len, int flags, void *user_data) {
     SPDY_LOG(@"recv_callback");
-    SpdySession *ss = (SpdySession *)user_data;
+    SpdySession *ss = (__bridge SpdySession *)user_data;
     int r = [ss recv_data:data len:len flags:flags];
     return [ss fixUpCallbackValue:r];
 }
@@ -476,7 +476,7 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
     SPDY_LOG(@"send_callback");
-    SpdySession *ss = (SpdySession*)user_data;
+    SpdySession *ss = (__bridge SpdySession*)user_data;
     int r = [ss send_data:data len:len flags:flags];
     return [ss fixUpCallbackValue:r];
 }
@@ -522,7 +522,7 @@ static void on_stream_close_callback(spdylay_session *session, int32_t stream_id
     if(stream != nil) {
       SPDY_LOG(@"Stream closed %@, because spdylay_status_code=%d", stream, status_code);
       [stream closeStream];
-      SpdySession *ss = (SpdySession *)user_data;
+      SpdySession *ss = (__bridge SpdySession *)user_data;
       [ss removeStream:stream];
     } else {
       SPDY_LOG(@"unhandled stream in on_stream_close_callback");
@@ -566,7 +566,7 @@ static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type t
 	  SPDY_LOG(@"settings entry id %d flags %d value %d", entry->settings_id, entry->flags, entry->value);
 	}
     } else if(type == SPDYLAY_PING) {
-      SpdySession * spdySession = (SpdySession*)user_data;
+      SpdySession * spdySession = (__bridge SpdySession*)user_data;
       [spdySession onPingReceived];
     }
 }
@@ -587,10 +587,8 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (void)removeStream:(SpdyStream *)stream {
-  [stream retain];
   [streams removeObject:stream];
   [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
-  [stream release];
 }
 
 - (SpdySession *)init:(SSL_CTX *)ssl_context oldSession:(SSL_SESSION *)oldSession {
@@ -624,13 +622,12 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (int)sendPingWithCallback:(void (^)())callback {
-  [pingCallback release];
   pingCallback = callback;
-  [pingCallback retain];
   return [self sendPing];
 }
 
 - (int)sendPing {
+   SPDY_LOG(@"sendPing w/ session %p", session);
    if (session != NULL) 
      return spdylay_submit_ping(session);
    return -1;
@@ -647,16 +644,12 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
         spdylay_session_del(session);
         session = NULL;
     }
-    [streams release];
-    [pushStreams release];
-    [pingCallback release];
     if (ssl != NULL) {
         SSL_shutdown(ssl);
         SSL_free(ssl);
     }
     [self invalidateSocket];
     free(callbacks);
-    [super dealloc];
 }
 
 - (NSString *)description {
@@ -673,7 +666,7 @@ static void sessionCallBack(CFSocketRef s,
     if (info == NULL) {
         return;
     }
-    SpdySession *session = (SpdySession *)info;
+    SpdySession *session = (__bridge SpdySession *)info;
     if (session.connectState == CONNECTING) {
         if (data != NULL) {
             int e = *(int *)data;

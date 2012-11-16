@@ -48,7 +48,7 @@ static int select_next_proto_cb(SSL *ssl,
                                 unsigned char **out, unsigned char *outlen,
                                 const unsigned char *in, unsigned int inlen,
                                 void *arg) {
-    SpdySession *sc = (SpdySession *)SSL_get_app_data(ssl);
+    SpdySession *sc = (__bridge SpdySession *)SSL_get_app_data(ssl);
     int spdyVersion = spdylay_select_next_protocol(out, outlen, in, inlen);
     if (spdyVersion > 0) {
         sc.spdyVersion = spdyVersion;
@@ -78,7 +78,7 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (void)setUpSslCtx;
 
-@property (nonatomic, retain) NSMutableDictionary *sessions;
+@property (nonatomic, strong) NSMutableDictionary *sessions;
 @property (nonatomic, assign) SSL_CTX *ssl_ctx;
 
 @end
@@ -128,7 +128,7 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (SpdySession *)getSession:(NSURL *)url withError:(NSError **)error {
     assert(error != NULL);
-    SpdySessionKey *key = [[[SpdySessionKey alloc] initFromUrl:url] autorelease];
+    SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
     SpdySession *session = [self.sessions objectForKey:key];
     SPDY_LOG(@"Looking up %@, found %@", key, session);
     SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
@@ -141,7 +141,7 @@ static int select_next_proto_cb(SSL *ssl,
         session = nil;
     }
     if (session == nil) {
-        session = [[[SpdySession alloc] init:self.ssl_ctx oldSession:oldSslSession] autorelease];
+        session = [[SpdySession alloc] init:self.ssl_ctx oldSession:oldSslSession];
         *error = [session connect:url];
         if (*error != nil) {
             SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
@@ -217,7 +217,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body {
     CFURLRef url = CFHTTPMessageCopyRequestURL(request);
     NSError *error;
-    SpdySession *session = [self getSession:(NSURL *)url withError:&error];
+    SpdySession *session = [self getSession:(__bridge NSURL *)url withError:&error];
     if (session == nil) {
         [delegate onError:error];
     } else {
@@ -252,7 +252,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (SPDY *)init {
     self = [super init];
     if (self) {
-        self.logger = [[[SpdyLogImpl alloc] init] autorelease];
+        self.logger = [[SpdyLogImpl alloc] init];
         self.sessions = [[NSMutableDictionary alloc] init];
         [self setUpSslCtx];
     }
@@ -260,10 +260,7 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (void)dealloc {
-    [_logger release];
-    [_sessions release];
     SSL_CTX_free(_ssl_ctx);
-    [super dealloc];
 }
 
 - (void)setUpSslCtx {
@@ -275,7 +272,7 @@ static int select_next_proto_cb(SSL *ssl,
     SSL_CTX_set_mode(self.ssl_ctx, SSL_MODE_AUTO_RETRY);
     SSL_CTX_set_mode(self.ssl_ctx, SSL_MODE_RELEASE_BUFFERS);
     SSL_CTX_set_mode(self.ssl_ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
-    SSL_CTX_set_next_proto_select_cb(self.ssl_ctx, select_next_proto_cb, self);
+    SSL_CTX_set_next_proto_select_cb(self.ssl_ctx, select_next_proto_cb, (__bridge void *)(self));
     SSL_CTX_set_session_cache_mode(self.ssl_ctx, SSL_SESS_CACHE_CLIENT);
 }
 
@@ -381,11 +378,8 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (void)dealloc {
-    [_url release];
     CFRelease(_body);
     CFRelease(_headers);
-    [push_callbacks release];
-    [super dealloc];
 }
 
 - (void)setHeaders:(CFHTTPMessageRef)h {
@@ -407,13 +401,14 @@ static int select_next_proto_cb(SSL *ssl,
     CFDataAppendBytes(self.body, bytes, length);
     SPDY_LOG(@"appended %zd bytes", length);
 
+    SPDY_LOG(@"headers are %p", self.headers);
+
     if(!did_response_callback && self.headers != NULL) {
-      NSString* length_str = (NSString*)CFHTTPMessageCopyHeaderFieldValue(self.headers, CFStringCreateWithCString(NULL,"content-length",kCFStringEncodingUTF8));
+      NSString* length_str = (NSString*)CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(self.headers, CFStringCreateWithCString(NULL,"content-length",kCFStringEncodingUTF8)));
       if(length_str != nil) {
 	int content_length = 0;
 	sscanf([length_str UTF8String], "%d", &content_length);
 	SPDY_LOG(@"got content length %d", content_length);
-	[length_str release];
 
 	CFIndex current_data_size = CFDataGetLength(self.body);
 	if(current_data_size == content_length) {
@@ -422,6 +417,11 @@ static int select_next_proto_cb(SSL *ssl,
 	  [self onResponse:self.headers];
 	  did_response_callback = YES;
 	}
+      } else {
+	NSDictionary * headers = (NSDictionary*)CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(self.headers));
+	SPDY_LOG(@"did not get content-length");
+	SPDY_LOG(@"headers: %@", headers);
+
       }
     }
     return length;
@@ -487,7 +487,7 @@ static int select_next_proto_cb(SSL *ssl,
 
 @property (assign) BOOL opened;
 @property (assign) int error;
-@property (retain) SpdyInputStream *readStreamPair;
+@property (strong) SpdyInputStream *readStreamPair;
 @end
 
 
@@ -502,7 +502,7 @@ static int select_next_proto_cb(SSL *ssl,
     
     CFReadStreamRef baseReadStream;
     CFStreamCreateBoundPair(a, &baseReadStream, &writeStreamPair, 16 * 1024);
-    self.readStreamPair = [[[SpdyInputStream alloc] init:(NSInputStream *)baseReadStream] autorelease];
+    self.readStreamPair = [[SpdyInputStream alloc] init:(__bridge NSInputStream *)baseReadStream];
     self.opened = NO;
     requestBytesWritten = 0;
     return self;
@@ -517,8 +517,6 @@ static int select_next_proto_cb(SSL *ssl,
         CFWriteStreamClose(writeStreamPair);
     }
     CFRelease(writeStreamPair);
-    self.readStreamPair = nil;
-    [super dealloc];
 }
 
 - (void)setResponseHeaders:(CFHTTPMessageRef)h {
@@ -564,11 +562,11 @@ static int select_next_proto_cb(SSL *ssl,
 @end
 
 CFReadStreamRef SpdyCreateSpdyReadStream(CFAllocatorRef alloc, CFHTTPMessageRef requestHeaders, CFReadStreamRef requestBody) {
-    _SpdyCFStream *ctx = [[[_SpdyCFStream alloc] init:alloc] autorelease];
+    _SpdyCFStream *ctx = [[_SpdyCFStream alloc] init:alloc];
     if (ctx) {
         SPDY *spdy = [SPDY sharedSPDY];
-        [spdy fetchFromMessage:requestHeaders delegate:ctx body:(NSInputStream *)requestBody];
-        return (CFReadStreamRef)[[ctx readStreamPair] retain];
+        [spdy fetchFromMessage:requestHeaders delegate:ctx body:(__bridge NSInputStream *)requestBody];
+        return (CFReadStreamRef)CFBridgingRetain([ctx readStreamPair]);
      }
      return NULL;
 }

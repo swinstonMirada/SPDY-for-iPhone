@@ -31,8 +31,8 @@ static NSSet *headersNotToCopy = nil;
 - (int)serializeHeadersDict:(NSDictionary *)headers fromIndex:(int)index;
 - (CFHTTPMessageRef)newResponseMessage:(const char **)nameValuePairs;
 
-@property (retain) NSMutableData *stringArena;
-@property (retain) NSURL *url;
+@property (strong) NSMutableData *stringArena;
+@property (strong) NSURL *url;
 
 @end
 
@@ -70,12 +70,7 @@ static NSSet *headersNotToCopy = nil;
 }
 
 - (void)dealloc {
-    self.body = nil;
-    self.stringArena = nil;
-    self.parentSession = nil;
-    [arenas release];
     free(nameValues);
-    [super dealloc];
 }
 
 - (NSString *)description {
@@ -202,8 +197,8 @@ static NSSet *headersNotToCopy = nil;
 
     self.nameValues = malloc((count * 2 + 6*2 + 1) * sizeof(const char *));
     
-    int index = [self serializeUrl:(NSURL *)url withMethod:(NSString *)method withVersion:(NSString *)version];
-    index = [self serializeHeadersDict:(NSDictionary *)d fromIndex:index];
+    int index = [self serializeUrl:(__bridge NSURL *)url withMethod:(__bridge NSString *)method withVersion:(__bridge NSString *)version];
+    index = [self serializeHeadersDict:(__bridge NSDictionary *)d fromIndex:index];
     self.nameValues[index] = NULL;
 
     CFRelease(url);
@@ -227,10 +222,18 @@ static NSSet *headersNotToCopy = nil;
     const char * path = pathPlus + strlen(host) + 2 + portLength;
     if(strlen(path) == 0) path = "/"; // don't send an empty path
     nv[5] = path;
+    SPDY_LOG(@"PATH IS '%s'", nv[5]);
     nv[6] = ":host";
     nv[7] = host;
     nv[8] = ":version";
     nv[9] = [self copyString:version];
+
+
+    SPDY_LOG(@"Name value pairs for SYN_STREAM:");
+    for(int i = 0 ; i < 5 ; i++) {
+      SPDY_LOG(@"\t%s => %s", nv[i*2], nv[i*2+1]);
+    }
+
     return 10;
 }
 
@@ -259,13 +262,13 @@ static NSSet *headersNotToCopy = nil;
 + (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(RequestCallback *)delegate body:(NSInputStream *)body {
     SpdyStream *stream = [[SpdyStream alloc] init];
     CFURLRef u = CFHTTPMessageCopyRequestURL(msg);
-    stream.url = (NSURL *)u;
+    stream.url = (__bridge NSURL *)u;
     if (body != nil) {
         stream.body = body;
     } else {
         CFDataRef bodyData = CFHTTPMessageCopyBody(msg);
         if (bodyData != NULL) {
-            stream.body = [NSInputStream inputStreamWithData:(NSData *)bodyData];
+            stream.body = [NSInputStream inputStreamWithData:(__bridge NSData *)bodyData];
             CFRelease(bodyData);
         }
     }
