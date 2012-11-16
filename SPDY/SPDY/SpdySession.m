@@ -627,10 +627,14 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (int)sendPing {
-   SPDY_LOG(@"sendPing w/ session %p", session);
-   if (session != NULL) 
-     return spdylay_submit_ping(session);
-   return -1;
+  int ret = -1;
+  if (session != NULL) 
+    ret = spdylay_submit_ping(session);
+  if(ret == 0)
+    spdylay_session_send(session);
+
+  SPDY_LOG(@"sendPing w/ session %p returning %d", session, ret);
+  return ret;
 }
 
 - (void)onPingReceived {
