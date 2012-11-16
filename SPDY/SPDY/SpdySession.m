@@ -530,21 +530,19 @@ static void on_stream_close_callback(spdylay_session *session, int32_t stream_id
 }
 
 static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame, void *user_data) {
-    SPDY_LOG(@"on_ctrl_recv_callback type %d", type);
     if (type == SPDYLAY_SYN_REPLY) {
         spdylay_syn_reply *reply = &frame->syn_reply;
         SpdyStream *stream = get_stream_for_id(session, reply->stream_id, user_data);
 	if(stream != nil) {
-	  SPDY_LOG(@"Received headers for %@", stream);
 	  [stream parseHeaders:(const char **)reply->nv];
 	} else {
 	  SPDY_LOG(@"unhandled stream in on_ctrl_recv_callback");
 	}
     } else if (type == SPDYLAY_SYN_STREAM) {
-        SPDY_LOG(@"Server push detected");
         spdylay_syn_stream *syn = &frame->syn_stream;
 	int32_t stream_id = syn->stream_id;
 	int32_t assoc_stream_id = syn->assoc_stream_id;
+	
 	if(assoc_stream_id == 0) {
 	  SPDY_LOG(@"ignoring server push w/ associated stream id 0");
 	} else {
@@ -555,11 +553,12 @@ static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type t
 	    SpdyStream *push_stream = [SpdyStream newFromAssociatedStream:assoc_stream 
 						  streamId:stream_id
 						  nameValues:syn->nv];
+
 	    [assoc_stream.parentSession addPushStream:push_stream];
+	    [push_stream parseHeaders:(const char **)syn->nv];
 	  }
 	} 
     } else if(type == SPDYLAY_SETTINGS) {
-        SPDY_LOG(@"got settings control packet");
         spdylay_settings *settings = &frame->settings;
 	for(int i = 0 ; i < settings->niv ; i++) {
 	  spdylay_settings_entry * entry = settings->iv + i;
