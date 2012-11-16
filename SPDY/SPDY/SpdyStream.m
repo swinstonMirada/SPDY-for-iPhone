@@ -310,7 +310,7 @@ static NSSet *headersNotToCopy = nil;
   SpdyStream *stream = [[SpdyStream alloc] init];
 
   if([stream.delegate isKindOfClass:[BufferedCallback class]]) {
-    stream.delegate = [[PushDelegate alloc] initWithParentCallback:associatedStream.delegate];
+    stream.delegate = [[PushCallback alloc] initWithParentCallback:(BufferedCallback*)associatedStream.delegate];
   } else {
     SPDY_LOG(@"ignoring push stream because the delegate of the associated stream is not a BufferedCallback (it is %@)", [stream.delegate class]);
   }

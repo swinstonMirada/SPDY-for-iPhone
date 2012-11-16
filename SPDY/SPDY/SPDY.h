@@ -110,6 +110,7 @@ enum SpdyErrors {
 - (void)onError:(NSError *)error;
 
 @property (nonatomic, retain) NSURL *url;
+@end
 
 
 // this callback is created internally to cause existing BufferedCallback objects
