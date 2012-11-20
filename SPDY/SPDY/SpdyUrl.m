@@ -248,11 +248,15 @@
   [[SPDY sharedSPDY] ping:self.urlString callback:self.pingCallback];
 }
 
--(void)fetch {
+-(void)doGET {
   [[SPDY sharedSPDY] fetch:self.urlString delegate:delegate voip:_voip];
 }
 
-- (id)initWithUrl:(NSString *)urlString {
+- (void)teardown {
+  [[SPDY sharedSPDY] teardown:self.urlString];
+}
+
+- (id)initWithUrlString:(NSString *)urlString {
   self = [super init];
   if(self) {
     delegate = [[Callback alloc] init:self];

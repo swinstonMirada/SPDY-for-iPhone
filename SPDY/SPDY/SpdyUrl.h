@@ -10,13 +10,16 @@ typedef void (^LLSpdyVoidCallback)();
 
 @interface SpdyUrl : NSObject
 
-- (id)initWithUrl:(NSString *)url;
+- (id)initWithUrlString:(NSString *)url;
 
-/* causes the url to be loaded */
-- (void)fetch;
+/* causes the url to be loaded via HTTP GET */
+- (void)doGET;
 
 /* causes spdy to send a ping over the associated session, if connected */
 - (void)sendPing;
+
+/* closes all streams and sends a GOAWAY on the associated session */
+- (void)teardown;
 
 /* the url being loaded, as a string */
 @property (nonatomic, strong) NSString* urlString;

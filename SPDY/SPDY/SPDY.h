@@ -91,6 +91,7 @@ enum SpdyErrors {
 
 - (int)pingWithCallback:(void (^)())callback;
 - (void)ping:(NSString*)url callback:(void (^)())callback;
+- (void)teardown:(NSString*)url;
 
 - (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url;
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url;

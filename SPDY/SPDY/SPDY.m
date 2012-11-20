@@ -202,6 +202,19 @@ static int select_next_proto_cb(SSL *ssl,
     return session;
 }
 
+- (void)teardown:(NSString*)url {
+  NSURL *u = [NSURL URLWithString:url];
+  if (u == nil || u.host == nil) {
+    return;
+  }
+  NSError *error = nil;
+  SpdySession *session = [self getSession:u withError:&error];
+  if (session == nil) {
+    return;
+  }
+  [session resetStreamsAndGoAway];
+}
+
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
