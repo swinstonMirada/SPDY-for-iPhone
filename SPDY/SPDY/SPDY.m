@@ -130,11 +130,11 @@ static int select_next_proto_cb(SSL *ssl,
     assert(error != NULL);
     SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
     SpdySession *session = [self.sessions objectForKey:key];
-    SPDY_LOG(@"Looking up %@, found %@", key, session);
+    //SPDY_LOG(@"Looking up %@, found %@", key, session);
     SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
     SSL_SESSION *oldSslSession =  NULL;
     if (session != nil && ([session isInvalid] || currentStatus != session.networkStatus)) {
-        SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
+        //SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
         [session resetStreamsAndGoAway];
         oldSslSession = [session getSslSession];
         [self.sessions removeObjectForKey:key];
@@ -147,7 +147,7 @@ static int select_next_proto_cb(SSL *ssl,
             SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
             return nil;
         }
-        SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
+        //SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
         currentStatus = [self.class reachabilityStatusForHost:key.host];
         session.networkStatus = currentStatus;
         [self.sessions setObject:session forKey:key];
@@ -200,6 +200,32 @@ static int select_next_proto_cb(SSL *ssl,
     }
     [session fetch:u delegate:delegate];
     return session;
+}
+
+- (SpdyConnectState)connectStateForUrlString:(NSString*)url {
+  NSURL *u = [NSURL URLWithString:url];
+  if (u == nil || u.host == nil) {
+    return kSpdyHostNotFound;
+  }
+  NSError *error = nil;
+  SpdySession *session = [self getSession:u withError:&error];
+  if (session == nil) {
+    return kSpdyStreamNotFound;
+  }
+  return session.connectState;
+}
+
+- (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url {
+  NSURL *u = [NSURL URLWithString:url];
+  if (u == nil || u.host == nil) {
+    return kSpdyHostNotFound;
+  }
+  NSError *error = nil;
+  SpdySession *session = [self getSession:u withError:&error];
+  if (session == nil) {
+    return kSpdyStreamNotFound;
+  }
+  return session.networkStatus;
 }
 
 - (void)fetch:(NSString *)url delegate:(RequestCallback *)delegate {
@@ -399,28 +425,28 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
     CFDataAppendBytes(self.body, bytes, length);
-    SPDY_LOG(@"appended %zd bytes", length);
+    //SPDY_LOG(@"appended %zd bytes", length);
 
-    SPDY_LOG(@"headers are %p", self.headers);
+    //SPDY_LOG(@"headers are %p", self.headers);
 
     if(!did_response_callback && self.headers != NULL) {
       NSString* length_str = (NSString*)CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(self.headers, CFStringCreateWithCString(NULL,"content-length",kCFStringEncodingUTF8)));
       if(length_str != nil) {
 	int content_length = 0;
 	sscanf([length_str UTF8String], "%d", &content_length);
-	SPDY_LOG(@"got content length %d", content_length);
+	//SPDY_LOG(@"got content length %d", content_length);
 
 	CFIndex current_data_size = CFDataGetLength(self.body);
 	if(current_data_size == content_length) {
-	  SPDY_LOG(@"got all the data, doing response callback before stream close");
+	  //SPDY_LOG(@"got all the data, doing response callback before stream close");
 	  CFHTTPMessageSetBody(self.headers, self.body);
 	  [self onResponse:self.headers];
 	  did_response_callback = YES;
 	}
       } else {
-	NSDictionary * headers = (NSDictionary*)CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(self.headers));
-	SPDY_LOG(@"did not get content-length");
-	SPDY_LOG(@"headers: %@", headers);
+	//NSDictionary * headers = (NSDictionary*)CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(self.headers));
+	//SPDY_LOG(@"did not get content-length");
+	//SPDY_LOG(@"headers: %@", headers);
 
       }
     }

@@ -20,30 +20,18 @@
 #import <Foundation/Foundation.h>
 #include "openssl/ssl.h"
 
+#include "SPDY.h"
+
 @class RequestCallback;
 @class SpdyStream;
 
 struct spdylay_session;
 
-enum ConnectState {
-    NOT_CONNECTED,
-    CONNECTING,
-    SSL_HANDSHAKE,
-    CONNECTED,
-    ERROR,
-};
-
-typedef enum {
-    kSpdyNotReachable = 0,
-    kSpdyReachableViaWWAN,
-    kSpdyReachableViaWiFi	
-} SpdyNetworkStatus;
-
 @interface SpdySession : NSObject {
     struct spdylay_session *session;
     
     BOOL spdyNegotiated;
-    enum ConnectState conn;
+    SpdyConnectState conn;
     SpdyNetworkStatus networkStatus;
     void (^pingCallback)();
 }
@@ -53,7 +41,7 @@ typedef enum {
 @property (assign) struct spdylay_session *session;
 @property (strong) NSURL *host;
 @property (assign) BOOL voip;
-@property (assign) enum ConnectState connectState;
+@property (assign) SpdyConnectState connectState;
 @property (assign) SpdyNetworkStatus networkStatus;
 
 - (SpdySession *)init:(SSL_CTX *)ssl_ctx oldSession:(SSL_SESSION *)oldSession;

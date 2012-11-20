@@ -19,6 +19,23 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum {
+    kSpdyNotConnected,
+    kSpdyConnecting,
+    kSpdySslHandshake,
+    kSpdyConnected,
+    kSpdyError,
+} SpdyConnectState;
+
+#define kSpdyStreamNotFound -1
+#define kSpdyHostNotFound -2
+
+typedef enum {
+    kSpdyNotReachable = 0,
+    kSpdyReachableViaWWAN,
+    kSpdyReachableViaWiFi	
+} SpdyNetworkStatus;
+
 @class RequestCallback;
 
 // Returns a CFReadStream.  If requestBody is non-NULL the request method in requestHeaders must
@@ -74,6 +91,9 @@ enum SpdyErrors {
 
 - (int)pingWithCallback:(void (^)())callback;
 - (void)ping:(NSString*)url callback:(void (^)())callback;
+
+- (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url;
+- (SpdyConnectState)connectStateForUrlString:(NSString*)url;
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
 - (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate;

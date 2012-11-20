@@ -1,10 +1,12 @@
 #import <Foundation/Foundation.h>
 
+#import "SPDY.h"
+
 @class SpdyUrl;
 
-typedef void (^LLSpdyPingCallback)();
 typedef void (^LLSpdySuccessCallback)(NSHTTPURLResponse*,NSData*);
 typedef void (^LLSpdyErrorCallback)(NSError*);
+typedef void (^LLSpdyVoidCallback)();
 
 @interface SpdyUrl : NSObject
 
@@ -15,12 +17,6 @@ typedef void (^LLSpdyErrorCallback)(NSError*);
 
 /* causes spdy to send a ping over the associated session, if connected */
 - (void)sendPing;
-
-/* causes sendPing to be called with the specified interval */
-- (void)pingWithTimeInterval:(NSTimeInterval)interval;
-
-/* causes repeated calls to sendPing that were caused by pingWithTimeInterval: to stop */
-- (void)stopPinging;
 
 /* the url being loaded, as a string */
 @property (nonatomic, strong) NSString* urlString;
@@ -36,7 +32,13 @@ typedef void (^LLSpdyErrorCallback)(NSError*);
    This needs to be set before the message fetch is sent. */
 @property (nonatomic, assign) BOOL voip;
 
+/* returns the current network status (3g, wifi, etc) of the underlying session.
+   This enum is defined in SPDY.h */
+@property (nonatomic, assign, readonly) SpdyNetworkStatus networkStatus;
 
+/* returns the current connection state (connected, connecting, etc) of the underlying
+   session.  This enum is defined in SPDY.h */
+@property (nonatomic, assign, readonly) SpdyConnectState connectState; 
 
 /* Block Callbacks */
 
@@ -53,6 +55,9 @@ typedef void (^LLSpdyErrorCallback)(NSError*);
 @property (nonatomic, copy) LLSpdyErrorCallback pushErrorCallback;
 
 /* called when a ping response is received */
-@property (nonatomic, copy) LLSpdyPingCallback pingCallback;
+@property (nonatomic, copy) LLSpdyVoidCallback pingCallback;
+
+/* called when the stream is closed */
+@property (nonatomic, copy) LLSpdyVoidCallback streamCloseCallback;
 
 @end

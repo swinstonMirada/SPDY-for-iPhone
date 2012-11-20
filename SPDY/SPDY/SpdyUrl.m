@@ -4,6 +4,7 @@
 @interface SpdyUrl (Private)
 -(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message;
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message;
+-(void)doStreamCloseCallback;
 @end
 @interface NSDictionary (SpdyNetworkAdditions)
 + (id)dictionaryWithString:(NSString *)string separator:(NSString *)separator delimiter:(NSString *)delimiter;
@@ -168,13 +169,17 @@
 
 - (void)onConnect:(id<SpdyRequestIdentifier>)u {
   [super onConnect:u];
-  SPDY_LOG(@"connected");
+  //SPDY_LOG(@"connected");
   spdy_url.URL = u.url;
 }
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
-  SPDY_LOG(@"Loading");
+  //SPDY_LOG(@"Loading");
   return [super onResponseData:bytes length:length];
+}
+
+- (void)onStreamClose {
+  [spdy_url doStreamCloseCallback];
 }
 
 - (void)onPushResponse:(CFHTTPMessageRef)response {
@@ -188,6 +193,12 @@
 @end
 
 @implementation SpdyUrl (Private)
+
+-(void)doStreamCloseCallback {
+  if(self.streamCloseCallback != nil) {
+    self.streamCloseCallback();
+  }
+}
 
 // XXX refactor the common parts of these two methods
 -(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message {
@@ -222,25 +233,18 @@
 
 @implementation SpdyUrl {
   Callback * delegate;
-  NSTimer * pingTimer;
 }
 
-- (void)stopPinging {
-  [pingTimer invalidate];
-  pingTimer = nil;
+-(SpdyNetworkStatus)networkStatus {
+  return [[SPDY sharedSPDY] networkStatusForUrlString:self.urlString];
 }
 
-- (void)pingWithTimeInterval:(NSTimeInterval)interval {
-  // XXX if we are voip, we should use the auto-wakup timer
-
-  [pingTimer invalidate];
-  pingTimer = [NSTimer timerWithTimeInterval:interval 
-		       target:self selector:@selector(ping) 
-		       userInfo:nil repeats:YES];
+-(SpdyConnectState)connectState {
+  return [[SPDY sharedSPDY] connectStateForUrlString:self.urlString];
 }
 
 - (void)sendPing {
-  SPDY_LOG(@"pinging");
+  //SPDY_LOG(@"pinging");
   [[SPDY sharedSPDY] ping:self.urlString callback:self.pingCallback];
 }
 
@@ -253,7 +257,7 @@
   if(self) {
     delegate = [[Callback alloc] init:self];
     self.urlString = urlString;
-    SPDY_LOG(@"connecting");
+    //SPDY_LOG(@"connecting");
   }
   return self;
 }
