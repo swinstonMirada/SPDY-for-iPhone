@@ -23,6 +23,7 @@
 	if(self.fatalErrorCallback != nil) {
 	  self.fatalErrorCallback(error);
 	}
+	[self teardown];
 	return;
       }
     } else if([error.domain isEqualToString:NSPOSIXErrorDomain]) { 
@@ -41,6 +42,7 @@
 	if(self.fatalErrorCallback != nil) {
 	  self.fatalErrorCallback(error);
 	}
+	[self teardown];
 	return;
       }
     } else if([error.domain isEqualToString:@"kCFStreamErrorDomainNetDB"]) { 
@@ -63,6 +65,7 @@
 	if(self.fatalErrorCallback != nil) {
 	  self.fatalErrorCallback(error);
 	}
+	[self teardown];
 	return;
       }
 
@@ -96,6 +99,17 @@
   [self doGET];
 }
 
+-(void)keepalive {
+  if(!stream_closed && self.connectState == kSpdyConnected) {
+    pingTimer = [NSTimer timerWithTimeInterval:6 // XXX fudge this interval?
+			 target:self selector:@selector(noPingReceived) 
+			 userInfo:nil repeats:NO];
+    [self sendPing];
+  } else {
+    [self reconnect:nil];
+  }
+}
+
 -(void)streamWasClosed {
   stream_closed = YES;
   [self reconnect:nil];
@@ -111,13 +125,6 @@
   pingTimer = nil;
   [self teardown];
   [self reconnect:nil];
-}
-
--(void)sendPing {
-  [super sendPing];
-  pingTimer = [NSTimer timerWithTimeInterval:6 // XXX fudge this interval?
-		       target:self selector:@selector(noPingReceived) 
-		       userInfo:nil repeats:NO];
 }
 
 - (id)initWithUrlString:(NSString *)url {

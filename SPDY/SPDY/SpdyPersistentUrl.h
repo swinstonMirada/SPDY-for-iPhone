@@ -6,6 +6,8 @@
 @interface SpdyPersistentUrl : SpdyUrl 
 - (id)initWithUrlString:(NSString *)url;
 
+-(void)keepalive;
+
 /* called on only fatal errors.  Otherwise we try to reconnect */
 @property (nonatomic, copy) LLSpdyErrorCallback fatalErrorCallback;
 
