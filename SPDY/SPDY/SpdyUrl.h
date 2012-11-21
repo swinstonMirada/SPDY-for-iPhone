@@ -10,10 +10,11 @@ typedef void (^LLSpdyVoidCallback)();
 
 @interface SpdyUrl : NSObject
 
+/* this initializer is for HTTP GET */
 - (id)initWithUrlString:(NSString *)url;
 
-/* causes the url to be loaded via HTTP GET */
-- (void)doGET;
+/* causes the url to be loaded */
+- (void)send;
 
 /* causes spdy to send a ping over the associated session, if connected */
 - (void)sendPing;

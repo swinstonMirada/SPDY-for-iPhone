@@ -98,7 +98,7 @@
   SPDY_LOG(@"doing reconnect");
   // we are reachable, and not connected, and the error is not fatal, reconnect
   
-  [self doGET];
+  [self send];
 }
 
 -(void)keepalive {

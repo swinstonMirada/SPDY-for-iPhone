@@ -1,7 +1,26 @@
-
 #import <Foundation/Foundation.h>
-
 #import "SpdyUrl.h"
+
+/*
+ * This class provides a high level interface to a spdy implementation of 
+ * an ios 'voip' persistent socket.
+ *
+ * This class should not be used with servers / urls which do not have the following
+ * semantics:
+ *
+ * - uses SPDY
+ * - uses HTTP GET
+ * - provides the content-length header
+ * - leaves the stream open after the response has been sent
+ *
+ * In addition, the server should support push.  If a push is received,
+ * the pushSuccessCallback (declared in SpduUrl) will be invoked.
+ *
+ * This class handles keepalive and reconnect details.  It provides an 
+ * errorCallback for the SpdyUrl superclass which will attempt to 
+ * reconnect on non-fatal errors.  In the event of a fatal error, 
+ * the fatalErrorCallback is instead invoked.  
+ */
 
 @interface SpdyPersistentUrl : SpdyUrl 
 - (id)initWithUrlString:(NSString *)url;

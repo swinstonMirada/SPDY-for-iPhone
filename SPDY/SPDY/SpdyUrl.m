@@ -248,7 +248,7 @@
   [[SPDY sharedSPDY] ping:self.urlString callback:self.pingCallback];
 }
 
--(void)doGET {
+-(void)send {
   [[SPDY sharedSPDY] fetch:self.urlString delegate:delegate voip:_voip];
 }
 
