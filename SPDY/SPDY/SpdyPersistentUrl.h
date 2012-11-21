@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "SpdyUrl.h"
+#import "SpdyRequest.h"
 
 /*
  * This class provides a high level interface to a spdy implementation of 
@@ -17,12 +17,12 @@
  * the pushSuccessCallback (declared in SpduUrl) will be invoked.
  *
  * This class handles keepalive and reconnect details.  It provides an 
- * errorCallback for the SpdyUrl superclass which will attempt to 
+ * errorCallback for the SpdyRequest superclass which will attempt to 
  * reconnect on non-fatal errors.  In the event of a fatal error, 
  * the fatalErrorCallback is instead invoked.  
  */
 
-@interface SpdyPersistentUrl : SpdyUrl 
+@interface SpdyPersistentUrl : SpdyRequest 
 - (id)initWithUrlString:(NSString *)url;
 
 /* Keepalive is enabled initially.  If it has been stopped, send this message 

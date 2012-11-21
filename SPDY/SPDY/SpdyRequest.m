@@ -1,7 +1,7 @@
-#import "SpdyUrl.h"
+#import "SpdyRequest.h"
 #import "SPDY.h"
 
-@interface SpdyUrl (Private)
+@interface SpdyRequest (Private)
 -(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message;
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message;
 -(void)doStreamCloseCallback;
@@ -129,17 +129,17 @@
 @end
 
 @interface Callback : BufferedCallback {
-  SpdyUrl *spdy_url;
+  SpdyRequest *spdy_url;
 }
 
-- (id)init:(SpdyUrl *) spdy_url;
+- (id)init:(SpdyRequest *) spdy_url;
 @end
 
 @implementation Callback {
     
 }
 
-- (id)init:(SpdyUrl *) u {
+- (id)init:(SpdyRequest *) u {
   self = [super init];
   spdy_url = u;
 
@@ -192,7 +192,7 @@
 
 @end
 
-@implementation SpdyUrl (Private)
+@implementation SpdyRequest (Private)
 
 -(void)doStreamCloseCallback {
   if(self.streamCloseCallback != nil) {
@@ -231,7 +231,7 @@
 
 @end
 
-@implementation SpdyUrl {
+@implementation SpdyRequest {
   Callback * delegate;
 }
 

@@ -28,7 +28,7 @@ static NSMutableDictionary *disabledHosts;
 // The delegate is called each time on a url to determine if a request should use spdy.
 static id <SpdyUrlConnectionCallback> globalCallback;
 
-@implementation SpdyUrlResponse
+@implementation SpdyRequestResponse
 @synthesize statusCode = _statusCode;
 @synthesize allHeaderFields = _allHeaderFields;
 @synthesize requestBytes = _requestBytes;
@@ -48,7 +48,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
         return [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode  HTTPVersion:version headerFields:headersDict];
     }
     
-    SpdyUrlResponse *response = [[SpdyUrlResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil];
+    SpdyRequestResponse *response = [[SpdyRequestResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil];
     response.statusCode = statusCode;
     response.allHeaderFields = headersDict;
     response.requestBytes = requestBytesSent;
@@ -57,7 +57,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 @end
 
-@interface SpdyUrlCallback : RequestCallback
+@interface SpdyRequestCallback : RequestCallback
 - (id)initWithConnection:(SpdyUrlConnection *)protocol;
 @property (strong) SpdyUrlConnection *protocol;
 @property (assign) NSInteger requestBytesSent;
@@ -65,7 +65,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 @property (nonatomic, assign) z_stream zlibContext;
 @end
 
-@implementation SpdyUrlCallback
+@implementation SpdyRequestCallback
 @synthesize protocol = _protocol;
 @synthesize requestBytesSent = _requestBytesSent;
 @synthesize needUnzip = _needUnzip;
@@ -115,7 +115,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 }
 
 - (void)onResponseHeaders:(CFHTTPMessageRef)headers {
-    NSHTTPURLResponse *response = [SpdyUrlResponse responseWithURL:[self.protocol.spdyIdentifier url] withResponse:headers withRequestBytes:self.requestBytesSent];
+    NSHTTPURLResponse *response = [SpdyRequestResponse responseWithURL:[self.protocol.spdyIdentifier url] withResponse:headers withRequestBytes:self.requestBytesSent];
     if ([[response.allHeaderFields objectForKey:@"Content-Encoding"] hasPrefix:@"gzip"]) {
         self.needUnzip = YES;
         memset(&_zlibContext, 0, sizeof(_zlibContext));
@@ -238,7 +238,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 - (void)startLoading {
     SPDY_DEBUG_LOG(@"Start loading SpdyURLConnection: %@ with URL: %@", self, [[self request] URL])
-    SpdyUrlCallback *delegate = [[SpdyUrlCallback alloc] initWithConnection:self];
+    SpdyRequestCallback *delegate = [[SpdyRequestCallback alloc] initWithConnection:self];
     [[SPDY sharedSPDY] fetchFromRequest:[self request] delegate:delegate];
 }
 

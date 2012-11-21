@@ -2,13 +2,13 @@
 
 #import "SPDY.h"
 
-@class SpdyUrl;
+@class SpdyRequest;
 
 typedef void (^LLSpdySuccessCallback)(NSHTTPURLResponse*,NSData*);
 typedef void (^LLSpdyErrorCallback)(NSError*);
 typedef void (^LLSpdyVoidCallback)();
 
-@interface SpdyUrl : NSObject
+@interface SpdyRequest : NSObject
 
 /* this initializer is for HTTP GET */
 - (id)initWithUrlString:(NSString *)url;
