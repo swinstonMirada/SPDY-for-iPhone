@@ -18,7 +18,8 @@
 	 error.code == kSpdyConnectionNotSpdy ||
 	 error.code == kSpdyInvalidResponseHeaders ||
 	 error.code == kSpdyHttpSchemeNotSupported ||
-	 error.code == kSpdyStreamClosedWithNoRepsonseHeaders) {
+	 error.code == kSpdyStreamClosedWithNoRepsonseHeaders ||
+	 error.code == kSpdyVoipRequestedButFailed) {
 	// call fatal error callback
 	if(self.fatalErrorCallback != nil) {
 	  self.fatalErrorCallback(error);

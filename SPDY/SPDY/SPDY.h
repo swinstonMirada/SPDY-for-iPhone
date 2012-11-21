@@ -55,6 +55,7 @@ enum SpdyErrors {
     kSpdyInvalidResponseHeaders = 4,
     kSpdyHttpSchemeNotSupported = 5,
     kSpdyStreamClosedWithNoRepsonseHeaders = 6,
+    kSpdyVoipRequestedButFailed = 7,
 };
 
 @protocol SpdyRequestIdentifier <NSObject>
