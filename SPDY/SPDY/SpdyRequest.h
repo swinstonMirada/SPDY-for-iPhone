@@ -23,7 +23,7 @@ typedef void (^LLSpdyVoidCallback)();
 - (void)teardown;
 
 /* the url being loaded, as a string */
-@property (nonatomic, strong) NSString* urlString;
+@property (nonatomic, strong, readonly) NSString* urlString;
 
 /* the url being loaded as an NSURL */
 @property (nonatomic, strong) NSURL* URL;

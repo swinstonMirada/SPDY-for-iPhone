@@ -452,8 +452,8 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate {
-    SpdyStream *stream = [SpdyStream newFromRequest:(NSURLRequest *)request delegate:delegate];
-    [self addStream:stream];
+  SpdyStream *stream = [SpdyStream newFromRequest:(NSURLRequest *)request delegate:delegate];
+  [self addStream:stream];
 }
 
 - (void)addToLoop {

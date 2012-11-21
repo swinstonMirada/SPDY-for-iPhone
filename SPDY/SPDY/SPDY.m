@@ -168,7 +168,19 @@ static int select_next_proto_cb(SSL *ssl,
   return ret;
 }
 
--(void)ping:(NSString*)url callback:(void (^)())callback {
+- (void)pingRequest:(NSURLRequest*)request callback:(void (^)())callback {
+  NSURL *url = [request URL];
+  NSError *error;
+  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO];
+  if (session == nil) {
+    // XXX log error
+    SPDY_LOG(@"could not ping: no session");
+    return;
+  }
+  [session sendPingWithCallback:callback];
+}
+
+- (void)pingUrlString:(NSString*)url callback:(void (^)())callback {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
     //NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
@@ -204,6 +216,16 @@ static int select_next_proto_cb(SSL *ssl,
     return session;
 }
 
+- (void)teardownForRequest:(NSURLRequest*)request {
+  NSURL *url = [request URL];
+  NSError *error;
+  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO];
+  if (session == nil) {
+    return;
+  }
+  [session resetStreamsAndGoAway];
+}
+
 - (void)teardown:(NSString*)url {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
@@ -230,12 +252,35 @@ static int select_next_proto_cb(SSL *ssl,
   return session.connectState;
 }
 
+- (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request {
+  NSURL * u = request.URL;
+  NSError *error;
+  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  if (session == nil) {
+    return kSpdyStreamNotFound;
+  }
+  return session.connectState;
+}
+
 - (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
     return kSpdyHostNotFound;
   }
   NSError *error = nil;
+  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  if (session == nil) {
+    return kSpdyStreamNotFound;
+  }
+  return session.networkStatus;
+}
+
+- (SpdyNetworkStatus)networkStatusForRequest:(NSURLRequest*)request {
+  NSURL *u = request.URL;
+  if (u == nil || u.host == nil) {
+    return kSpdyHostNotFound;
+  }
+  NSError *error;
   SpdySession *session = [self getSession:u withError:&error voip:NO];
   if (session == nil) {
     return kSpdyStreamNotFound;
@@ -268,14 +313,18 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate {
-    NSURL *url = [request URL];
-    NSError *error;
-    SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO];
-    if (session == nil) {
-        [delegate onError:error];
-    } else {
-        [session fetchFromRequest:request delegate:delegate];
-    }
+  [self fetchFromRequest:request delegate:delegate voip:NO];
+}
+
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate voip:(BOOL)voip {
+  NSURL *url = [request URL];
+  NSError *error;
+  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:voip];
+  if (session == nil) {
+    [delegate onError:error];
+  } else {
+    [session fetchFromRequest:request delegate:delegate];
+  }
 }
 
 - (NSInteger)closeAllSessions {

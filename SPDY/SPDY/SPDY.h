@@ -91,17 +91,22 @@ enum SpdyErrors {
 - (void)unregisterForNSURLConnection;
 
 - (int)pingWithCallback:(void (^)())callback;
-- (void)ping:(NSString*)url callback:(void (^)())callback;
+- (void)pingUrlString:(NSString*)url callback:(void (^)())callback;
+- (void)pingRequest:(NSURLRequest*)request callback:(void (^)())callback;
 - (void)teardown:(NSString*)url;
+- (void)teardownForRequest:(NSURLRequest*)url;
 
 - (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url;
+- (SpdyNetworkStatus)networkStatusForRequest:(NSURLRequest*)request;
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url;
+- (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request;
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
 - (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate;
 - (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate voip:(BOOL)voip;
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate;
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate voip:(BOOL)voip;
 
 // Cancels all active requests and closes all connections.  Returns the number of requests that were cancelled.  Ideally this should be called when all requests have already been canceled.
 - (NSInteger)closeAllSessions;
