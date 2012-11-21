@@ -44,14 +44,6 @@
 
 #define STREAM_KEY(streamId) [NSString stringWithFormat:@"%d", streamId]
 
-static void ReadStreamCallback(CFReadStreamRef stream,
-			       CFStreamEventType eventType,
-			       void *clientCallBackInfo);
-
-static void WriteStreamCallback(CFWriteStreamRef stream,
-				CFStreamEventType eventType,
-				void *clientCallBackInfo);
-
 static const int priority = 1;
 
 @interface SpdySession ()
@@ -233,83 +225,6 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     return [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
 }
 
-static void ReadStreamCallback(CFReadStreamRef stream,
-			       CFStreamEventType eventType,
-			       void *clientCallBackInfo)
-{      
-  SpdySession * session = (__bridge SpdySession*)clientCallBackInfo;
-  spdylay_session *laySession = [session session];
-  SPDY_LOG(@"read stream callback");
-  
-  switch (eventType)
-  {
-    case kCFStreamEventOpenCompleted:
-      SPDY_LOG(@"kCFStreamEventOpenCompleted");
-      spdylay_session_recv(laySession);
-      break;
-
-    case kCFStreamEventHasBytesAvailable:
-      SPDY_LOG(@"kCFStreamEventHasBytesAvailable");
-      spdylay_session_recv(laySession);
-      break;
-
-    case kCFStreamEventErrorOccurred:
-      SPDY_LOG(@"kCFStreamEventErrorOccurred");
-      break;
-
-    case kCFStreamEventEndEncountered:
-      SPDY_LOG(@"kCFStreamEventEndEncountered");
-      break;
-
-    default:
-      break; // do nothing
-  }
-}
-
-static void WriteStreamCallback(CFWriteStreamRef stream,
-				CFStreamEventType eventType,
-				void *clientCallBackInfo)
-{
-  SpdySession * session = (__bridge SpdySession*)clientCallBackInfo;
-  spdylay_session *laySession = [session session];
-
-  switch (eventType)
-  {
-    case kCFStreamEventOpenCompleted:
-      {
-	SPDY_LOG(@"kCFStreamEventOpenCompleted");
-	int err = spdylay_session_send(laySession);
-	if (err != 0) {
-	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
-	}
-      }
-      break;
-
-    case kCFStreamEventCanAcceptBytes:
-      {
-	SPDY_LOG(@"kCFStreamEventCanAcceptBytes");
-	int err = spdylay_session_send(laySession);
-	if (err != 0) {
-	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
-	}
-      }
-      break;
-
-    case kCFStreamEventErrorOccurred:
-      SPDY_LOG(@"kCFStreamEventErrorOccurred");
-      break;
-
-    case kCFStreamEventEndEncountered:
-      SPDY_LOG(@"kCFStreamEventEndEncountered");
-      break;     
-
-    default:
-      break; // do nothing
-  }
-}
-
-
-
 - (void)notSpdyError {
     self.connectState = kSpdyError;
     
@@ -396,68 +311,39 @@ static void WriteStreamCallback(CFWriteStreamRef stream,
         NSEnumerator *enumerator = [streams objectEnumerator];
         SpdyStream * stream;
         
-
-	SpdySession * _session_ = self;
-	if(_session_.voip) {
-	  SPDY_LOG(@"REALLY DOING VOIP");
-
+	if(self.voip) {
+	  // these streams are only used for wakeup, all acutal i/o 
+	  // happens via the socket and openssl.
 	  CFReadStreamRef readStream = NULL;
 	  CFWriteStreamRef writeStream = NULL;
 
-	  CFStreamCreatePairWithSocket(NULL, CFSocketGetNative(socket), &readStream, &writeStream);
+	  CFStreamCreatePairWithSocket(NULL, CFSocketGetNative(socket), 
+				       &readStream, &writeStream);
 
-	  SPDY_LOG(@"read stream is %p write stream is %p", readStream, writeStream);
+	  self.readStream = readStream;
+	  self.writeStream = writeStream;
 
-	  _session_.readStream = readStream;
-	  _session_.writeStream = writeStream;
-
-	  CFReadStreamSetProperty(_session_.readStream, 
+	  CFReadStreamSetProperty(self.readStream, 
 				  kCFStreamNetworkServiceType, 
 				  kCFStreamNetworkServiceTypeVoIP);
-	  CFWriteStreamSetProperty(_session_.writeStream, 
+	  CFWriteStreamSetProperty(self.writeStream, 
 				   kCFStreamNetworkServiceType, 
 				   kCFStreamNetworkServiceTypeVoIP); 
 
-	  int nFlags = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered;
-	  CFStreamClientContext context;
-	  context.info = (__bridge void*)_session_;
-	  context.version = 0;
-	  context.release = NULL;
-	  context.retain = NULL;
-	  context.copyDescription = NULL;
-
-	  if ( !CFReadStreamSetClient(_session_.readStream, nFlags, ReadStreamCallback, &context) )
-	    {
-	      SPDY_LOG(@"HOLY FUCK");
-	      //ReleaseStreams();
-	      return NO;
-	    }
-
-	  if ( !CFWriteStreamSetClient(_session_.writeStream, nFlags, WriteStreamCallback, &context) )
-	    {
-	      SPDY_LOG(@"HOLY FUCK");
-	      //ReleaseStreams();
-	      return NO;
-	    }
-
-	  CFReadStreamScheduleWithRunLoop(_session_.readStream, 
+	  CFReadStreamScheduleWithRunLoop(self.readStream, 
 					  CFRunLoopGetCurrent(),
 					  kCFRunLoopCommonModes);
 
-	  CFWriteStreamScheduleWithRunLoop(_session_.writeStream, 
+	  CFWriteStreamScheduleWithRunLoop(self.writeStream, 
 					   CFRunLoopGetCurrent(),
 					   kCFRunLoopCommonModes);
 
-	  if ( ! CFReadStreamOpen(_session_.readStream) || 
-	       ! CFWriteStreamOpen(_session_.writeStream)) {
-	    SPDY_LOG(@"WE'RE fucked");
+	  if ( ! CFReadStreamOpen(self.readStream) || 
+	       ! CFWriteStreamOpen(self.writeStream)) {
+	    [self releaseStreams];
+	    [self sendVoipError];
 	  }
-
-  	} else {
-	  SPDY_LOG(@"**NOT** DOING VOIP");
 	}
-
-
 
         while ((stream = [enumerator nextObject])) {
             if (![self submitRequest:stream]) {
@@ -478,6 +364,26 @@ static void WriteStreamCallback(CFWriteStreamRef stream,
         [self invalidateSocket];
     }
     return NO;
+}
+
+-(void)releaseStreams {
+  if(self.readStream != NULL) {
+    CFRelease(self.readStream);
+    self.readStream = NULL;
+  }
+  if(self.writeStream != NULL) {
+    CFRelease(self.writeStream);
+    self.writeStream = NULL;
+  }
+}
+-(void)sendVoipError {
+  NSError * error = [NSError errorWithDomain:kSpdyErrorDomain
+			     code:kSpdyVoipRequestedButFailed 
+			     userInfo:nil];
+  
+  for (SpdyStream *value in streams) {
+    [value.delegate onError:error];
+  }
 }
 
 - (void)setUpSSL {
@@ -779,6 +685,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (void)dealloc {
+    [self releaseStreams];
     if (session != NULL) {
         spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
         spdylay_session_del(session);
