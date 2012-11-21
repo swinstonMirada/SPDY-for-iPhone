@@ -44,6 +44,14 @@
 
 #define STREAM_KEY(streamId) [NSString stringWithFormat:@"%d", streamId]
 
+static void ReadStreamCallback(CFReadStreamRef stream,
+			       CFStreamEventType eventType,
+			       void *clientCallBackInfo);
+
+static void WriteStreamCallback(CFWriteStreamRef stream,
+				CFStreamEventType eventType,
+				void *clientCallBackInfo);
+
 static const int priority = 1;
 
 @interface SpdySession ()
@@ -61,6 +69,9 @@ static const int priority = 1;
 - (BOOL)wouldBlock:(int)r;
 - (ssize_t)fixUpCallbackValue:(int)r;
 - (void)enableWriteCallback;
+
+@property (nonatomic, assign) CFReadStreamRef readStream;
+@property (nonatomic, assign) CFWriteStreamRef writeStream;
 @end
 
 
@@ -69,9 +80,6 @@ static const int priority = 1;
     NSMutableDictionary *pushStreams;
     
     CFSocketRef socket;
-
-    CFReadStreamRef readStream;
-    CFWriteStreamRef writeStream;
 
     SSL *ssl;
     SSL_CTX *ssl_ctx;
@@ -103,8 +111,8 @@ static void sessionCallBack(CFSocketRef s,
 
   CFSocketInvalidate(socket);
   CFRelease(socket);
-  if(readStream != NULL) CFRelease(readStream);
-  if(writeStream != NULL) CFRelease(writeStream);
+  if(self.readStream != NULL) CFRelease(self.readStream);
+  if(self.writeStream != NULL) CFRelease(self.writeStream);
   socket = nil;
 }
 
@@ -215,15 +223,6 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         int sock = CFSocketGetNative(socket);
         setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
 
-	if(voip) {
-	  CFStreamCreatePairWithSocket(NULL, sock, &readStream, &writeStream);
-	  CFReadStreamSetProperty(readStream, 
-				  kCFStreamNetworkServiceType, 
-				  kCFStreamNetworkServiceTypeVoIP);
-	  CFWriteStreamSetProperty(writeStream, 
-				   kCFStreamNetworkServiceType, 
-				   kCFStreamNetworkServiceTypeVoIP);    
-	}
         
         CFRelease(address);
         self.connectState = kSpdyConnecting;
@@ -233,6 +232,83 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     self.connectState = kSpdyError;
     return [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
 }
+
+static void ReadStreamCallback(CFReadStreamRef stream,
+			       CFStreamEventType eventType,
+			       void *clientCallBackInfo)
+{      
+  SpdySession * session = (__bridge SpdySession*)clientCallBackInfo;
+  spdylay_session *laySession = [session session];
+  SPDY_LOG(@"read stream callback");
+  
+  switch (eventType)
+  {
+    case kCFStreamEventOpenCompleted:
+      SPDY_LOG(@"kCFStreamEventOpenCompleted");
+      spdylay_session_recv(laySession);
+      break;
+
+    case kCFStreamEventHasBytesAvailable:
+      SPDY_LOG(@"kCFStreamEventHasBytesAvailable");
+      spdylay_session_recv(laySession);
+      break;
+
+    case kCFStreamEventErrorOccurred:
+      SPDY_LOG(@"kCFStreamEventErrorOccurred");
+      break;
+
+    case kCFStreamEventEndEncountered:
+      SPDY_LOG(@"kCFStreamEventEndEncountered");
+      break;
+
+    default:
+      break; // do nothing
+  }
+}
+
+static void WriteStreamCallback(CFWriteStreamRef stream,
+				CFStreamEventType eventType,
+				void *clientCallBackInfo)
+{
+  SpdySession * session = (__bridge SpdySession*)clientCallBackInfo;
+  spdylay_session *laySession = [session session];
+
+  switch (eventType)
+  {
+    case kCFStreamEventOpenCompleted:
+      {
+	SPDY_LOG(@"kCFStreamEventOpenCompleted");
+	int err = spdylay_session_send(laySession);
+	if (err != 0) {
+	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
+	}
+      }
+      break;
+
+    case kCFStreamEventCanAcceptBytes:
+      {
+	SPDY_LOG(@"kCFStreamEventCanAcceptBytes");
+	int err = spdylay_session_send(laySession);
+	if (err != 0) {
+	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
+	}
+      }
+      break;
+
+    case kCFStreamEventErrorOccurred:
+      SPDY_LOG(@"kCFStreamEventErrorOccurred");
+      break;
+
+    case kCFStreamEventEndEncountered:
+      SPDY_LOG(@"kCFStreamEventEndEncountered");
+      break;     
+
+    default:
+      break; // do nothing
+  }
+}
+
+
 
 - (void)notSpdyError {
     self.connectState = kSpdyError;
@@ -320,6 +396,69 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
         NSEnumerator *enumerator = [streams objectEnumerator];
         SpdyStream * stream;
         
+
+	SpdySession * _session_ = self;
+	if(_session_.voip) {
+	  SPDY_LOG(@"REALLY DOING VOIP");
+
+	  CFReadStreamRef readStream = NULL;
+	  CFWriteStreamRef writeStream = NULL;
+
+	  CFStreamCreatePairWithSocket(NULL, CFSocketGetNative(socket), &readStream, &writeStream);
+
+	  SPDY_LOG(@"read stream is %p write stream is %p", readStream, writeStream);
+
+	  _session_.readStream = readStream;
+	  _session_.writeStream = writeStream;
+
+	  CFReadStreamSetProperty(_session_.readStream, 
+				  kCFStreamNetworkServiceType, 
+				  kCFStreamNetworkServiceTypeVoIP);
+	  CFWriteStreamSetProperty(_session_.writeStream, 
+				   kCFStreamNetworkServiceType, 
+				   kCFStreamNetworkServiceTypeVoIP); 
+
+	  int nFlags = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered;
+	  CFStreamClientContext context;
+	  context.info = (__bridge void*)_session_;
+	  context.version = 0;
+	  context.release = NULL;
+	  context.retain = NULL;
+	  context.copyDescription = NULL;
+
+	  if ( !CFReadStreamSetClient(_session_.readStream, nFlags, ReadStreamCallback, &context) )
+	    {
+	      SPDY_LOG(@"HOLY FUCK");
+	      //ReleaseStreams();
+	      return NO;
+	    }
+
+	  if ( !CFWriteStreamSetClient(_session_.writeStream, nFlags, WriteStreamCallback, &context) )
+	    {
+	      SPDY_LOG(@"HOLY FUCK");
+	      //ReleaseStreams();
+	      return NO;
+	    }
+
+	  CFReadStreamScheduleWithRunLoop(_session_.readStream, 
+					  CFRunLoopGetCurrent(),
+					  kCFRunLoopCommonModes);
+
+	  CFWriteStreamScheduleWithRunLoop(_session_.writeStream, 
+					   CFRunLoopGetCurrent(),
+					   kCFRunLoopCommonModes);
+
+	  if ( ! CFReadStreamOpen(_session_.readStream) || 
+	       ! CFWriteStreamOpen(_session_.writeStream)) {
+	    SPDY_LOG(@"WE'RE fucked");
+	  }
+
+  	} else {
+	  SPDY_LOG(@"**NOT** DOING VOIP");
+	}
+
+
+
         while ((stream = [enumerator nextObject])) {
             if (![self submitRequest:stream]) {
 	      [streams removeObject:stream];
@@ -674,6 +813,7 @@ static void sessionCallBack(CFSocketRef s,
             [session connectionFailed:e domain:(NSString *)kCFErrorDomainPOSIX];
             return;
         }
+
         //SPDY_LOG(@"Connected to %@", info);
         session.connectState = kSpdySslHandshake;
         if (![session sslConnect]) {
