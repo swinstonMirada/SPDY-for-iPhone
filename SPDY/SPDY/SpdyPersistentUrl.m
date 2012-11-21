@@ -1,4 +1,5 @@
 #import "SpdyPersistentUrl.h"
+#import <UIKit/UIKit.h>
 #import <errno.h>
 #import <netdb.h>
 
@@ -128,6 +129,10 @@
   [self reconnect:nil];
 }
 
+-(void)dealloc {
+  [self clearKeepAlive];
+}
+
 - (id)initWithUrlString:(NSString *)url {
   self = [super initWithUrlString:url];
   if(self) {
@@ -145,8 +150,19 @@
       SPDY_LOG(@"streamCloseCallback");
       [unsafe_self streamWasClosed];
     };
+    [self setKeepAlive];
   }
   return self;
+}
+
+-(void)setKeepAlive {
+  [[UIApplication sharedApplication] setKeepAliveTimeout:600 handler:^{
+    [self keepalive];
+  }];
+}
+
+-(void)clearKeepAlive {
+  [[UIApplication sharedApplication] clearKeepAliveTimeout];
 }
 
 @end
