@@ -23,7 +23,7 @@
  */
 
 @interface SpdyPersistentUrl : SpdyRequest 
-- (id)initWithUrlString:(NSString *)url;
+- (id)initWithGETString:(NSString *)url;
 
 /* Keepalive is enabled initially.  If it has been stopped, send this message 
    to start it again.  Keepalive uses the UIApplication keepAliveTimeout. */

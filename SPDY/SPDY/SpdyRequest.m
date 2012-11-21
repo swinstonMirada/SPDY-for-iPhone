@@ -256,7 +256,7 @@
   [[SPDY sharedSPDY] teardown:self.urlString];
 }
 
-- (id)initWithUrlString:(NSString *)urlString {
+- (id)initWithGETString:(NSString *)urlString {
   self = [super init];
   if(self) {
     delegate = [[Callback alloc] init:self];

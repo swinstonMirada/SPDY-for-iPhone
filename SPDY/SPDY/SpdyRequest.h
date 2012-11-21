@@ -11,9 +11,9 @@ typedef void (^LLSpdyVoidCallback)();
 @interface SpdyRequest : NSObject
 
 /* this initializer is for HTTP GET */
-- (id)initWithUrlString:(NSString *)url;
+- (id)initWithGETString:(NSString *)url;
 
-/* causes the url to be loaded */
+/* causes the request to be loaded */
 - (void)send;
 
 /* causes spdy to send a ping over the associated session, if connected */
@@ -46,10 +46,10 @@ typedef void (^LLSpdyVoidCallback)();
 
 /* Block Callbacks */
 
-/* called on success of the original url fetch */
+/* called on success of the original request */
 @property (nonatomic, copy) LLSpdySuccessCallback successCallback;
 
-/* called on failure of the original url fetch */
+/* called on failure of the original request */
 @property (nonatomic, copy) LLSpdyErrorCallback errorCallback;
 
 /* called in the event that a valid push is received */

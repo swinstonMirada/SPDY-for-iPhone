@@ -133,8 +133,8 @@
   [self clearKeepAlive];
 }
 
-- (id)initWithUrlString:(NSString *)url {
-  self = [super initWithUrlString:url];
+- (id)initWithGETString:(NSString *)url {
+  self = [super initWithGETString:url];
   if(self) {
     self.voip = YES;
     stream_closed = NO;
