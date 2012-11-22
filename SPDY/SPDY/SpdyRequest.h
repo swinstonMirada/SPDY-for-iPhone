@@ -13,6 +13,9 @@ typedef void (^LLSpdyVoidCallback)();
 /* this initializer is for HTTP GET */
 - (id)initWithGETString:(NSString *)url;
 
+/* this initializer can do GET or POST */
+- (id)initWithRequest:(NSURLRequest *)request;
+
 /* causes the request to be loaded */
 - (void)send;
 
