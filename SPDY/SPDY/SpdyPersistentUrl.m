@@ -14,13 +14,18 @@
   // XXX make sure this is not a fatal error (e.g. host down, etc).
   if(error != nil) {
     if([error.domain isEqualToString:kSpdyErrorDomain]) {
-      if(error.code == kSpdyConnectionFailed ||
-	 error.code == kSpdyRequestCancelled ||
-	 error.code == kSpdyConnectionNotSpdy ||
-	 error.code == kSpdyInvalidResponseHeaders ||
-	 error.code == kSpdyHttpSchemeNotSupported ||
-	 error.code == kSpdyStreamClosedWithNoRepsonseHeaders ||
-	 error.code == kSpdyVoipRequestedButFailed) {
+      if(error.code == kSpdyRequestCancelled) {
+	// in this case, we want to suppress the error
+	// this is because on fatal errors we call
+	// [SpdyStream cancelStream] which sends us this (also fatal) error
+	// if we don't ignore it here, we will loop.
+	return;
+      } else if(error.code == kSpdyConnectionFailed ||
+		error.code == kSpdyConnectionNotSpdy ||
+		error.code == kSpdyInvalidResponseHeaders ||
+		error.code == kSpdyHttpSchemeNotSupported ||
+		error.code == kSpdyStreamClosedWithNoRepsonseHeaders ||
+		error.code == kSpdyVoipRequestedButFailed) {
 	// call fatal error callback
 	if(self.fatalErrorCallback != nil) {
 	  self.fatalErrorCallback(error);
