@@ -1,4 +1,5 @@
 #import "SpdyPersistentUrl.h"
+#import <SystemConfiguration/SystemConfiguration.h>
 #import <UIKit/UIKit.h>
 #import <errno.h>
 #import <netdb.h>
@@ -6,6 +7,100 @@
 @implementation SpdyPersistentUrl {
   NSTimer * pingTimer;
   BOOL stream_closed;
+  SCNetworkReachabilityRef reachabilityRef;
+  SpdyNetworkStatus networkStatus;
+}
+
+
+static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags)
+{
+	
+  SPDY_LOG(@"Reachability Flag Status: %c%c %c%c%c%c%c%c%c\n",
+	(flags & kSCNetworkReachabilityFlagsIsWWAN)				  ? 'W' : '-',
+	(flags & kSCNetworkReachabilityFlagsReachable)            ? 'R' : '-',
+			
+	(flags & kSCNetworkReachabilityFlagsTransientConnection)  ? 't' : '-',
+	(flags & kSCNetworkReachabilityFlagsConnectionRequired)   ? 'c' : '-',
+	(flags & kSCNetworkReachabilityFlagsConnectionOnTraffic)  ? 'C' : '-',
+	(flags & kSCNetworkReachabilityFlagsInterventionRequired) ? 'i' : '-',
+	(flags & kSCNetworkReachabilityFlagsConnectionOnDemand)   ? 'D' : '-',
+	(flags & kSCNetworkReachabilityFlagsIsLocalAddress)       ? 'l' : '-',
+	(flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'
+	);
+}
+
+-(void)reachabilityChanged:(SCNetworkReachabilityFlags)newState {
+  PrintReachabilityFlags(newState);
+
+  SpdyNetworkStatus newStatus = [SPDY networkStatusForReachabilityFlags:newState];
+  SpdyNetworkStatus oldStatus = networkStatus;
+
+  networkStatus = newStatus;
+
+  if(oldStatus == newStatus) {
+    // reachability didn't actually change.
+  } else if(newStatus == kSpdyNotReachable) {
+    // we were reachable, but no longer are, disconnect
+    [self teardown];
+  } else if(oldStatus == kSpdyNotReachable) {
+    // were not reachable, now we are, reconnect
+    [self reconnect:nil];
+  } else if(oldStatus == kSpdyReachableViaWiFi && 
+	    newStatus == kSpdyReachableViaWWAN) {
+    // was on wifi, now on wwan, reconnect
+    [self reconnect:nil];
+  } else {
+    SPDY_LOG(@"ignoring reachability state change: (%d => %d)", oldStatus, newStatus);
+  }
+      
+  // XXX ignored here is the case where we were on wwan, and are now on wifi,
+  // but WWAN is no longer available.  In this case, we really should switch 
+  // to WIFI.  (not sure how to dectect reliably).
+}
+
+static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
+{
+#pragma unused (target, flags)
+  NSCAssert(info != NULL, @"info was NULL in ReachabilityCallback");
+  NSCAssert([(__bridge NSObject*) info isKindOfClass: [SpdyPersistentUrl class]], @"info was wrong class in ReachabilityCallback");
+
+  //We're on the main RunLoop, so an NSAutoreleasePool is not necessary, but is added defensively
+  // in case someon uses the Reachablity object in a different thread.
+  @autoreleasepool {
+	
+    SpdyPersistentUrl* self = (__bridge SpdyPersistentUrl*) info;
+    [self reachabilityChanged:flags];
+    // Post a notification to notify the client that the network reachability changed.
+    //[[NSNotificationCenter defaultCenter] postNotificationName: kReachabilityChangedNotification object: noteObject];
+	
+  }
+}
+
+- (BOOL) startNotifier {
+  SPDY_LOG(@"host is %s", [self.URL.host UTF8String]);
+  reachabilityRef = SCNetworkReachabilityCreateWithName(NULL, [self.URL.host UTF8String]);
+
+  SCNetworkReachabilityFlags flags = 0;
+  if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
+    networkStatus = [SPDY networkStatusForReachabilityFlags:flags];
+  }
+
+  BOOL retVal = NO;
+  SCNetworkReachabilityContext	context = {0, (__bridge void *)(self), NULL, NULL, NULL};
+  SPDY_LOG(@"reachabilityRef %p", reachabilityRef);
+  if(SCNetworkReachabilitySetCallback(reachabilityRef, ReachabilityCallback, &context)) {
+    if(SCNetworkReachabilityScheduleWithRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)) {
+      retVal = YES;
+    }
+  }
+  return retVal;
+}
+
+- (void) stopNotifier {
+  if(reachabilityRef != NULL) {
+    SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+    CFRelease(reachabilityRef);
+  }
 }
 
 -(void)reconnect:(NSError*)error {
@@ -83,9 +178,8 @@
   SPDY_LOG(@"error is not fatal");
 
   // here we do reconnect logic
-  SpdyNetworkStatus networkStatus = self.networkStatus;
   SpdyConnectState connectState = self.connectState;
-  if(networkStatus == kSpdyNotReachable) {
+  if(self.networkStatus == kSpdyNotReachable) {
     SPDY_LOG(@"not reachable");
     return;			// no point in connecting
   }
@@ -117,6 +211,15 @@
   }
 }
 
+-(void)streamWasConnected {
+  // notice our reachability status, assume that this is how we are connected.
+
+  SCNetworkReachabilityFlags flags = 0;
+  if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
+    networkStatus = [SPDY networkStatusForReachabilityFlags:flags];
+  }
+}
+
 -(void)streamWasClosed {
   stream_closed = YES;
   [self reconnect:nil];
@@ -125,6 +228,8 @@
 -(void)gotPing {
   [pingTimer invalidate];
   pingTimer = nil;
+  if(self.keepAliveCallback != nil)
+    self.keepAliveCallback();
 }
 
 -(void)noPingReceived {
@@ -136,6 +241,7 @@
 
 -(void)dealloc {
   [self clearKeepAlive];
+  [self stopNotifier];
 }
 
 - (id)initWithGETString:(NSString *)url {
@@ -155,13 +261,16 @@
       SPDY_LOG(@"streamCloseCallback");
       [unsafe_self streamWasClosed];
     };
-    [self setKeepAlive];
+    self.connectCallback = ^ {
+      [unsafe_self streamWasConnected];
+    };
+    [self startNotifier];
   }
   return self;
 }
 
--(void)setKeepAlive {
-  [[UIApplication sharedApplication] setKeepAliveTimeout:600 handler:^{
+-(void)startKeepAliveWithTimeout:(NSTimeInterval)interval {
+  [[UIApplication sharedApplication] setKeepAliveTimeout:interval handler:^{
     [self keepalive];
   }];
 }

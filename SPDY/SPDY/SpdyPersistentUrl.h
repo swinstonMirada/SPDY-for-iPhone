@@ -26,9 +26,9 @@
 
 - (id)initWithGETString:(NSString *)url;
 
-/* Keepalive is enabled initially.  If it has been stopped, send this message 
-   to start it again.  Keepalive uses the UIApplication keepAliveTimeout. */
--(void)setKeepAlive;
+/* Keepalive is not enabled initially.  Use this method to start it.
+   Keepalive uses the UIApplication keepAliveTimeout. */
+-(void)startKeepAliveWithTimeout:(NSTimeInterval)interval;
 
 /* Keepalive is enabled initially.  Send this message to stop it. */
 - (void)clearKeepAlive;
