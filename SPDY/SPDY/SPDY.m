@@ -21,7 +21,6 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
-#import <SystemConfiguration/SystemConfiguration.h>
 #import <CFNetwork/CFNetwork.h>
 
 #include <assert.h>
@@ -58,11 +57,14 @@ static int select_next_proto_cb(SSL *ssl,
     return SSL_TLSEXT_ERR_OK;
 }
 
+#ifdef CONF_Debug
 @interface SpdyLogImpl : NSObject<SpdyLogger>
 @end
 
 @implementation SpdyLogImpl
-- (void)writeSpdyLog:(NSString *)format file:(const char *)file line:(int)line, ... {
+
+
++ (void)writeSpdyLog:(NSString *)format file:(const char *)file line:(int)line, ... {
     NSLog(@"[%s:%d]", file, line);
 
     va_list args;
@@ -71,6 +73,7 @@ static int select_next_proto_cb(SSL *ssl,
     va_end(args);
 }
 @end
+#endif
 
 @interface SPDY ()
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
@@ -115,13 +118,13 @@ static int select_next_proto_cb(SSL *ssl,
 
 + (SpdyNetworkStatus)reachabilityStatusForHost:(NSString *)host {	
     SpdyNetworkStatus status = kSpdyNotReachable;
-	SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
-	if (ref) {
-        SCNetworkReachabilityFlags flags = 0;
-        if (SCNetworkReachabilityGetFlags(ref, &flags))
-            status = [self networkStatusForReachabilityFlags:flags];
+    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
+    if (ref) {
+      SCNetworkReachabilityFlags flags = 0;
+      if (SCNetworkReachabilityGetFlags(ref, &flags))
+	status = [self networkStatusForReachabilityFlags:flags];
         
-        CFRelease(ref);
+      CFRelease(ref);
     }
     return status;
 }
@@ -342,7 +345,9 @@ static int select_next_proto_cb(SSL *ssl,
 - (SPDY *)init {
     self = [super init];
     if (self) {
+#ifdef CONF_Debug
         self.logger = [[SpdyLogImpl alloc] init];
+#endif
         self.sessions = [[NSMutableDictionary alloc] init];
         [self setUpSslCtx];
     }
