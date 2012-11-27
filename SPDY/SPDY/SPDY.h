@@ -18,6 +18,7 @@
 // limitations under the License.
 
 #import <Foundation/Foundation.h>
+#import <SystemConfiguration/SystemConfiguration.h>
 
 typedef enum {
     kSpdyNotConnected,
@@ -96,6 +97,7 @@ enum SpdyErrors {
 - (void)teardown:(NSString*)url;
 - (void)teardownForRequest:(NSURLRequest*)url;
 
++ (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags;
 - (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url;
 - (SpdyNetworkStatus)networkStatusForRequest:(NSURLRequest*)request;
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url;
@@ -150,6 +152,10 @@ enum SpdyErrors {
 
 @end
 
+#ifdef CONF_Debug
+
+/* logging only on the Debug configuration */
+
 #define SPDY_LOG(fmt, ...) do { \
   [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:__FILE__ line:__LINE__, ##__VA_ARGS__];\
   if (0) NSLog(fmt, ## __VA_ARGS__); \
@@ -159,3 +165,12 @@ enum SpdyErrors {
     [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:__FILE__ line:__LINE__, ##__VA_ARGS__];\
     if (0) NSLog(fmt, ## __VA_ARGS__); \
 } while (0);
+
+#else
+
+/* no logging at all on release builds */
+
+#define SPDY_LOG(fmt, ...) { }
+#define SPDY_DEBUG_LOG(fmt, ...) { }
+
+#endif
