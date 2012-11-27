@@ -1,5 +1,5 @@
 
-CONFIGURATION=Release
+CONFIGURATION ?= Release
 LATEST_SDK=$(shell xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//g' | tail -n 1)
 
 
