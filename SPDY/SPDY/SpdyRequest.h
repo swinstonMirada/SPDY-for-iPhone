@@ -67,4 +67,7 @@ typedef void (^LLSpdyVoidCallback)();
 /* called when the stream is closed */
 @property (nonatomic, copy) LLSpdyVoidCallback streamCloseCallback;
 
+/* called after the stream is first connected */
+@property (nonatomic, copy) LLSpdyVoidCallback connectCallback;
+
 @end

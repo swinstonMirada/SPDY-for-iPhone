@@ -171,6 +171,9 @@
   [super onConnect:u];
   //SPDY_LOG(@"connected");
   spdy_url.URL = u.url;
+  if(spdy_url.connectCallback != nil) {
+    spdy_url.connectCallback();
+  }
 }
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
@@ -291,6 +294,7 @@
   if(self) {
     delegate = [[Callback alloc] init:self];
     urlString = _urlString;
+    self.URL = [[NSURL alloc] initWithString:urlString];
   }
   return self;
 }
@@ -305,3 +309,5 @@
 }
 
 @end
+
+
