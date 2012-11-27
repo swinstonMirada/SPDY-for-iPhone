@@ -136,9 +136,11 @@ static id <SpdyUrlConnectionCallback> globalCallback;
             NSMutableData *inflateData = [NSMutableData dataWithCapacity:4096];
             _zlibContext.next_out = [inflateData mutableBytes];
             _zlibContext.avail_out = 4096;
-            int inflateStatus = inflate(&_zlibContext, Z_SYNC_FLUSH);
             NSInteger inflatedBytes = self.zlibContext.total_out - bytesHad;
+#ifdef CONF_Debug	    
+            int inflateStatus = inflate(&_zlibContext, Z_SYNC_FLUSH);
             SPDY_LOG(@"Unzip status: %d, inflated %d bytes", inflateStatus, inflatedBytes);
+#endif
             NSData *data = [NSData dataWithBytes:[inflateData bytes] length:inflatedBytes];
             [[self.protocol client] URLProtocol:self.protocol didLoadData:data];
         }
