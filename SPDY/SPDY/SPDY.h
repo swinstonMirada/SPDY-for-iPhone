@@ -74,7 +74,7 @@ enum SpdyErrors {
 // The SpdyLogger protocol is used to log from the spdy library.  The default SpdyLogger prints out ugly logs with NSLog.  You'll probably
 // want to override the default.
 @protocol SpdyLogger
-+ (void)writeSpdyLog:(NSString *)format file:(const char *)file line:(int)line, ...;
+- (void)writeSpdyLog:(NSString *)message file:(const char *)file line:(int)line;
 @end
 #endif
 
@@ -160,15 +160,15 @@ enum SpdyErrors {
 
 /* logging only on the Debug configuration */
 
-#define SHORTFILE [([@__FILE__ rangeOfString:@"/" options:NSBackwardsSearch].location != NSNotFound ? [@__FILE__ substringFromIndex:[@__FILE__ rangeOfString:@"/" options:NSBackwardsSearch].location + 1] : @__FILE__) UTF8String]
-
 #define SPDY_LOG(fmt, ...) do { \
-  [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:SHORTFILE line:__LINE__, ##__VA_ARGS__];\
-  if (0) NSLog(fmt, ## __VA_ARGS__); \
+    NSString * msg = [[NSString alloc] initWithFormat:fmt, ##__VA_ARGS__]; \
+    [[SPDY sharedSPDY].logger writeSpdyLog:msg file:__FILE__ line:__LINE__]; \
+    if (0) NSLog(fmt, ## __VA_ARGS__);					\
 } while (0);
 
 #define SPDY_DEBUG_LOG(fmt, ...) do { \
-    [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:SHORTFILE line:__LINE__, ##__VA_ARGS__];\
+    NSString * msg = [[NSString alloc] initWithFormat:fmt, ##__VA_ARGS__]; \
+    [[SPDY sharedSPDY].logger writeSpdyLog:msg file:__FILE__ line:__LINE__];\
     if (0) NSLog(fmt, ## __VA_ARGS__); \
 } while (0);
 

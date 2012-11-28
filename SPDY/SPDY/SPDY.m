@@ -64,13 +64,9 @@ static int select_next_proto_cb(SSL *ssl,
 @implementation SpdyLogImpl
 
 
-+ (void)writeSpdyLog:(NSString *)format file:(const char *)file line:(int)line, ... {
+- (void)writeSpdyLog:(NSString *)msg file:(const char *)file line:(int)line {
     NSLog(@"[%s:%d]", file, line);
-
-    va_list args;
-    va_start(args, line);
-    NSLogv(format, args);
-    va_end(args);
+    NSLog(@"%@", msg);
 }
 @end
 #endif
@@ -88,7 +84,9 @@ static int select_next_proto_cb(SSL *ssl,
 
 @implementation SPDY
 
+#ifdef CONF_Debug
 @synthesize logger = _logger;
+#endif
 @synthesize sessions = _sessions;
 @synthesize ssl_ctx =  _ssl_ctx;
 
@@ -343,15 +341,16 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (SPDY *)init {
-    self = [super init];
-    if (self) {
+  self = [super init];
+  if (self) {
 #ifdef CONF_Debug
-        self.logger = [[SpdyLogImpl alloc] init];
+    if(self.logger == nil)
+      self.logger = [[SpdyLogImpl alloc] init];
 #endif
-        self.sessions = [[NSMutableDictionary alloc] init];
-        [self setUpSslCtx];
-    }
-    return self;
+    self.sessions = [[NSMutableDictionary alloc] init];
+    [self setUpSslCtx];
+  }
+  return self;
 }
 
 - (void)dealloc {
@@ -623,6 +622,7 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (void)setResponseHeaders:(CFHTTPMessageRef)h {
+  
 }
 
 // Methods that implementors should override.
