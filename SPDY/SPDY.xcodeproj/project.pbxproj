@@ -48,6 +48,12 @@
 		847FA66F1655CABF004B2707 /* SpdyRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 847FA66D1655CABF004B2707 /* SpdyRequest.m */; };
 		84C05737165B08C500151001 /* SpdyPersistentUrl.h in Headers */ = {isa = PBXBuildFile; fileRef = 84C05734165B08C500151001 /* SpdyPersistentUrl.h */; };
 		84C05738165B08C500151001 /* SpdyPersistentUrl.m in Sources */ = {isa = PBXBuildFile; fileRef = 84C05736165B08C500151001 /* SpdyPersistentUrl.m */; };
+		84D46BFB1667EAD900226B4B /* SpdyRequestCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46BF81667EAD900226B4B /* SpdyRequestCallback.h */; };
+		84D46BFC1667EAD900226B4B /* SpdyRequestCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46BFA1667EAD900226B4B /* SpdyRequestCallback.m */; };
+		84D46C011667EAEA00226B4B /* SpdyHTTPResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46BFE1667EAEA00226B4B /* SpdyHTTPResponse.h */; };
+		84D46C021667EAEA00226B4B /* SpdyHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C001667EAEA00226B4B /* SpdyHTTPResponse.m */; };
+		84D46C081667ED5400226B4B /* SpdyRequest+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C061667ED5400226B4B /* SpdyRequest+Private.h */; };
+		84D46C091667ED5400226B4B /* SpdyRequest+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C071667ED5400226B4B /* SpdyRequest+Private.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +114,12 @@
 		847FA66D1655CABF004B2707 /* SpdyRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyRequest.m; sourceTree = "<group>"; };
 		84C05734165B08C500151001 /* SpdyPersistentUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyPersistentUrl.h; sourceTree = "<group>"; };
 		84C05736165B08C500151001 /* SpdyPersistentUrl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyPersistentUrl.m; sourceTree = "<group>"; };
+		84D46BF81667EAD900226B4B /* SpdyRequestCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyRequestCallback.h; sourceTree = "<group>"; };
+		84D46BFA1667EAD900226B4B /* SpdyRequestCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyRequestCallback.m; sourceTree = "<group>"; };
+		84D46BFE1667EAEA00226B4B /* SpdyHTTPResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyHTTPResponse.h; sourceTree = "<group>"; };
+		84D46C001667EAEA00226B4B /* SpdyHTTPResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyHTTPResponse.m; sourceTree = "<group>"; };
+		84D46C061667ED5400226B4B /* SpdyRequest+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SpdyRequest+Private.h"; sourceTree = "<group>"; };
+		84D46C071667ED5400226B4B /* SpdyRequest+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SpdyRequest+Private.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -183,6 +195,12 @@
 		3870AF5714E47F8E009D8118 /* SPDY */ = {
 			isa = PBXGroup;
 			children = (
+				84D46C061667ED5400226B4B /* SpdyRequest+Private.h */,
+				84D46C071667ED5400226B4B /* SpdyRequest+Private.m */,
+				84D46BFE1667EAEA00226B4B /* SpdyHTTPResponse.h */,
+				84D46C001667EAEA00226B4B /* SpdyHTTPResponse.m */,
+				84D46BF81667EAD900226B4B /* SpdyRequestCallback.h */,
+				84D46BFA1667EAD900226B4B /* SpdyRequestCallback.m */,
 				84C05734165B08C500151001 /* SpdyPersistentUrl.h */,
 				84C05736165B08C500151001 /* SpdyPersistentUrl.m */,
 				847FA66C1655CABF004B2707 /* SpdyRequest.h */,
@@ -260,6 +278,9 @@
 				03DA36AF1536446D00FB44AD /* SpdySessionKey.h in Headers */,
 				847FA66E1655CABF004B2707 /* SpdyRequest.h in Headers */,
 				84C05737165B08C500151001 /* SpdyPersistentUrl.h in Headers */,
+				84D46BFB1667EAD900226B4B /* SpdyRequestCallback.h in Headers */,
+				84D46C011667EAEA00226B4B /* SpdyHTTPResponse.h in Headers */,
+				84D46C081667ED5400226B4B /* SpdyRequest+Private.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,6 +389,9 @@
 				03DA36B01536446D00FB44AD /* SpdySessionKey.m in Sources */,
 				847FA66F1655CABF004B2707 /* SpdyRequest.m in Sources */,
 				84C05738165B08C500151001 /* SpdyPersistentUrl.m in Sources */,
+				84D46BFC1667EAD900226B4B /* SpdyRequestCallback.m in Sources */,
+				84D46C021667EAEA00226B4B /* SpdyHTTPResponse.m in Sources */,
+				84D46C091667ED5400226B4B /* SpdyRequest+Private.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -423,8 +447,8 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
@@ -443,12 +467,12 @@
 		3870AF7514E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = "$(SRCROOT)/../build/lib";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
@@ -468,7 +492,6 @@
 		3870AF7714E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
@@ -479,6 +502,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
@@ -498,7 +522,6 @@
 		3870AF7814E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
@@ -509,6 +532,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
@@ -528,7 +552,6 @@
 		3870AF7A14E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -537,6 +560,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
@@ -553,7 +577,6 @@
 		3870AF7B14E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -562,6 +585,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";

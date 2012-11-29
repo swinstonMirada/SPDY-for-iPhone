@@ -18,6 +18,24 @@
 // limitations under the License.
 
 #import <Foundation/Foundation.h>
+#import <SystemConfiguration/SystemConfiguration.h>
+
+typedef enum {
+    kSpdyNotConnected,
+    kSpdyConnecting,
+    kSpdySslHandshake,
+    kSpdyConnected,
+    kSpdyError,
+} SpdyConnectState;
+
+#define kSpdyStreamNotFound -1
+#define kSpdyHostNotFound -2
+
+typedef enum {
+    kSpdyNotReachable = 0,
+    kSpdyReachableViaWWAN,
+    kSpdyReachableViaWiFi	
+} SpdyNetworkStatus;
 
 @class RequestCallback;
 
@@ -36,6 +54,9 @@ enum SpdyErrors {
     kSpdyRequestCancelled = 2,
     kSpdyConnectionNotSpdy = 3,
     kSpdyInvalidResponseHeaders = 4,
+    kSpdyHttpSchemeNotSupported = 5,
+    kSpdyStreamClosedWithNoRepsonseHeaders = 6,
+    kSpdyVoipRequestedButFailed = 7,
 };
 
 @protocol SpdyRequestIdentifier <NSObject>
@@ -70,15 +91,29 @@ enum SpdyErrors {
 - (BOOL)isSpdyRegisteredForUrl:(NSURL *)url;
 - (void)unregisterForNSURLConnection;
 
+- (int)pingWithCallback:(void (^)())callback;
+- (void)pingUrlString:(NSString*)url callback:(void (^)())callback;
+- (void)pingRequest:(NSURLRequest*)request callback:(void (^)())callback;
+- (void)teardown:(NSString*)url;
+- (void)teardownForRequest:(NSURLRequest*)url;
+
++ (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags;
+- (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url;
+- (SpdyNetworkStatus)networkStatusForRequest:(NSURLRequest*)request;
+- (SpdyConnectState)connectStateForUrlString:(NSString*)url;
+- (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request;
+
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
 - (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate;
+- (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate voip:(BOOL)voip;
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate;
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate voip:(BOOL)voip;
 
 // Cancels all active requests and closes all connections.  Returns the number of requests that were cancelled.  Ideally this should be called when all requests have already been canceled.
 - (NSInteger)closeAllSessions;
 
-@property (retain) NSObject<SpdyLogger> *logger;
+@property (strong) NSObject<SpdyLogger> *logger;
 @end
 
 @interface RequestCallback : NSObject {
@@ -101,11 +136,25 @@ enum SpdyErrors {
 
 // Derived classses should override these methods since BufferedCallback overrides the rest of the callbacks from RequestCallback.
 - (void)onResponse:(CFHTTPMessageRef)response;
+- (void)onPushResponse:(CFHTTPMessageRef)response;
 - (void)onError:(NSError *)error;
+- (void)onPushError:(NSError *)error;
 
-@property (nonatomic, retain) NSURL *url;
+@property (nonatomic, strong) NSURL *url;
+@end
+
+
+// this callback is created internally to cause existing BufferedCallback objects
+// to get a second onResponse: in the case that a push occurs.
+@interface PushCallback : BufferedCallback 
+
+-(id)initWithParentCallback:(BufferedCallback*)parent;
 
 @end
+
+#ifdef CONF_Debug
+
+/* logging only on the Debug configuration */
 
 #define SPDY_LOG(fmt, ...) do { \
   [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:__FILE__ line:__LINE__, ##__VA_ARGS__];\
@@ -116,3 +165,12 @@ enum SpdyErrors {
     [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:__FILE__ line:__LINE__, ##__VA_ARGS__];\
     if (0) NSLog(fmt, ## __VA_ARGS__); \
 } while (0);
+
+#else
+
+/* no logging at all on release builds */
+
+#define SPDY_LOG(fmt, ...) { }
+#define SPDY_DEBUG_LOG(fmt, ...) { }
+
+#endif
