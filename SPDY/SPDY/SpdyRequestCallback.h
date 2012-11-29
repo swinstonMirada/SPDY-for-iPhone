@@ -1,6 +1,6 @@
 #import "SpdyRequest.h"
 
-@interface SpdyRequestCallback : BufferedCallback {
+@interface SpdyRequestCallback : SpdyBufferedCallback {
   SpdyRequest *spdy_url;
 }
 

@@ -446,7 +446,7 @@ static int select_next_proto_cb(SSL *ssl,
 }
 @end
 
-@interface BufferedCallback ()
+@interface SpdyBufferedCallback ()
 
 @property (nonatomic, assign) CFHTTPMessageRef headers;
 @property (nonatomic, assign) CFMutableDataRef body;
@@ -455,7 +455,7 @@ static int select_next_proto_cb(SSL *ssl,
 
 @end
 
-@implementation BufferedCallback {
+@implementation SpdyBufferedCallback {
   BOOL did_response_callback;
   NSMutableSet * push_callbacks;
 }
@@ -571,11 +571,11 @@ static int select_next_proto_cb(SSL *ssl,
 @end
 
 @implementation PushCallback {
-  __unsafe_unretained BufferedCallback * parent;
+  __unsafe_unretained SpdyBufferedCallback * parent;
   int32_t streamId;
 }
 
--(id)initWithParentCallback:(BufferedCallback*)_parent andStreamId:(int32_t)_streamId {
+-(id)initWithParentCallback:(SpdyBufferedCallback*)_parent andStreamId:(int32_t)_streamId {
   self = [super init];
   if(self) {
     parent = _parent;
