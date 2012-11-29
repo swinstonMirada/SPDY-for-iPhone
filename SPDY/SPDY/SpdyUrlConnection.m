@@ -57,7 +57,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 @end
 
-@interface SpdyRequestCallback : RequestCallback
+@interface SpdyUrlConnectionRequestCallback : RequestCallback
 - (id)initWithConnection:(SpdyUrlConnection *)protocol;
 @property (strong) SpdyUrlConnection *protocol;
 @property (assign) NSInteger requestBytesSent;
@@ -65,7 +65,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 @property (nonatomic, assign) z_stream zlibContext;
 @end
 
-@implementation SpdyRequestCallback
+@implementation SpdyUrlConnectionRequestCallback
 @synthesize protocol = _protocol;
 @synthesize requestBytesSent = _requestBytesSent;
 @synthesize needUnzip = _needUnzip;
@@ -240,7 +240,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 - (void)startLoading {
     SPDY_DEBUG_LOG(@"Start loading SpdyURLConnection: %@ with URL: %@", self, [[self request] URL])
-    SpdyRequestCallback *delegate = [[SpdyRequestCallback alloc] initWithConnection:self];
+    SpdyUrlConnectionRequestCallback *delegate = [[SpdyUrlConnectionRequestCallback alloc] initWithConnection:self];
     [[SPDY sharedSPDY] fetchFromRequest:[self request] delegate:delegate];
 }
 
