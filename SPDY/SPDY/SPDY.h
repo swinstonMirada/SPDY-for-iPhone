@@ -140,7 +140,7 @@ enum SpdyErrors {
 
 // Derived classses should override these methods since BufferedCallback overrides the rest of the callbacks from RequestCallback.
 - (void)onResponse:(CFHTTPMessageRef)response;
-- (void)onPushResponse:(CFHTTPMessageRef)response;
+- (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId;
 - (void)onError:(NSError *)error;
 - (void)onPushError:(NSError *)error;
 
@@ -152,7 +152,8 @@ enum SpdyErrors {
 // to get a second onResponse: in the case that a push occurs.
 @interface PushCallback : BufferedCallback 
 
--(id)initWithParentCallback:(BufferedCallback*)parent;
+-(id)initWithParentCallback:(BufferedCallback*)_parent andStreamId:(int32_t)_streamIdd;
+
 
 @end
 

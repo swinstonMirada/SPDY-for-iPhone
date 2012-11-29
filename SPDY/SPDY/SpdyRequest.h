@@ -5,6 +5,7 @@
 @class SpdyRequest;
 
 typedef void (^LLSpdySuccessCallback)(NSHTTPURLResponse*,NSData*);
+typedef void (^LLSpdyPushSuccessCallback)(NSHTTPURLResponse*,NSData*,int32_t);
 typedef void (^LLSpdyErrorCallback)(NSError*);
 typedef void (^LLSpdyVoidCallback)();
 
@@ -56,7 +57,7 @@ typedef void (^LLSpdyVoidCallback)();
 @property (nonatomic, copy) LLSpdyErrorCallback errorCallback;
 
 /* called in the event that a valid push is received */
-@property (nonatomic, copy) LLSpdySuccessCallback pushSuccessCallback;
+@property (nonatomic, copy) LLSpdyPushSuccessCallback pushSuccessCallback;
 
 /* called in the event that a push error is received */
 @property (nonatomic, copy) LLSpdyErrorCallback pushErrorCallback;

@@ -127,18 +127,29 @@ static int select_next_proto_cb(SSL *ssl,
     return status;
 }
 
+-(SSL_SESSION *)resetSession:(SpdySession*)session  withKey:(SpdySessionKey*)key {
+  [session resetStreamsAndGoAway];
+  SSL_SESSION * oldSslSession = [session getSslSession];
+  [self.sessions removeObjectForKey:key];
+  return oldSslSession;
+}
+
+-(SSL_SESSION *)resetSession:(SpdySession*)session  withUrl:(NSURL*)key {
+  return [self resetSession:session 
+	       withKey:[[SpdySessionKey alloc] 
+			 initFromUrl:key]];
+}
+
 - (SpdySession *)getSession:(NSURL *)url withError:(NSError **)error voip:(BOOL)voip {
     assert(error != NULL);
     SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
     SpdySession *session = [self.sessions objectForKey:key];
-    //SPDY_LOG(@"Looking up %@, found %@", key, session);
+    SPDY_LOG(@"Looking up %@, found %p", key, session);
     SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
     SSL_SESSION *oldSslSession =  NULL;
     if (session != nil && ([session isInvalid] || currentStatus != session.networkStatus)) {
-        //SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
-        [session resetStreamsAndGoAway];
-        oldSslSession = [session getSslSession];
-        [self.sessions removeObjectForKey:key];
+        SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
+        oldSslSession = [self resetSession:session withKey:key];
         session = nil;
     }
     if (session == nil) {
@@ -149,7 +160,7 @@ static int select_next_proto_cb(SSL *ssl,
             SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
             return nil;
         }
-        //SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
+        SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
         currentStatus = [self.class reachabilityStatusForHost:key.host];
         session.networkStatus = currentStatus;
         [self.sessions setObject:session forKey:key];
@@ -220,11 +231,11 @@ static int select_next_proto_cb(SSL *ssl,
 - (void)teardownForRequest:(NSURLRequest*)request {
   NSURL *url = [request URL];
   NSError *error;
-  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO];
+  SpdySession *session = [self getSession:url withError:&error voip:NO];
   if (session == nil) {
     return;
   }
-  [session resetStreamsAndGoAway];
+  [self resetSession:session withUrl:url];
 }
 
 - (void)teardown:(NSString*)url {
@@ -237,7 +248,8 @@ static int select_next_proto_cb(SSL *ssl,
   if (session == nil) {
     return;
   }
-  [session resetStreamsAndGoAway];
+  SPDY_LOG(@"tearing down spdy session %p", session);
+  [self resetSession:session withUrl:u];
 }
 
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url {
@@ -549,8 +561,8 @@ static int select_next_proto_cb(SSL *ssl,
     
 }
 
-- (void)onPushResponse:(CFHTTPMessageRef)response {
-
+- (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId {
+  
 }
 
 - (void)onPushError:(NSError *)error {
@@ -560,18 +572,21 @@ static int select_next_proto_cb(SSL *ssl,
 
 @implementation PushCallback {
   __unsafe_unretained BufferedCallback * parent;
+  int32_t streamId;
 }
--(id)initWithParentCallback:(BufferedCallback*)_parent {
+
+-(id)initWithParentCallback:(BufferedCallback*)_parent andStreamId:(int32_t)_streamId {
   self = [super init];
   if(self) {
     parent = _parent;
     [parent addPushCallback:self];
+    streamId = _streamId;
   }
   return self;
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {
-  if(parent) [parent onPushResponse:response];
+  if(parent) [parent onPushResponse:response withStreamId:streamId];
 }
 
 - (void)onError:(NSError *)error {

@@ -208,6 +208,8 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     CFDataRef address = CFDataCreate(NULL, (const uint8_t*)rp->ai_addr, rp->ai_addrlen);
     socket = CFSocketCreate(NULL, PF_INET, SOCK_STREAM, IPPROTO_TCP, kCFSocketConnectCallBack | kCFSocketReadCallBack | kCFSocketWriteCallBack,
 			    &sessionCallBack, &ctx);
+
+
     CFSocketConnectToAddress(socket, address, -1);
         
     // Ignore write failures, and deal with then on write.
@@ -309,41 +311,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     spdylay_session_client_new(&session, self.spdyVersion, callbacks, (__bridge void *)(self));
 
     NSEnumerator *enumerator = [streams objectEnumerator];
-    SpdyStream * stream;
-        
-    if(self.voip) {
-      // these streams are only used for wakeup, all acutal i/o 
-      // happens via the socket and openssl.
-      CFReadStreamRef readStream = NULL;
-      CFWriteStreamRef writeStream = NULL;
-
-      CFStreamCreatePairWithSocket(NULL, CFSocketGetNative(socket), 
-				   &readStream, &writeStream);
-
-      self.readStream = readStream;
-      self.writeStream = writeStream;
-
-      CFReadStreamSetProperty(self.readStream, 
-			      kCFStreamNetworkServiceType, 
-			      kCFStreamNetworkServiceTypeVoIP);
-      CFWriteStreamSetProperty(self.writeStream, 
-			       kCFStreamNetworkServiceType, 
-			       kCFStreamNetworkServiceTypeVoIP); 
-
-      CFReadStreamScheduleWithRunLoop(self.readStream, 
-				      CFRunLoopGetCurrent(),
-				      kCFRunLoopCommonModes);
-
-      CFWriteStreamScheduleWithRunLoop(self.writeStream, 
-				       CFRunLoopGetCurrent(),
-				       kCFRunLoopCommonModes);
-
-      if ( ! CFReadStreamOpen(self.readStream) || 
-	   ! CFWriteStreamOpen(self.writeStream)) {
-	[self releaseStreams];
-	[self sendVoipError];
-      }
-    }
+    SpdyStream * stream;        
 
     while ((stream = [enumerator nextObject])) {
       if (![self submitRequest:stream]) {
@@ -368,10 +336,16 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 -(void)releaseStreams {
   if(self.readStream != NULL) {
+    CFReadStreamUnscheduleFromRunLoop(self.readStream, 
+				      CFRunLoopGetCurrent(),
+				      kCFRunLoopCommonModes);
     CFRelease(self.readStream);
     self.readStream = NULL;
   }
   if(self.writeStream != NULL) {
+    CFWriteStreamUnscheduleFromRunLoop(self.writeStream, 
+				       CFRunLoopGetCurrent(),
+				       kCFRunLoopCommonModes);
     CFRelease(self.writeStream);
     self.writeStream = NULL;
   }
@@ -701,6 +675,43 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 - (NSString *)description {
   return [NSString stringWithFormat:@"%@ host: %@, spdyVersion=%d, state=%d, networkStatus: %d", [super description], host, self.spdyVersion, self.connectState, self.networkStatus];
 }
+
+-(void)maybeEnableVoip {
+  if(self.voip) {
+    // these streams are only used for wakeup, all acutal i/o 
+    // happens via the socket and openssl.
+    CFReadStreamRef readStream = NULL;
+    CFWriteStreamRef writeStream = NULL;
+
+    CFStreamCreatePairWithSocket(NULL, CFSocketGetNative(socket), 
+				 &readStream, &writeStream);
+
+    self.readStream = readStream;
+    self.writeStream = writeStream;
+
+    CFReadStreamSetProperty(self.readStream, 
+			    kCFStreamNetworkServiceType, 
+			    kCFStreamNetworkServiceTypeVoIP);
+    CFWriteStreamSetProperty(self.writeStream, 
+			     kCFStreamNetworkServiceType, 
+			     kCFStreamNetworkServiceTypeVoIP); 
+
+    CFReadStreamScheduleWithRunLoop(self.readStream, 
+				    CFRunLoopGetCurrent(),
+				    kCFRunLoopCommonModes);
+
+    CFWriteStreamScheduleWithRunLoop(self.writeStream, 
+				     CFRunLoopGetCurrent(),
+				     kCFRunLoopCommonModes);
+
+    if ( ! CFReadStreamOpen(self.readStream) || 
+	 ! CFWriteStreamOpen(self.writeStream)) {
+      [self releaseStreams];
+      [self sendVoipError];
+    }
+  }
+}
+
 @end
 
 static void sessionCallBack(CFSocketRef s,
@@ -712,6 +723,7 @@ static void sessionCallBack(CFSocketRef s,
   if (info == NULL) {
     return;
   }
+
   SpdySession *session = (__bridge SpdySession *)info;
   if (session.connectState == kSpdyConnecting) {
     if (data != NULL) {
@@ -722,6 +734,7 @@ static void sessionCallBack(CFSocketRef s,
 
     SPDY_LOG(@"Connected to %@", info);
     session.connectState = kSpdySslHandshake;
+    [session maybeEnableVoip];
     if (![session sslConnect]) {
       return;
     }

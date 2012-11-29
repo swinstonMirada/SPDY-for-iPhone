@@ -2,7 +2,7 @@
 #import "SPDY.h"
 
 @interface SpdyRequest (Private)
--(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message;
+-(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId;
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message;
 -(void)doStreamCloseCallback;
 @end
@@ -185,8 +185,8 @@
   [spdy_url doStreamCloseCallback];
 }
 
-- (void)onPushResponse:(CFHTTPMessageRef)response {
-  [spdy_url doPushCallbackWithMessage:response];
+- (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId {
+  [spdy_url doPushCallbackWithMessage:response andStreamId:streamId];
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {
@@ -204,7 +204,7 @@
 }
 
 // XXX refactor the common parts of these two methods
--(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message {
+-(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
   CFRelease(b);
@@ -212,7 +212,7 @@
 						      message:message];
 
   if(self.pushSuccessCallback != nil) {
-    self.pushSuccessCallback(spdy_message, body);
+    self.pushSuccessCallback(spdy_message, body, streamId);
   } else {
     SPDY_LOG(@"dropping response w/ nil callback");
   }

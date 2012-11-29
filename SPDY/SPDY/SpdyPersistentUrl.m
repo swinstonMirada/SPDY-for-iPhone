@@ -30,25 +30,41 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags)
 }
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)newState {
+
   PrintReachabilityFlags(newState);
 
   SpdyNetworkStatus newStatus = [SPDY networkStatusForReachabilityFlags:newState];
   SpdyNetworkStatus oldStatus = networkStatus;
 
-  networkStatus = newStatus;
+  SPDY_LOG(@"reachabilityChanged: old %d new %d", oldStatus, newStatus);
 
   if(oldStatus == newStatus) {
     // reachability didn't actually change.
   } else if(newStatus == kSpdyNotReachable) {
+    SPDY_LOG(@"we were reachable, but no longer are, disconnect");
     // we were reachable, but no longer are, disconnect
+    networkStatus = newStatus;
     [self teardown];
   } else if(oldStatus == kSpdyNotReachable) {
+    SPDY_LOG(@"were not reachable, now we are, reconnect");
     // were not reachable, now we are, reconnect
+    networkStatus = newStatus;
+    [self teardown];
     [self reconnect:nil];
   } else if(oldStatus == kSpdyReachableViaWiFi && 
 	    newStatus == kSpdyReachableViaWWAN) {
+    SPDY_LOG(@"was on wifi, now on wwan, reconnect");
     // was on wifi, now on wwan, reconnect
+    networkStatus = newStatus;
+    [self teardown];
     [self reconnect:nil];
+  } else if(oldStatus == kSpdyReachableViaWWAN && 
+	    newStatus == kSpdyReachableViaWiFi) {
+    SPDY_LOG(@"not switching away from 3g in the presence of a wifi network");
+    // in this case we explicitly don't set our network status to 
+    // the new status because we are still relying upon the old status (3g)
+
+    // XXX make sure that 3g is still valid here (send ping??)
   } else {
     SPDY_LOG(@"ignoring reachability state change: (%d => %d)", oldStatus, newStatus);
   }
@@ -190,13 +206,12 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 
   if(connectState == kSpdyConnecting || connectState == kSpdySslHandshake) {
-    SPDY_LOG(@"connecting");
-    return;			// may want to set a timeout for lingering connects
+    SPDY_LOG(@"already connecting, sending data anyways");
+    //return;			// may want to set a timeout for lingering connects
   }
 
   SPDY_LOG(@"doing reconnect");
   // we are reachable, and not connected, and the error is not fatal, reconnect
-  
   [self send];
 }
 
@@ -207,6 +222,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 			 userInfo:nil repeats:NO];
     [self sendPing];
   } else {
+    [self teardown];
     [self reconnect:nil];
   }
 }
