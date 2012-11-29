@@ -9,8 +9,7 @@
   }
 }
 
-// XXX refactor the common parts of these two methods
--(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
+-(void)doCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId andCompletion:(LLSpdySuccessCallback)callback {
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
   CFRelease(b);
@@ -18,24 +17,23 @@
 						      andMessage:message];
 
   spdy_message.streamId = streamId;
-  if(self.pushSuccessCallback != nil) {
-    self.pushSuccessCallback(spdy_message, body);
+  if(callback != nil) {
+    callback(spdy_message, body);
   } else {
     SPDY_LOG(@"dropping response w/ nil callback");
   }
 }
 
+-(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
+  [self doCallbackWithMessage:message 
+	andStreamId:streamId 
+	andCompletion:self.successCallback];
+}
+
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message {
-  CFDataRef b = CFHTTPMessageCopyBody(message);
-  NSData * body = (__bridge NSData *)b;
-  CFRelease(b);
-  SpdyHTTPResponse * spdy_message = [SpdyHTTPResponse responseWithURL:self.URL
-						      andMessage:message];
-  if(self.successCallback != nil) {
-    self.successCallback(spdy_message, body);
-  } else {
-    SPDY_LOG(@"dropping response w/ nil callback");
-  }
+  [self doCallbackWithMessage:message 
+	andStreamId:0		// XXX stream id only on push for now
+	andCompletion:self.pushSuccessCallback];
 }
 
 @end
