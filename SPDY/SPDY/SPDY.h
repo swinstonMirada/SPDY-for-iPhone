@@ -37,7 +37,7 @@ typedef enum {
     kSpdyReachableViaWiFi	
 } SpdyNetworkStatus;
 
-@class RequestCallback;
+@class SpdyCallback;
 
 // Returns a CFReadStream.  If requestBody is non-NULL the request method in requestHeaders must
 // support a message body and the requestBody will override the body that may already be in requestHeaders.  If
@@ -106,11 +106,11 @@ enum SpdyErrors {
 - (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request;
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
-- (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate;
-- (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate voip:(BOOL)voip;
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate voip:(BOOL)voip;
+- (void)fetch:(NSString *)path delegate:(SpdyCallback *)delegate;
+- (void)fetch:(NSString *)path delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
+- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
 
 // Cancels all active requests and closes all connections.  Returns the number of requests that were cancelled.  Ideally this should be called when all requests have already been canceled.
 - (NSInteger)closeAllSessions;
@@ -120,7 +120,7 @@ enum SpdyErrors {
 #endif
 @end
 
-@interface RequestCallback : NSObject {
+@interface SpdyCallback : NSObject {
 }
 
 // Methods that implementors should override.
@@ -135,10 +135,10 @@ enum SpdyErrors {
 
 @end
 
-@interface BufferedCallback : RequestCallback {
+@interface BufferedCallback : SpdyCallback {
 }
 
-// Derived classses should override these methods since BufferedCallback overrides the rest of the callbacks from RequestCallback.
+// Derived classses should override these methods since BufferedCallback overrides the rest of the callbacks from SpdyCallback.
 - (void)onResponse:(CFHTTPMessageRef)response;
 - (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId;
 - (void)onError:(NSError *)error;

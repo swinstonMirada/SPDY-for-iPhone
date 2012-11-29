@@ -259,7 +259,7 @@ static NSSet *headersNotToCopy = nil;
 
 #pragma mark Creation methods.
 
-+ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(RequestCallback *)delegate body:(NSInputStream *)body {
++ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
     SpdyStream *stream = [[SpdyStream alloc] init];
     CFURLRef u = CFHTTPMessageCopyRequestURL(msg);
     stream.url = (__bridge NSURL *)u;
@@ -279,7 +279,7 @@ static NSSet *headersNotToCopy = nil;
     return stream;
 }
 
-+ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(RequestCallback *)delegate {
++ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(SpdyCallback *)delegate {
     SpdyStream *stream = [[SpdyStream alloc] init];
     stream.nameValues = malloc(sizeof(const char *) * (6*2 + 1));
     stream.delegate = delegate;
@@ -292,7 +292,7 @@ static NSSet *headersNotToCopy = nil;
     return stream;
 }
 
-+ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate {
++ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
     SpdyStream *stream = [[SpdyStream alloc] init];
     NSDictionary *headers = [request allHTTPHeaderFields];
     stream.delegate = delegate;

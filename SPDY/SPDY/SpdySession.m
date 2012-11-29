@@ -414,17 +414,17 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   [pushStreams setObject:stream forKey:STREAM_KEY(stream.streamId)];
 }
 
-- (void)fetch:(NSURL *)u delegate:(RequestCallback *)delegate {
+- (void)fetch:(NSURL *)u delegate:(SpdyCallback *)delegate {
   SpdyStream *stream = [SpdyStream newFromNSURL:u delegate:delegate];
   [self addStream:stream];
 }
 
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body {
+- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
   SpdyStream *stream = [SpdyStream newFromCFHTTPMessage:request delegate:delegate body:body];
   [self addStream:stream];
 }
 
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate {
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
   SpdyStream *stream = [SpdyStream newFromRequest:(NSURLRequest *)request delegate:delegate];
   [self addStream:stream];
 }

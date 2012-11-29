@@ -22,7 +22,7 @@
 
 #include "SPDY.h"
 
-@class RequestCallback;
+@class SpdyCallback;
 @class SpdyStream;
 
 struct spdylay_session;
@@ -48,9 +48,9 @@ struct spdylay_session;
 
 // Returns nil if the session is able to start a connection to host.
 - (NSError *)connect:(NSURL *)host;
-- (void)fetch:(NSURL *)path delegate:(RequestCallback *)delegate;
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
+- (void)fetch:(NSURL *)path delegate:(SpdyCallback *)delegate;
+- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
 - (void)addToLoop;
 - (int)sendPing;
 - (int)sendPingWithCallback:(void (^)())callback;

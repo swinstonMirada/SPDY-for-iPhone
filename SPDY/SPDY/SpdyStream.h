@@ -21,14 +21,14 @@
 #import <Foundation/Foundation.h>
 #import "SPDY.h"
 
-@class RequestCallback;
+@class SpdyCallback;
 @class SpdySession;
 
 @interface SpdyStream : NSObject<SpdyRequestIdentifier> {
     const char **nameValues;
 
     BOOL streamClosed;
-    RequestCallback *delegate;
+    SpdyCallback *delegate;
 }
 
 // To be used by the SPDY session.
@@ -44,15 +44,15 @@
 - (void)notSpdyError;
 - (void)connectionError;
 
-+ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
-+ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(RequestCallback *)delegate;
-+ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
++ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
++ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(SpdyCallback *)delegate;
++ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
 + (SpdyStream *)newFromAssociatedStream:(SpdyStream *)associatedStream streamId:(int32_t)streamId nameValues:(char**)nv;
 
 + (void)staticInit;
 
 @property const char **nameValues;
-@property (strong) RequestCallback *delegate;
+@property (strong) SpdyCallback *delegate;
 @property (strong) NSInputStream *body;
 @property (assign) NSInteger streamId;
 @property (strong) SpdySession *parentSession;

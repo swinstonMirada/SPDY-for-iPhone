@@ -1,9 +1,7 @@
 #import "SpdyRequestCallback.h"
 #import "SpdyRequest+Private.h"
 
-@implementation SpdyRequestCallback {
-    
-}
+@implementation SpdyRequestCallback 
 
 - (id)init:(SpdyRequest *) u {
   self = [super init];

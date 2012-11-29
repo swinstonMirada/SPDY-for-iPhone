@@ -57,7 +57,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 @end
 
-@interface SpdyUrlConnectionRequestCallback : RequestCallback
+@interface SpdyUrlConnectionRequestCallback : SpdyCallback
 - (id)initWithConnection:(SpdyUrlConnection *)protocol;
 @property (strong) SpdyUrlConnection *protocol;
 @property (assign) NSInteger requestBytesSent;
