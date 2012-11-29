@@ -54,6 +54,12 @@
 		84D46C021667EAEA00226B4B /* SpdyHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C001667EAEA00226B4B /* SpdyHTTPResponse.m */; };
 		84D46C081667ED5400226B4B /* SpdyRequest+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C061667ED5400226B4B /* SpdyRequest+Private.h */; };
 		84D46C091667ED5400226B4B /* SpdyRequest+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C071667ED5400226B4B /* SpdyRequest+Private.m */; };
+		84D46C171668155F00226B4B /* SpdyBufferedCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C111668155F00226B4B /* SpdyBufferedCallback.h */; };
+		84D46C181668155F00226B4B /* SpdyBufferedCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C131668155F00226B4B /* SpdyBufferedCallback.m */; };
+		84D46C191668155F00226B4B /* SpdyCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C151668155F00226B4B /* SpdyCallback.h */; };
+		84D46C1A1668155F00226B4B /* SpdyCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C161668155F00226B4B /* SpdyCallback.m */; };
+		84D46C1F1668157700226B4B /* SpdyPushCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C1C1668157700226B4B /* SpdyPushCallback.h */; };
+		84D46C201668157700226B4B /* SpdyPushCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C1E1668157700226B4B /* SpdyPushCallback.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +126,12 @@
 		84D46C001667EAEA00226B4B /* SpdyHTTPResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyHTTPResponse.m; sourceTree = "<group>"; };
 		84D46C061667ED5400226B4B /* SpdyRequest+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SpdyRequest+Private.h"; sourceTree = "<group>"; };
 		84D46C071667ED5400226B4B /* SpdyRequest+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SpdyRequest+Private.m"; sourceTree = "<group>"; };
+		84D46C111668155F00226B4B /* SpdyBufferedCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyBufferedCallback.h; sourceTree = "<group>"; };
+		84D46C131668155F00226B4B /* SpdyBufferedCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyBufferedCallback.m; sourceTree = "<group>"; };
+		84D46C151668155F00226B4B /* SpdyCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyCallback.h; sourceTree = "<group>"; };
+		84D46C161668155F00226B4B /* SpdyCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyCallback.m; sourceTree = "<group>"; };
+		84D46C1C1668157700226B4B /* SpdyPushCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyPushCallback.h; sourceTree = "<group>"; };
+		84D46C1E1668157700226B4B /* SpdyPushCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyPushCallback.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -195,6 +207,12 @@
 		3870AF5714E47F8E009D8118 /* SPDY */ = {
 			isa = PBXGroup;
 			children = (
+				84D46C1C1668157700226B4B /* SpdyPushCallback.h */,
+				84D46C1E1668157700226B4B /* SpdyPushCallback.m */,
+				84D46C111668155F00226B4B /* SpdyBufferedCallback.h */,
+				84D46C131668155F00226B4B /* SpdyBufferedCallback.m */,
+				84D46C151668155F00226B4B /* SpdyCallback.h */,
+				84D46C161668155F00226B4B /* SpdyCallback.m */,
 				84D46C061667ED5400226B4B /* SpdyRequest+Private.h */,
 				84D46C071667ED5400226B4B /* SpdyRequest+Private.m */,
 				84D46BFE1667EAEA00226B4B /* SpdyHTTPResponse.h */,
@@ -281,6 +299,9 @@
 				84D46BFB1667EAD900226B4B /* SpdyRequestCallback.h in Headers */,
 				84D46C011667EAEA00226B4B /* SpdyHTTPResponse.h in Headers */,
 				84D46C081667ED5400226B4B /* SpdyRequest+Private.h in Headers */,
+				84D46C171668155F00226B4B /* SpdyBufferedCallback.h in Headers */,
+				84D46C191668155F00226B4B /* SpdyCallback.h in Headers */,
+				84D46C1F1668157700226B4B /* SpdyPushCallback.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -392,6 +413,9 @@
 				84D46BFC1667EAD900226B4B /* SpdyRequestCallback.m in Sources */,
 				84D46C021667EAEA00226B4B /* SpdyHTTPResponse.m in Sources */,
 				84D46C091667ED5400226B4B /* SpdyRequest+Private.m in Sources */,
+				84D46C181668155F00226B4B /* SpdyBufferedCallback.m in Sources */,
+				84D46C1A1668155F00226B4B /* SpdyCallback.m in Sources */,
+				84D46C201668157700226B4B /* SpdyPushCallback.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

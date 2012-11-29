@@ -18,7 +18,8 @@
 // limitations under the License.
 
 #import "SpdyStream.h"
-
+#import "SpdyCallback.h"
+#import "SpdyPushCallback.h"
 #import "SpdySession.h"
 
 static NSSet *headersNotToCopy = nil;
@@ -313,7 +314,7 @@ static NSSet *headersNotToCopy = nil;
   SpdyStream *stream = [[SpdyStream alloc] init];
 
   if([associatedStream.delegate isKindOfClass:[SpdyBufferedCallback class]]) {
-    stream.delegate = [[PushCallback alloc] initWithParentCallback:(SpdyBufferedCallback*)associatedStream.delegate andStreamId:streamId];
+    stream.delegate = [[SpdyPushCallback alloc] initWithParentCallback:(SpdyBufferedCallback*)associatedStream.delegate andStreamId:streamId];
   } else {
     SPDY_LOG(@"ignoring push stream because the delegate of the associated stream is not a SpdyBufferedCallback (it is %@)", [stream.delegate class]);
   }

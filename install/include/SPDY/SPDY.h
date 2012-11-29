@@ -37,7 +37,7 @@ typedef enum {
     kSpdyReachableViaWiFi	
 } SpdyNetworkStatus;
 
-@class RequestCallback;
+@class SpdyCallback;
 
 // Returns a CFReadStream.  If requestBody is non-NULL the request method in requestHeaders must
 // support a message body and the requestBody will override the body that may already be in requestHeaders.  If
@@ -70,11 +70,13 @@ enum SpdyErrors {
 
 @end
 
+#ifdef CONF_Debug
 // The SpdyLogger protocol is used to log from the spdy library.  The default SpdyLogger prints out ugly logs with NSLog.  You'll probably
 // want to override the default.
 @protocol SpdyLogger
-- (void)writeSpdyLog:(NSString *)format file:(const char *)file line:(int)line, ...;
+- (void)writeSpdyLog:(NSString *)message file:(const char *)file line:(int)line;
 @end
+#endif
 
 @interface SPDY : NSObject
 
@@ -104,65 +106,36 @@ enum SpdyErrors {
 - (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request;
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
-- (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate;
-- (void)fetch:(NSString *)path delegate:(RequestCallback *)delegate voip:(BOOL)voip;
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate voip:(BOOL)voip;
+- (void)fetch:(NSString *)path delegate:(SpdyCallback *)delegate;
+- (void)fetch:(NSString *)path delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
+- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
 
 // Cancels all active requests and closes all connections.  Returns the number of requests that were cancelled.  Ideally this should be called when all requests have already been canceled.
 - (NSInteger)closeAllSessions;
 
+#ifdef CONF_Debug
 @property (strong) NSObject<SpdyLogger> *logger;
-@end
-
-@interface RequestCallback : NSObject {
-}
-
-// Methods that implementors should override.
-- (void)onConnect:(id<SpdyRequestIdentifier>)identifier;
-- (void)onRequestBytesSent:(NSInteger)bytesSend;
-- (void)onResponseHeaders:(CFHTTPMessageRef)headers;
-- (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length;
-- (void)onStreamClose;
-- (void)onNotSpdyError:(id<SpdyRequestIdentifier>)identifier;
-
-- (void)onError:(NSError *)error;
-
-@end
-
-@interface BufferedCallback : RequestCallback {
-}
-
-// Derived classses should override these methods since BufferedCallback overrides the rest of the callbacks from RequestCallback.
-- (void)onResponse:(CFHTTPMessageRef)response;
-- (void)onPushResponse:(CFHTTPMessageRef)response;
-- (void)onError:(NSError *)error;
-- (void)onPushError:(NSError *)error;
-
-@property (nonatomic, strong) NSURL *url;
+#endif
 @end
 
 
-// this callback is created internally to cause existing BufferedCallback objects
-// to get a second onResponse: in the case that a push occurs.
-@interface PushCallback : BufferedCallback 
 
--(id)initWithParentCallback:(BufferedCallback*)parent;
-
-@end
 
 #ifdef CONF_Debug
 
 /* logging only on the Debug configuration */
 
 #define SPDY_LOG(fmt, ...) do { \
-  [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:__FILE__ line:__LINE__, ##__VA_ARGS__];\
-  if (0) NSLog(fmt, ## __VA_ARGS__); \
+    NSString * msg = [[NSString alloc] initWithFormat:fmt, ##__VA_ARGS__]; \
+    [[SPDY sharedSPDY].logger writeSpdyLog:msg file:__FILE__ line:__LINE__]; \
+    if (0) NSLog(fmt, ## __VA_ARGS__);					\
 } while (0);
 
 #define SPDY_DEBUG_LOG(fmt, ...) do { \
-    [[SPDY sharedSPDY].logger writeSpdyLog:fmt file:__FILE__ line:__LINE__, ##__VA_ARGS__];\
+    NSString * msg = [[NSString alloc] initWithFormat:fmt, ##__VA_ARGS__]; \
+    [[SPDY sharedSPDY].logger writeSpdyLog:msg file:__FILE__ line:__LINE__];\
     if (0) NSLog(fmt, ## __VA_ARGS__); \
 } while (0);
 

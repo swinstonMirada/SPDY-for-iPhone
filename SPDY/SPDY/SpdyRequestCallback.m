@@ -50,7 +50,7 @@
 }
 
 - (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId {
-  [spdy_url doPushCallbackWithMessage:response andStreamId:streamId];
+  [spdy_url doSpdyPushCallbackWithMessage:response andStreamId:streamId];
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {

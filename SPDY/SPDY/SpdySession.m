@@ -37,6 +37,7 @@
 
 #import "SPDY.h"
 #import "SpdyStream.h"
+#import "SpdyCallback.h"
 
 #include "openssl/ssl.h"
 #include "openssl/err.h"

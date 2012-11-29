@@ -120,42 +120,8 @@ enum SpdyErrors {
 #endif
 @end
 
-@interface SpdyCallback : NSObject {
-}
-
-// Methods that implementors should override.
-- (void)onConnect:(id<SpdyRequestIdentifier>)identifier;
-- (void)onRequestBytesSent:(NSInteger)bytesSend;
-- (void)onResponseHeaders:(CFHTTPMessageRef)headers;
-- (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length;
-- (void)onStreamClose;
-- (void)onNotSpdyError:(id<SpdyRequestIdentifier>)identifier;
-
-- (void)onError:(NSError *)error;
-
-@end
-
-@interface SpdyBufferedCallback : SpdyCallback {
-}
-
-// Derived classses should override these methods since SpdyBufferedCallback overrides the rest of the callbacks from SpdyCallback.
-- (void)onResponse:(CFHTTPMessageRef)response;
-- (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId;
-- (void)onError:(NSError *)error;
-- (void)onPushError:(NSError *)error;
-
-@property (nonatomic, strong) NSURL *url;
-@end
 
 
-// this callback is created internally to cause existing SpdyBufferedCallback objects
-// to get a second onResponse: in the case that a push occurs.
-@interface PushCallback : SpdyBufferedCallback 
-
--(id)initWithParentCallback:(SpdyBufferedCallback*)_parent andStreamId:(int32_t)_streamIdd;
-
-
-@end
 
 #ifdef CONF_Debug
 

@@ -1,7 +1,7 @@
 #import "SpdyRequest.h"
 
 @interface SpdyRequest (Private)
--(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId;
+-(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId;
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message;
 -(void)doStreamCloseCallback;
 @end

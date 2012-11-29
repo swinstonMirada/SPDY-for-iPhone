@@ -10,7 +10,7 @@
 }
 
 // XXX refactor the common parts of these two methods
--(void)doPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
+-(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
   CFRelease(b);

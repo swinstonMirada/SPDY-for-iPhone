@@ -19,6 +19,7 @@
 // limitations under the License.
 
 #import "SpdyUrlConnection.h"
+#import "SpdyCallback.h"
 #import "SPDY.h"
 #include "zlib.h"
 
