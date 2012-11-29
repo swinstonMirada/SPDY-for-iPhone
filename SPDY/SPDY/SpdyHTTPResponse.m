@@ -1,110 +1,49 @@
 #import "SpdyHTTPResponse.h"
 
-@implementation NSDictionary (SpdyNetworkAdditions)
 
-+ (id)dictionaryWithString:(NSString *)string separator:(NSString *)separator delimiter:(NSString *)delimiter {
-  NSArray *parameterPairs = [string componentsSeparatedByString:delimiter];
-        
-  NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithCapacity:[parameterPairs count]];
-        
-  for (NSString *currentPair in parameterPairs) {
-    NSArray *pairComponents = [currentPair componentsSeparatedByString:separator];
-                
-    NSString *key = ([pairComponents count] >= 1 ? [pairComponents objectAtIndex:0] : nil);
-    if (key == nil) continue;
-                
-    NSString *value = ([pairComponents count] >= 2 ? [pairComponents objectAtIndex:1] : [NSNull null]);
-    [parameters setObject:value forKey:key];
-  }
-        
-  return parameters;
+@implementation SpdyHTTPResponse
+
+@synthesize statusCode = _statusCode;
+@synthesize allHeaderFields = _allHeaderFields;
+@synthesize requestBytes = _requestBytes;
+@synthesize streamId = _streamId;
+
+// In iOS 4.3 and below CFHTTPMessage uppercases the first letter of each word in the http header key.  In iOS 5 and up the headers
+// from CFHTTPMessage are case insenstive.  Thus all header objectForKeys must use Word-Word casing.
++ (SpdyHTTPResponse *)responseWithURL:(NSURL *)url andMessage:(CFHTTPMessageRef)headers {
+  NSMutableDictionary *headersDict = [CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(headers)) mutableCopy];
+    [headersDict setObject:@"YES" forKey:@"protocol-was: spdy"];
+    NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+    NSString *contentType = [headersDict objectForKey:@"Content-Type"];
+    NSString *contentLength = [headersDict objectForKey:@"Content-Length"];
+    NSNumber *length = [f numberFromString:contentLength];
+    NSInteger statusCode = CFHTTPMessageGetResponseStatusCode(headers);
+
+    SpdyHTTPResponse *response = [[SpdyHTTPResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil];
+    response.statusCode = statusCode;
+    response.allHeaderFields = headersDict;
+    return response;
 }
 
++ (NSHTTPURLResponse *)responseWithURL:(NSURL *)url andMessage:(CFHTTPMessageRef)headers withRequestBytes:(NSInteger)requestBytesSent {
+  NSMutableDictionary *headersDict = [CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(headers)) mutableCopy];
+    [headersDict setObject:@"YES" forKey:@"protocol-was: spdy"];
+    NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+    NSString *contentType = [headersDict objectForKey:@"Content-Type"];
+    NSString *contentLength = [headersDict objectForKey:@"Content-Length"];
+    NSNumber *length = [f numberFromString:contentLength];
+    NSInteger statusCode = CFHTTPMessageGetResponseStatusCode(headers);
+    NSString *version = CFBridgingRelease(CFHTTPMessageCopyVersion(headers));
 
-- (id)objectForCaseInsensitiveKey:(NSString *)key {
-#if NS_BLOCKS_AVAILABLE
-  __block id object = nil;
-        
-  [self enumerateKeysAndObjectsWithOptions:NSEnumerationConcurrent usingBlock:^ (id currentKey, id currentObject, BOOL *stop) {
-    if ([key caseInsensitiveCompare:currentKey] != NSOrderedSame) return;
-                
-    object = currentObject;
-    *stop = YES;
-  }];
-        
-  return object;
-#else
-  for (NSString *currentKey in self) {
-    if ([currentKey caseInsensitiveCompare:key] != NSOrderedSame) continue;
-    return [self objectForKey:currentKey];
-  }
-        
-  return nil;
-#endif
-}
-
-@end
-
-@implementation SpdyHTTPResponse {
-  CFHTTPMessageRef _message;
-}
-
-- (id)initWithURL:(NSURL *)URL message:(CFHTTPMessageRef)message {
-  NSString *MIMEType = nil; 
-  NSString *textEncodingName = nil;
-
-  NSString *contentType = CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(message, (CFStringRef)@"content-type"/*AFHTTPMessageContentTypeHeader XXX */));
-  if (contentType != nil) {
-    NSRange parameterSeparator = [contentType rangeOfString:@";"];
-    if (parameterSeparator.location == NSNotFound) {
-      MIMEType = contentType;
-    } else {
-      MIMEType = [contentType substringToIndex:parameterSeparator.location];
-                        
-      NSMutableDictionary *contentTypeParameters = [NSMutableDictionary dictionaryWithString:[contentType substringFromIndex:(parameterSeparator.location + 1)] separator:@"=" delimiter:@";"];
-
-      [contentTypeParameters enumerateKeysAndObjectsUsingBlock:^ (id key, id obj, BOOL *stop) {
-	[contentTypeParameters removeObjectForKey:key];
-                                
-	key = [key mutableCopy];
-	CFStringTrimWhitespace((CFMutableStringRef)key);
-                                
-	obj = [obj mutableCopy];
-	CFStringTrimWhitespace((CFMutableStringRef)obj);
-                                
-	[contentTypeParameters setObject:obj forKey:key];
-      }];
-      textEncodingName = [contentTypeParameters objectForCaseInsensitiveKey:@"charset"];
-                        
-      if ([textEncodingName characterAtIndex:0] == '"' && [textEncodingName characterAtIndex:([textEncodingName length] - 1)] == '"') {
-	textEncodingName = [textEncodingName substringWithRange:NSMakeRange(1, [textEncodingName length] - 2)];
-      }
+    if ([[NSHTTPURLResponse class] instancesRespondToSelector:@selector(initWithURL:statusCode:HTTPVersion:headerFields:)]) {
+        return [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode  HTTPVersion:version headerFields:headersDict];
     }
-  }
-        
-  NSString *contentLength = CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(message, (CFStringRef)@"content-length"/*AFHTTPMessageContentLengthHeader XXX*/));
-        
-  self = [self initWithURL:URL MIMEType:MIMEType expectedContentLength:(contentLength != nil ? [contentLength integerValue] : -1) textEncodingName:textEncodingName];
-  if (self == nil) return nil;
-        
-  _message = message;
-  CFRetain(message);
-        
-  return self;
-}
 
-- (void)dealloc {
-  CFRelease(_message);
-        
-  //[super dealloc];
-}
-
-- (NSInteger)statusCode {
-  return CFHTTPMessageGetResponseStatusCode(_message);
-}
-
-- (NSDictionary *)allHeaderFields {
-  return CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(_message));
+    SpdyHTTPResponse *response = [[SpdyHTTPResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil];
+    response.statusCode = statusCode;
+    response.allHeaderFields = headersDict;
+    response.requestBytes = requestBytesSent;
+    return response;
 }
 
 @end

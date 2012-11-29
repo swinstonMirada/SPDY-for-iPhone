@@ -1,11 +1,15 @@
-#import "SpdyRequest.h"
 #import "SPDY.h"
 
-/* XXX this class should probably be combined with 
-   SpdyRequestResponse (in SpdyUrlConnection.h) */
-
 @interface SpdyHTTPResponse : NSHTTPURLResponse;
-- (id)initWithURL:(NSURL *)URL message:(CFHTTPMessageRef)message;
+
+@property (assign) NSInteger statusCode;
+@property (strong) NSDictionary *allHeaderFields;
+@property (assign) NSInteger requestBytes;
+@property (assign) int32_t streamId;
+
++ (SpdyHTTPResponse *)responseWithURL:(NSURL *)url andMessage:(CFHTTPMessageRef)headers;
++ (NSHTTPURLResponse *)responseWithURL:(NSURL *)url andMessage:(CFHTTPMessageRef)headers withRequestBytes:(NSInteger)requestBytesSent;
+
 @end
 
 

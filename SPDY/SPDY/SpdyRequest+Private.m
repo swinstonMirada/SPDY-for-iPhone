@@ -14,11 +14,12 @@
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
   CFRelease(b);
-  SpdyHTTPResponse * spdy_message = [[SpdyHTTPResponse alloc] initWithURL:self.URL
-						      message:message];
+  SpdyHTTPResponse * spdy_message = [SpdyHTTPResponse responseWithURL:self.URL
+						      andMessage:message];
 
+  spdy_message.streamId = streamId;
   if(self.pushSuccessCallback != nil) {
-    self.pushSuccessCallback(spdy_message, body, streamId);
+    self.pushSuccessCallback(spdy_message, body);
   } else {
     SPDY_LOG(@"dropping response w/ nil callback");
   }
@@ -28,9 +29,8 @@
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
   CFRelease(b);
-  SpdyHTTPResponse * spdy_message = [[SpdyHTTPResponse alloc] initWithURL:self.URL
-							      message:message];
-
+  SpdyHTTPResponse * spdy_message = [SpdyHTTPResponse responseWithURL:self.URL
+						      andMessage:message];
   if(self.successCallback != nil) {
     self.successCallback(spdy_message, body);
   } else {
