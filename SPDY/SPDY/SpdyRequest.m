@@ -74,6 +74,7 @@
   if(self) {
     delegate = [[SpdyRequestCallback alloc] init:self];
     ns_url_request = request;
+    self.URL = request.URL;
   }
   return self;
 }
