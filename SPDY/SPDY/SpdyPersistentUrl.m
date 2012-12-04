@@ -93,8 +93,14 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 - (BOOL) startNotifier {
-  SPDY_LOG(@"host is %s", [self.URL.host UTF8String]);
-  reachabilityRef = SCNetworkReachabilityCreateWithName(NULL, [self.URL.host UTF8String]);
+  const char * host = [self.URL.host UTF8String];
+  SPDY_LOG(@"host is %s", host);
+  if(host == NULL) {
+    SPDY_LOG(@"host is null, unable to start reachability notifier");
+    return NO;
+  }
+
+  reachabilityRef = SCNetworkReachabilityCreateWithName(NULL, host);
 
   SCNetworkReachabilityFlags flags = 0;
   if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
@@ -260,27 +266,39 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   [self stopNotifier];
 }
 
+-(void)setup {
+  self.voip = YES;
+  stream_closed = NO;
+  SpdyPersistentUrl * __unsafe_unretained unsafe_self = self;
+  self.errorCallback = ^(NSError * error) {
+    SPDY_LOG(@"errorCallback");
+    [unsafe_self reconnect:error];
+  };
+  self.pingCallback = ^ {
+    [unsafe_self gotPing];
+  };
+  self.streamCloseCallback = ^ {
+    SPDY_LOG(@"streamCloseCallback");
+    [unsafe_self streamWasClosed];
+  };
+  self.connectCallback = ^ {
+    [unsafe_self streamWasConnected];
+  };
+  [self startNotifier];
+}
+
+- (id)initWithRequest:(NSURLRequest *)request {
+  self = [super initWithRequest:request];
+  if(self) {
+    [self setup];
+  }
+  return self;
+}
+
 - (id)initWithGETString:(NSString *)url {
   self = [super initWithGETString:url];
   if(self) {
-    self.voip = YES;
-    stream_closed = NO;
-    SpdyPersistentUrl * __unsafe_unretained unsafe_self = self;
-    self.errorCallback = ^(NSError * error) {
-      SPDY_LOG(@"errorCallback");
-      [unsafe_self reconnect:error];
-    };
-    self.pingCallback = ^ {
-      [unsafe_self gotPing];
-    };
-    self.streamCloseCallback = ^ {
-      SPDY_LOG(@"streamCloseCallback");
-      [unsafe_self streamWasClosed];
-    };
-    self.connectCallback = ^ {
-      [unsafe_self streamWasConnected];
-    };
-    [self startNotifier];
+    [self setup];
   }
   return self;
 }
