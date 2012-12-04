@@ -49,6 +49,9 @@ static const int priority = 1;
 
 @interface SpdySession ()
 
+#define SSL_HANDSHAKE_SUCCESS 0
+#define SSL_HANDSHAKE_NEED_TO_RETRY 1
+
 - (void)_cancelStream:(SpdyStream *)stream;
 - (NSError *)connectTo:(NSURL *)url;
 - (void)connectionFailed:(NSInteger)error domain:(NSString *)domain;
@@ -56,7 +59,7 @@ static const int priority = 1;
 - (void)removeStream:(SpdyStream *)stream;
 - (int)send_data:(const uint8_t *)data len:(size_t)len flags:(int)flags;
 - (BOOL)sslConnect;
-- (BOOL)sslHandshake;  // Returns true if the handshake completed.
+- (int)sslHandshake;  // Returns SSL_HANDSHAKE_SUCCESS if the handshake completed.
 - (void)sslError;
 - (BOOL)submitRequest:(SpdyStream *)stream;
 - (BOOL)wouldBlock:(int)r;
@@ -299,14 +302,20 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   return YES;
 }
 
-- (BOOL)sslHandshake {
+- (int)sslHandshake {
+  //SPDY_LOG(@"trying to ssl handshake");
   int r = SSL_connect(ssl);
+  //SPDY_LOG(@"SSL_connect returned %d", r);
   if (r == 1) {
+    // The TLS/SSL handshake was successfully completed, 
+    // a TLS/SSL connection has been established.
+    SPDY_LOG(@"connected");
     self.connectState = kSpdyConnected;
     if (!self.spdyNegotiated) {
+      SPDY_LOG(@"spdy not negotiated");
       [self notSpdyError];
       [self invalidateSocket];
-      return NO;
+      return -1;
     }
 
     spdylay_session_client_new(&session, self.spdyVersion, callbacks, (__bridge void *)(self));
@@ -320,19 +329,83 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       }
     }
     SPDY_LOG(@"Reused session: %ld", SSL_session_reused(ssl));
-    return YES;
+    return SSL_HANDSHAKE_SUCCESS;
   }
-  if (r == 0) {
-    self.connectState = kSpdyError;
+  if (r < 1) {
+    /*
+      ERROR RETURN VALUES
+      
+      0
+
+      The TLS/SSL handshake was not successful but was shut down controlled and by the specifications of the TLS/SSL protocol. Call SSL_get_error() with the return value ret to find out the reason.
+
+      <0
+
+      The TLS/SSL handshake was not successful, because a fatal error occurred either at the protocol level or a connection failure occurred. The shutdown was not clean. It can also occur of action is need to continue the operation for non-blocking BIOs. Call SSL_get_error() with the return value ret to find out the reason.
+
+    */
+
+    //SPDY_LOG(@"NOT connected, r == %d", r);
     NSInteger oldErrno = errno;
     NSInteger err = SSL_get_error(ssl, r);
-    if (err == SSL_ERROR_SYSCALL)
-      [self connectionFailed:oldErrno domain:(NSString *)kCFErrorDomainPOSIX];
-    else
-      [self connectionFailed:err domain:kOpenSSLErrorDomain];
-    [self invalidateSocket];
+    
+    BOOL again = NO;
+    
+    switch(err) {
+    case SSL_ERROR_NONE:
+      SPDY_LOG(@"SSL_ERROR_NONE");
+      break;
+
+    case SSL_ERROR_ZERO_RETURN:
+      SPDY_LOG(@"SSL_ERROR_ZERO_RETURN");
+      break;
+      
+    case SSL_ERROR_WANT_READ:
+      SPDY_LOG(@"SSL_ERROR_WANT_READ");
+      again = YES;
+      break;
+      
+    case SSL_ERROR_WANT_WRITE:
+      SPDY_LOG(@"SSL_ERROR_WANT_WRITE");
+      again = YES;
+      break;
+      
+    case SSL_ERROR_WANT_CONNECT:
+      SPDY_LOG(@"SSL_ERROR_WANT_CONNECT");
+      again = YES;
+      break;
+      
+    case SSL_ERROR_WANT_ACCEPT:
+      SPDY_LOG(@"SSL_ERROR_WANT_ACCEPT");
+      again = YES;
+      break;
+      
+    case SSL_ERROR_WANT_X509_LOOKUP:
+      SPDY_LOG(@"SSL_ERROR_WANT_X509_LOOKUP");
+      again = YES;
+      break;
+
+    case SSL_ERROR_SYSCALL:
+      SPDY_LOG(@"SSL_ERROR_SYSCALL");
+      break;
+
+    case SSL_ERROR_SSL:
+      SPDY_LOG(@"SSL_ERROR_SSL");
+      break;
+    }
+    if(r < 0 && !again) {
+      //SPDY_LOG(@"calling error callback");
+      self.connectState = kSpdyError;
+      if (err == SSL_ERROR_SYSCALL)
+	[self connectionFailed:oldErrno domain:(NSString *)kCFErrorDomainPOSIX];
+      else
+	[self connectionFailed:err domain:kOpenSSLErrorDomain];
+    } else {
+      //SPDY_LOG(@"NOT calling error callback");
+    }
+    return again ? SSL_HANDSHAKE_NEED_TO_RETRY : -2;
   }
-  return NO;
+  return -666;
 }
 
 -(void)releaseStreams {
@@ -383,9 +456,18 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   }
 }
 
+-(BOOL) sslHandshakeWrapper {
+  int ret = [self sslHandshake];
+  
+  while(ret == SSL_HANDSHAKE_NEED_TO_RETRY) 
+    ret = [self sslHandshake];
+
+  return ret == SSL_HANDSHAKE_SUCCESS;
+}
+
 - (BOOL)sslConnect {
   [self setUpSSL];
-  return [self sslHandshake];
+  return [self sslHandshakeWrapper];
 }
 
 - (NSError *)connect:(NSURL *)h {
@@ -476,7 +558,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len, int flags, void *user_data) {
-  SPDY_LOG(@"recv_callback");
+  //SPDY_LOG(@"recv_callback");
   SpdySession *ss = (__bridge SpdySession *)user_data;
   int r = [ss recv_data:data len:len flags:flags];
   return [ss fixUpCallbackValue:r];
@@ -492,7 +574,7 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 }
 
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
-  SPDY_LOG(@"send_callback");
+  //SPDY_LOG(@"send_callback");
   SpdySession *ss = (__bridge SpdySession*)user_data;
   int r = [ss send_data:data len:len flags:flags];
   return [ss fixUpCallbackValue:r];
@@ -524,7 +606,7 @@ static void on_unknown_ctrl_recv_callback(spdylay_session *session,
 
 static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags, int32_t stream_id,
                                         const uint8_t *data, size_t len, void *user_data) {
-  //SPDY_LOG(@"on_data_chunk_recv_callback");
+  SPDY_LOG(@"on_data_chunk_recv_callback");
   SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);
   if(stream != nil) {
     [stream writeBytes:data len:len];
@@ -733,30 +815,41 @@ static void sessionCallBack(CFSocketRef s,
       return;
     }
 
-    SPDY_LOG(@"Connected to %@", info);
+    //SPDY_LOG(@"Connected to %@", info);
     session.connectState = kSpdySslHandshake;
     [session maybeEnableVoip];
     if (![session sslConnect]) {
+      //SPDY_LOG(@"ssl connect failed");
       return;
     }
     callbackType |= kCFSocketWriteCallBack;
   }
   if (session.connectState == kSpdySslHandshake) {
-    if (![session sslHandshake]) {
+    //SPDY_LOG(@"doing ssl handshake");
+    if(![session sslHandshakeWrapper]) {
+      //SPDY_LOG(@"ssl handshake failed");
       return;
+    } else {
+      //SPDY_LOG(@"ssl handshake succeeded");
     }
     callbackType |= kCFSocketWriteCallBack;
   }
 
   spdylay_session *laySession = [session session];
-  if (callbackType & kCFSocketWriteCallBack) {
-    int err = spdylay_session_send(laySession);
-    if (err != 0) {
-      SPDY_LOG(@"Error writing data in write callback for session %@", session);
+  if(laySession == NULL) {
+    //SPDY_LOG(@"spdylay session is null!!");
+  } else {
+    if (callbackType & kCFSocketWriteCallBack) {
+      //SPDY_LOG(@"writing to socket");
+      int err = spdylay_session_send(laySession);
+      if (err != 0) {
+	//SPDY_LOG(@"Error writing data in write callback for session %@", session);
+      }
     }
-  }
-  if (callbackType & kCFSocketReadCallBack) {
-    spdylay_session_recv(laySession);
+    if (callbackType & kCFSocketReadCallBack) {
+      //SPDY_LOG(@"reading from socket");
+      spdylay_session_recv(laySession);
+    }
   }
 }
 
