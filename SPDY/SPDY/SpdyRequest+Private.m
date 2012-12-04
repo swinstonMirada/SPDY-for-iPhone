@@ -27,13 +27,13 @@
 -(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
   [self doCallbackWithMessage:message 
 	andStreamId:streamId 
-	andCompletion:self.successCallback];
+	andCompletion:self.pushSuccessCallback];
 }
 
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message {
   [self doCallbackWithMessage:message 
 	andStreamId:0		// XXX stream id only on push for now
-	andCompletion:self.pushSuccessCallback];
+	andCompletion:self.successCallback];
 }
 
 @end
