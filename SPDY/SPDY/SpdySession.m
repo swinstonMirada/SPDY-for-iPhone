@@ -234,8 +234,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 - (void)notSpdyError {
   self.connectState = kSpdyError;
     
-  for (SpdyStream *stream in streams) {
-    [stream notSpdyError];
+  @synchronized(streams) {
+    for (SpdyStream *stream in streams) {
+      [stream notSpdyError];
+    }
   }
 }
 
@@ -243,8 +245,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   self.connectState = kSpdyError;
   [self invalidateSocket];
   NSError *error = [NSError errorWithDomain:domain code:err userInfo:nil];
-  for (SpdyStream *value in streams) {
-    [value.delegate onError:error];
+  @synchronized(streams) {
+    for (SpdyStream *value in streams) {
+      [value.delegate onError:error];
+    }
   }
 }
 
@@ -261,15 +265,17 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (NSInteger)resetStreamsAndGoAway {
-  NSInteger cancelledStreams = [streams count];
-  for (SpdyStream *stream in streams) {
-    [self _cancelStream:stream];
+  @synchronized(streams) {
+    NSInteger cancelledStreams = [streams count];
+    for (SpdyStream *stream in streams) {
+      [self _cancelStream:stream];
+    }
+    if (session != nil) {
+      spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
+      spdylay_session_send(session);
+    }
+    return cancelledStreams;
   }
-  if (session != nil) {
-    spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
-    spdylay_session_send(session);
-  }
-  return cancelledStreams;
 }
 
 - (SSL_SESSION *)getSslSession {
@@ -320,12 +326,14 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
     spdylay_session_client_new(&session, self.spdyVersion, callbacks, (__bridge void *)(self));
 
-    NSEnumerator *enumerator = [streams objectEnumerator];
-    SpdyStream * stream;        
+    @synchronized(streams) {
+      NSEnumerator *enumerator = [streams objectEnumerator];
+      SpdyStream * stream;        
 
-    while ((stream = [enumerator nextObject])) {
-      if (![self submitRequest:stream]) {
-	[streams removeObject:stream];
+      while ((stream = [enumerator nextObject])) {
+	if (![self submitRequest:stream]) {
+	  [streams removeObject:stream];
+	}
       }
     }
     SPDY_LOG(@"Reused session: %ld", SSL_session_reused(ssl));
@@ -429,8 +437,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 			     code:kSpdyVoipRequestedButFailed 
 			     userInfo:nil];
   
-  for (SpdyStream *value in streams) {
-    [value.delegate onError:error];
+  @synchronized(streams) {
+    for (SpdyStream *value in streams) {
+      [value.delegate onError:error];
+    }
   }
 }
 
@@ -478,7 +488,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 - (void)addStream:(SpdyStream *)stream {
   stream.parentSession = self;
-  [streams addObject:stream];
+  @synchronized(streams) {
+    [streams addObject:stream];
+  }
   if (self.connectState == kSpdyConnected) {
     if (![self submitRequest:stream]) {
       return;
@@ -685,8 +697,10 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (void)removeStream:(SpdyStream *)stream {
-  [streams removeObject:stream];
-  [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
+  @synchronized(streams) {
+    [streams removeObject:stream];
+    [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
+  }
 }
 
 - (SpdySession *)init:(SSL_CTX *)ssl_context oldSession:(SSL_SESSION *)oldSession {
