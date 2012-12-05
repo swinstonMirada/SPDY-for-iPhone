@@ -8,6 +8,11 @@
   SpdyRequestCallback * delegate;
   NSURLRequest *  ns_url_request;
   NSString * urlString;
+  BOOL tearing_down;
+}
+
+- (BOOL)tearingDown {
+  return tearing_down;
 }
 
 -(NSString*)urlString {
@@ -52,11 +57,13 @@
 }
 
 - (void)teardown {
+  tearing_down = YES;
   if(ns_url_request == nil) {
     [[SPDY sharedSPDY] teardown:urlString];
   } else {
     [[SPDY sharedSPDY] teardownForRequest:ns_url_request];
   }
+  tearing_down = NO;
 }
 
 - (id)initWithGETString:(NSString *)_urlString {
@@ -64,6 +71,7 @@
   if(self) {
     delegate = [[SpdyRequestCallback alloc] init:self];
     urlString = _urlString;
+    tearing_down = NO;
     self.URL = [[NSURL alloc] initWithString:urlString];
   }
   return self;
@@ -74,6 +82,7 @@
   if(self) {
     delegate = [[SpdyRequestCallback alloc] init:self];
     ns_url_request = request;
+    tearing_down = NO;
     self.URL = request.URL;
   }
   return self;

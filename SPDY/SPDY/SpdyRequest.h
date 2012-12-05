@@ -26,6 +26,8 @@ typedef void (^LLSpdyVoidCallback)();
 /* closes all streams and sends a GOAWAY on the associated session */
 - (void)teardown;
 
+- (BOOL)tearingDown;
+
 /* the url being loaded, as a string */
 @property (nonatomic, strong, readonly) NSString* urlString;
 
