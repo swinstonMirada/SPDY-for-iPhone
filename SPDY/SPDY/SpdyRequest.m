@@ -2,6 +2,7 @@
 #import "SpdyRequest+Private.h"
 #import "SpdyHTTPResponse.h"
 #import "SpdyRequestCallback.h"
+#import "SpdySession.h"
 #import "SPDY.h"
 
 @implementation SpdyRequest {
@@ -49,11 +50,13 @@
 }
 
 -(void)send {
+  SpdySession * session = nil;
   if(ns_url_request == nil) {
-    [[SPDY sharedSPDY] fetch:urlString delegate:delegate voip:_voip];
+    session = [[SPDY sharedSPDY] fetch:urlString delegate:delegate voip:_voip];
   } else {
-    [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
+    session = [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
   }
+  session.connectionStateCallback = self.connectionStateCallback;
 }
 
 - (void)teardown {
