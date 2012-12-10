@@ -19,7 +19,7 @@
 
 #import <Foundation/Foundation.h>
 #include "openssl/ssl.h"
-
+#include "SpdyRequest.h"
 #include "SPDY.h"
 
 @class SpdyCallback;
@@ -28,12 +28,12 @@
 struct spdylay_session;
 
 @interface SpdySession : NSObject {
-    struct spdylay_session *session;
+  struct spdylay_session *session;
     
-    BOOL spdyNegotiated;
-    SpdyConnectState conn;
-    SpdyNetworkStatus networkStatus;
-    void (^pingCallback)();
+  BOOL spdyNegotiated;
+  SpdyConnectState connectState;
+  SpdyNetworkStatus networkStatus;
+  void (^pingCallback)();
 }
 
 @property (assign) BOOL spdyNegotiated;
@@ -43,6 +43,7 @@ struct spdylay_session;
 @property (assign) BOOL voip;
 @property (assign) SpdyConnectState connectState;
 @property (assign) SpdyNetworkStatus networkStatus;
+@property (nonatomic,copy) SpdyIntCallback connectionStateCallback;
 
 - (SpdySession *)init:(SSL_CTX *)ssl_ctx oldSession:(SSL_SESSION *)oldSession;
 
