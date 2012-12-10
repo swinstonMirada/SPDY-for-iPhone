@@ -34,9 +34,16 @@
 - (void)clearKeepAlive;
 
 /* called on only fatal errors.  Otherwise we try to reconnect */
-@property (nonatomic, copy) LLSpdyErrorCallback fatalErrorCallback;
+@property (nonatomic, copy) SpdyErrorCallback fatalErrorCallback;
 
 /* called on keepalive */
-@property (nonatomic, copy) LLSpdyVoidCallback keepAliveCallback;
+@property (nonatomic, copy) SpdyVoidCallback keepAliveCallback;
+
+@property (nonatomic, copy) SpdyIntCallback reachabilityCallback;
+
+@property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
+
++(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags;
+-(SCNetworkReachabilityFlags)reachabilityFlags;
 
 @end

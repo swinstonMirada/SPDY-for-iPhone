@@ -5,9 +5,10 @@
 
 @class SpdyRequest;
 
-typedef void (^LLSpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
-typedef void (^LLSpdyErrorCallback)(NSError*);
-typedef void (^LLSpdyVoidCallback)();
+typedef void (^SpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
+typedef void (^SpdyErrorCallback)(NSError*);
+typedef void (^SpdyVoidCallback)();
+typedef void (^SpdyIntCallback)(int);
 
 @interface SpdyRequest : NSObject
 
@@ -53,24 +54,28 @@ typedef void (^LLSpdyVoidCallback)();
 /* Block Callbacks */
 
 /* called on success of the original request */
-@property (nonatomic, copy) LLSpdySuccessCallback successCallback;
+@property (nonatomic, copy) SpdySuccessCallback successCallback;
 
 /* called on failure of the original request */
-@property (nonatomic, copy) LLSpdyErrorCallback errorCallback;
+@property (nonatomic, copy) SpdyErrorCallback errorCallback;
 
 /* called in the event that a valid push is received */
-@property (nonatomic, copy) LLSpdySuccessCallback pushSuccessCallback;
+@property (nonatomic, copy) SpdySuccessCallback pushSuccessCallback;
 
 /* called in the event that a push error is received */
-@property (nonatomic, copy) LLSpdyErrorCallback pushErrorCallback;
+@property (nonatomic, copy) SpdyErrorCallback pushErrorCallback;
 
 /* called when a ping response is received */
-@property (nonatomic, copy) LLSpdyVoidCallback pingCallback;
+@property (nonatomic, copy) SpdyVoidCallback pingCallback;
 
 /* called when the stream is closed */
-@property (nonatomic, copy) LLSpdyVoidCallback streamCloseCallback;
+@property (nonatomic, copy) SpdyVoidCallback streamCloseCallback;
 
 /* called after the stream is first connected */
-@property (nonatomic, copy) LLSpdyVoidCallback connectCallback;
+@property (nonatomic, copy) SpdyVoidCallback connectCallback;
+
+@property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
+
+@property (nonatomic, copy) SpdyIntCallback connectionStateCallback;
 
 @end
