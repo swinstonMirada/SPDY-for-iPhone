@@ -189,6 +189,9 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 	/* we ignore these, they happen every time we call [self teardown] */
 	@((int)kSpdyRequestCancelled) : @INTERNAL_FAILURE,
+
+	/* this happens when the ssl handshake loops on SSL_ERROR_WANT_READ */
+	@((int)kSpdySslErrorWantReadLoop) : @HARD_FAILURE,
       },
       
       // these are bsd level errors
