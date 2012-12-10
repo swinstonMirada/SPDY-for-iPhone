@@ -47,6 +47,8 @@
 
 static const int priority = 1;
 
+static int SSL_ERROR_WANT_READ_retries = 0;
+
 @interface SpdySession ()
 
 #define SSL_HANDSHAKE_SUCCESS 0
@@ -116,8 +118,7 @@ static void sessionCallBack(CFSocketRef s,
 
   CFSocketInvalidate(socket);
   CFRelease(socket);
-  if(self.readStream != NULL) CFRelease(self.readStream);
-  if(self.writeStream != NULL) CFRelease(self.writeStream);
+  [self releaseStreams];
   socket = nil;
 }
 
@@ -283,9 +284,11 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
       spdylay_session_send(session);
     }
-    return cancelledStreams;
-    if(self.voip) 
+    if(self.voip) {
+      SPDY_LOG(@"releaseStreams");
       [self releaseStreams];
+    }
+    return cancelledStreams;
   }
 }
 
@@ -300,6 +303,8 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (BOOL)submitRequest:(SpdyStream *)stream {
+  
+  SPDY_LOG(@"submit request");
   if (!self.spdyNegotiated) {
     [stream notSpdyError];
     return NO;
@@ -348,6 +353,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       }
     }
     SPDY_LOG(@"Reused session: %ld", SSL_session_reused(ssl));
+    SSL_ERROR_WANT_READ_retries = 0;
     return SSL_HANDSHAKE_SUCCESS;
   }
   if (r < 1) {
@@ -364,12 +370,18 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
     */
 
+#ifdef CONF_Debug
+    ERR_load_ERR_strings();
+#endif
+
     //SPDY_LOG(@"NOT connected, r == %d", r);
     NSInteger oldErrno = errno;
     NSInteger err = SSL_get_error(ssl, r);
     
     BOOL again = NO;
     
+    BOOL read_loop = NO;
+
     switch(err) {
     case SSL_ERROR_NONE:
       SPDY_LOG(@"SSL_ERROR_NONE");
@@ -382,6 +394,12 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     case SSL_ERROR_WANT_READ:
       SPDY_LOG(@"SSL_ERROR_WANT_READ");
       again = YES;
+      if(++SSL_ERROR_WANT_READ_retries > 3000) {	// XXX make param
+	SPDY_LOG(@"hit max retries");
+	SSL_ERROR_WANT_READ_retries = 0;
+	again = NO;
+	read_loop = YES;
+      }
       break;
       
     case SSL_ERROR_WANT_WRITE:
@@ -412,7 +430,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       SPDY_LOG(@"SSL_ERROR_SSL");
       break;
     }
-    if(r < 0 && !again) {
+    if(read_loop) {
+      [self connectionFailed:kSpdySslErrorWantReadLoop domain:kSpdyErrorDomain];
+    } else if(r < 0 && !again) {
       //SPDY_LOG(@"calling error callback");
       self.connectState = kSpdyError;
       if (err == SSL_ERROR_SYSCALL)
@@ -429,20 +449,19 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 -(void)releaseStreams {
   if(self.readStream != NULL) {
-    CFReadStreamUnscheduleFromRunLoop(self.readStream, 
-				      CFRunLoopGetCurrent(),
-				      kCFRunLoopCommonModes);
+    SPDY_LOG(@"closing and releasing read stream"); 
+    CFReadStreamClose(self.readStream);
     CFRelease(self.readStream);
     self.readStream = NULL;
+    SPDY_LOG(@"done with read stream"); 
   }
   if(self.writeStream != NULL) {
-    CFWriteStreamUnscheduleFromRunLoop(self.writeStream, 
-				       CFRunLoopGetCurrent(),
-				       kCFRunLoopCommonModes);
+    CFWriteStreamClose(self.writeStream);
     CFRelease(self.writeStream);
     self.writeStream = NULL;
   }
 }
+
 -(void)sendVoipError {
   NSError * error = [NSError errorWithDomain:kSpdyErrorDomain
 			     code:kSpdyVoipRequestedButFailed 
@@ -597,7 +616,8 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 }
 
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
-  //SPDY_LOG(@"send_callback");
+  SPDY_LOG(@"send_callback (flags %d) (%zd bytes): %@", 
+	   flags, len, [[NSData alloc] initWithBytes:data length:len]);
   SpdySession *ss = (__bridge SpdySession*)user_data;
   int r = [ss send_data:data len:len flags:flags];
   return [ss fixUpCallbackValue:r];
@@ -629,7 +649,8 @@ static void on_unknown_ctrl_recv_callback(spdylay_session *session,
 
 static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags, int32_t stream_id,
                                         const uint8_t *data, size_t len, void *user_data) {
-  SPDY_LOG(@"on_data_chunk_recv_callback");
+  SPDY_LOG(@"on_data_chunk_recv_callback (flags %d) (%zd bytes): %@", 
+	   flags, len, [[NSData alloc] initWithBytes:data length:len]);
   SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);
   if(stream != nil) {
     [stream writeBytes:data len:len];
