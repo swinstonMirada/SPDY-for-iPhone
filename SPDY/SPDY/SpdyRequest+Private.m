@@ -9,7 +9,7 @@
   }
 }
 
--(void)doCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId andCompletion:(LLSpdySuccessCallback)callback {
+-(void)doCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId andCompletion:(SpdySuccessCallback)callback {
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
   CFRelease(b);
