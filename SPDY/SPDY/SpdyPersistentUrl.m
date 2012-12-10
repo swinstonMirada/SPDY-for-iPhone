@@ -14,28 +14,44 @@
   NSDictionary * errorDict;
 }
 
-static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags)
-{
-	
-  SPDY_LOG(@"Reachability Flag Status: %c%c %c%c%c%c%c%c%c\n",
-	(flags & kSCNetworkReachabilityFlagsIsWWAN)				  ? 'W' : '-',
-	(flags & kSCNetworkReachabilityFlagsReachable)            ? 'R' : '-',
-			
-	(flags & kSCNetworkReachabilityFlagsTransientConnection)  ? 't' : '-',
-	(flags & kSCNetworkReachabilityFlagsConnectionRequired)   ? 'c' : '-',
-	(flags & kSCNetworkReachabilityFlagsConnectionOnTraffic)  ? 'C' : '-',
-	(flags & kSCNetworkReachabilityFlagsInterventionRequired) ? 'i' : '-',
-	(flags & kSCNetworkReachabilityFlagsConnectionOnDemand)   ? 'D' : '-',
-	(flags & kSCNetworkReachabilityFlagsIsLocalAddress)       ? 'l' : '-',
-	(flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'
-	);
+-(void)setNetworkStatus:(SpdyNetworkStatus) _networkStatus {
+  networkStatus = _networkStatus;
+  if(self.networkStatusCallback != NULL)
+    self.networkStatusCallback(networkStatus);
+}
+
+static NSString * reachabilityString(SCNetworkReachabilityFlags    flags) {
+  return
+    [NSString stringWithFormat:@"%c%c %c%c%c%c%c%c%c\n",
+	      (flags & kSCNetworkReachabilityFlagsIsWWAN)               ? 'W' : '-',
+	      (flags & kSCNetworkReachabilityFlagsReachable)            ? 'R' : '-',
+	      (flags & kSCNetworkReachabilityFlagsTransientConnection)  ? 't' : '-',
+	      (flags & kSCNetworkReachabilityFlagsConnectionRequired)   ? 'c' : '-',
+	      (flags & kSCNetworkReachabilityFlagsConnectionOnTraffic)  ? 'C' : '-',
+	      (flags & kSCNetworkReachabilityFlagsInterventionRequired) ? 'i' : '-',
+	      (flags & kSCNetworkReachabilityFlagsConnectionOnDemand)   ? 'D' : '-',
+	      (flags & kSCNetworkReachabilityFlagsIsLocalAddress)       ? 'l' : '-',
+	      (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'
+     ];
+}
+
++(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags {
+  return reachabilityString(flags);
+}
+
+static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
+  SPDY_LOG(@"Reachability Flag Status: %@", reachabilityString(flags));
 }
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)newState {
 
+  if(self.reachabilityCallback != NULL) 
+    self.reachabilityCallback(newState);
+
   PrintReachabilityFlags(newState);
 
   SpdyNetworkStatus newStatus = [SPDY networkStatusForReachabilityFlags:newState];
+
   SpdyNetworkStatus oldStatus = networkStatus;
 
   SPDY_LOG(@"reachabilityChanged: old %d new %d", oldStatus, newStatus);
@@ -45,7 +61,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags)
   } else if(newStatus == kSpdyNotReachable) {
     SPDY_LOG(@"we were reachable, but no longer are, disconnect");
     // we were reachable, but no longer are, disconnect
-    networkStatus = newStatus;
+    [self setNetworkStatus:newStatus];
     [self teardown];
   } else if(oldStatus == kSpdyNotReachable) {
     SPDY_LOG(@"were not reachable, now we are");
@@ -55,7 +71,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags)
     } else {
       SPDY_LOG(@"reconnect");
       // were not reachable, now we are, reconnect
-      networkStatus = newStatus;
+      [self setNetworkStatus:newStatus];
       [self teardown];
       [self reconnect:nil];
     }
@@ -63,7 +79,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags)
 	    newStatus == kSpdyReachableViaWWAN) {
     SPDY_LOG(@"was on wifi, now on wwan, reconnect");
     // was on wifi, now on wwan, reconnect
-    networkStatus = newStatus;
+    [self setNetworkStatus:newStatus];
     [self teardown];
     [self reconnect:nil];
   } else if(oldStatus == kSpdyReachableViaWWAN && 
@@ -114,7 +130,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
   SCNetworkReachabilityFlags flags = 0;
   if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
-    networkStatus = [SPDY networkStatusForReachabilityFlags:flags];
+    [self setNetworkStatus:[SPDY networkStatusForReachabilityFlags:flags]];
   }
 
   BOOL retVal = NO;
@@ -361,7 +377,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   // exponential backoff
   for(int i = 0 ; i <= num_reconnects ; i++) retry_interval *= factor;
 
-  SPDY_LOG(@"will retry in %lf seconds", retry_interval);
+  SPDY_LOG(@"will retry with selector %@ in %lf seconds", 
+	   NSStringFromSelector(selector), retry_interval);
 
   [retryTimer invalidate];
   retryTimer = [NSTimer scheduledTimerWithTimeInterval:retry_interval
@@ -438,13 +455,20 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
+-(SCNetworkReachabilityFlags)reachabilityFlags {
+  SCNetworkReachabilityFlags flags = 0;
+  if(SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
+    return flags;
+  }
+  return -1;
+}
+
 -(void)streamWasConnected {
   // notice our reachability status, assume that this is how we are connected.
 
-  SCNetworkReachabilityFlags flags = 0;
-  if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
-    networkStatus = [SPDY networkStatusForReachabilityFlags:flags];
-  }
+  SCNetworkReachabilityFlags flags = [self reachabilityFlags];
+  if(flags != -1)
+    [self setNetworkStatus:[SPDY networkStatusForReachabilityFlags:flags]];
 
   SPDY_LOG(@"stream was connected");
 
