@@ -88,8 +88,17 @@ static const int priority = 1;
 @synthesize session;
 @synthesize host;
 @synthesize voip;
-@synthesize connectState;
 @synthesize networkStatus;
+
+-(SpdyConnectState)connectState {
+  return connectState;
+}
+
+-(void)setConnectState:(SpdyConnectState)state {
+  connectState = state;
+  if(self.connectionStateCallback != NULL)
+    self.connectionStateCallback(state);
+}
 
 static void sessionCallBack(CFSocketRef s,
                             CFSocketCallBackType callbackType,
@@ -275,6 +284,8 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       spdylay_session_send(session);
     }
     return cancelledStreams;
+    if(self.voip) 
+      [self releaseStreams];
   }
 }
 
@@ -628,7 +639,7 @@ static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags,
 }
 
 static void on_stream_close_callback(spdylay_session *session, int32_t stream_id, spdylay_status_code status_code, void *user_data) {
-  SPDY_LOG(@"on_stream_close_callback");
+  //SPDY_LOG(@"on_stream_close_callback");
   SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);
   if(stream != nil) {
     SPDY_LOG(@"Stream closed %@, because spdylay_status_code=%d", stream, status_code);
@@ -641,6 +652,7 @@ static void on_stream_close_callback(spdylay_session *session, int32_t stream_id
 }
 
 static void on_ctrl_recv_callback(spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame, void *user_data) {
+  //SPDY_LOG(@"on_ctrl_recv_callback type %d", type);
   if (type == SPDYLAY_SYN_REPLY) {
     spdylay_syn_reply *reply = &frame->syn_reply;
     SpdyStream *stream = get_stream_for_id(session, reply->stream_id, user_data);
