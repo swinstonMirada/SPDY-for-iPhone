@@ -73,7 +73,7 @@ static int select_next_proto_cb(SSL *ssl,
 #endif
 
 @interface SPDY ()
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
+- (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
 + (SpdyNetworkStatus)reachabilityStatusForHost:(NSString *)host;
 
 - (void)setUpSslCtx;
@@ -172,7 +172,8 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (int)pingWithCallback:(void (^)())callback {
   int ret = 0;
-  for(SpdySession *session in self.sessions) {
+  for(SpdySessionKey *sessionKey in self.sessions) {
+    SpdySession *session = [self.sessions objectForKey:sessionKey];
     if (session != nil) {
       ret++;
       [session sendPingWithCallback:callback];
@@ -212,21 +213,21 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 -(SpdySession*)fetch_internal:(NSString*)url delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
-    NSURL *u = [NSURL URLWithString:url];
-    if (u == nil || u.host == nil) {
-        NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
-        [delegate onError:error];
-        return nil;
-    }
-    NSError *error = nil;
-    SpdySession *session = [self getSession:u withError:&error voip:voip];
-    if (session == nil) {
-        [delegate onError:error];
-        return nil;
-    }
-    session.voip = voip;
-    [session fetch:u delegate:delegate];
-    return session;
+  NSURL *u = [NSURL URLWithString:url];
+  if (u == nil || u.host == nil) {
+    NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
+    [delegate onError:error];
+    return nil;
+  }
+  NSError *error = nil;
+  SpdySession *session = [self getSession:u withError:&error voip:voip];
+  if (session == nil) {
+    [delegate onError:error];
+    return nil;
+  }
+  session.voip = voip;
+  [session fetch:u delegate:delegate];
+  return session;
 }
 
 - (void)teardownForRequest:(NSURLRequest*)request {
@@ -302,19 +303,19 @@ static int select_next_proto_cb(SSL *ssl,
   return session.networkStatus;
 }
 
-- (void)fetch:(NSString *)url delegate:(SpdyCallback *)delegate {
-  [self fetch_internal:url delegate:delegate voip:NO];
+- (SpdySession*)fetch:(NSString *)url delegate:(SpdyCallback *)delegate {
+  return [self fetch_internal:url delegate:delegate voip:NO];
 }
 
-- (void)fetch:(NSString *)url delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
-  [self fetch_internal:url delegate:delegate voip:voip];
+- (SpdySession*)fetch:(NSString *)url delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
+  return [self fetch_internal:url delegate:delegate voip:voip];
 }
 
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate {
-    [self fetchFromMessage:request delegate:delegate body:nil];
+- (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate {
+  return [self fetchFromMessage:request delegate:delegate body:nil];
 }
 
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
+- (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
     CFURLRef url = CFHTTPMessageCopyRequestURL(request);
     NSError *error;
     SpdySession *session = [self getSession:(__bridge NSURL *)url withError:&error voip:NO];
@@ -324,13 +325,14 @@ static int select_next_proto_cb(SSL *ssl,
         [session fetchFromMessage:request delegate:delegate body:body];
     }
     CFRelease(url);    
+    return session;
 }
 
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
-  [self fetchFromRequest:request delegate:delegate voip:NO];
+- (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
+  return [self fetchFromRequest:request delegate:delegate voip:NO];
 }
 
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
+- (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
   NSURL *url = [request URL];
   NSError *error;
   SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:voip];
@@ -339,6 +341,7 @@ static int select_next_proto_cb(SSL *ssl,
   } else {
     [session fetchFromRequest:request delegate:delegate];
   }
+  return session;
 }
 
 - (NSInteger)closeAllSessions {
