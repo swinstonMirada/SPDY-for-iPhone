@@ -36,6 +36,9 @@
 /* called on only fatal errors.  Otherwise we try to reconnect */
 @property (nonatomic, copy) SpdyErrorCallback fatalErrorCallback;
 
+/* called on all errors.  for debugging */
+@property (nonatomic, copy) SpdyErrorCallback debugErrorCallback;
+
 /* called on keepalive */
 @property (nonatomic, copy) SpdyVoidCallback keepAliveCallback;
 

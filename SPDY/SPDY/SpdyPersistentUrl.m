@@ -510,6 +510,10 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   SpdyPersistentUrl * __unsafe_unretained unsafe_self = self;
   self.errorCallback = ^(NSError * error) {
     SPDY_LOG(@"errorCallback");
+#ifdef CONF_Debug
+    if(self.debugErrorCallback != nil)
+      self.debugErrorCallback(error);
+#endif
     [unsafe_self reconnect:error];
   };
   self.pingCallback = ^ {
