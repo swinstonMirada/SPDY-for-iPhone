@@ -39,6 +39,8 @@
 /* called on all errors.  for debugging */
 @property (nonatomic, copy) SpdyErrorCallback debugErrorCallback;
 
+@property (nonatomic, copy) SpdyTimeIntervalCallback retryCallback;
+
 /* called on keepalive */
 @property (nonatomic, copy) SpdyVoidCallback keepAliveCallback;
 

@@ -387,6 +387,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   retryTimer = [NSTimer scheduledTimerWithTimeInterval:retry_interval
 			target:self selector:selector
 			userInfo:nil repeats:NO];
+
+  if(self.retryCallback != NULL) self.retryCallback(retry_interval);
 }
 
 -(void)reconnect:(NSError*)error {

@@ -9,6 +9,7 @@ typedef void (^SpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
 typedef void (^SpdyErrorCallback)(NSError*);
 typedef void (^SpdyVoidCallback)();
 typedef void (^SpdyIntCallback)(int);
+typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 
 @interface SpdyRequest : NSObject
 
