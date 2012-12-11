@@ -74,8 +74,13 @@ typedef void (^SpdyIntCallback)(int);
 /* called after the stream is first connected */
 @property (nonatomic, copy) SpdyVoidCallback connectCallback;
 
+/* these are for debugging */
 @property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
 
 @property (nonatomic, copy) SpdyIntCallback connectionStateCallback;
+
+@property (nonatomic, copy) SpdyIntCallback readCallback;
+
+@property (nonatomic, copy) SpdyIntCallback writeCallback;
 
 @end

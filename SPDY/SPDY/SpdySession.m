@@ -561,7 +561,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (int)recv_data:(uint8_t *)data len:(size_t)len flags:(int)flags {
-  return SSL_read(ssl, data, (int)len);
+  int ret = SSL_read(ssl, data, (int)len);
+  if(ret != 0 && self.readCallback != nil) self.readCallback(ret);
+  return ret;
 }
 
 - (BOOL)wouldBlock:(int)sslError {
@@ -607,7 +609,9 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 }
 
 - (int)send_data:(const uint8_t *)data len:(size_t)len flags:(int)flags {
-  return SSL_write(ssl, data, (int)len);
+  int ret = SSL_write(ssl, data, (int)len);
+  if(ret != 0 && self.writeCallback != nil) self.writeCallback((int)len);
+  return ret;
 }
 
 - (void)enableWriteCallback {
@@ -649,6 +653,7 @@ static void on_unknown_ctrl_recv_callback(spdylay_session *session,
 
 static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags, int32_t stream_id,
                                         const uint8_t *data, size_t len, void *user_data) {
+
   SPDY_LOG(@"on_data_chunk_recv_callback (flags %d) (%zd bytes): %@", 
 	   flags, len, [[NSData alloc] initWithBytes:data length:len]);
   SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);

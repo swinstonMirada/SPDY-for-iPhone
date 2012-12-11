@@ -57,6 +57,8 @@
     session = [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
   }
   session.connectionStateCallback = self.connectionStateCallback;
+  session.readCallback = self.readCallback;
+  session.writeCallback = self.writeCallback;
 }
 
 - (void)teardown {

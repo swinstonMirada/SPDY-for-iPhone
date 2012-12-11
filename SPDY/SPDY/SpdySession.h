@@ -43,7 +43,11 @@ struct spdylay_session;
 @property (assign) BOOL voip;
 @property (assign) SpdyConnectState connectState;
 @property (assign) SpdyNetworkStatus networkStatus;
+
+// these are intended for debugging
 @property (nonatomic,copy) SpdyIntCallback connectionStateCallback;
+@property (nonatomic,copy) SpdyIntCallback writeCallback;
+@property (nonatomic,copy) SpdyIntCallback readCallback;
 
 - (SpdySession *)init:(SSL_CTX *)ssl_ctx oldSession:(SSL_SESSION *)oldSession;
 
