@@ -48,14 +48,14 @@ static int select_next_proto_cb(SSL *ssl,
                                 unsigned char **out, unsigned char *outlen,
                                 const unsigned char *in, unsigned int inlen,
                                 void *arg) {
-    SpdySession *sc = (__bridge SpdySession *)SSL_get_app_data(ssl);
-    int spdyVersion = spdylay_select_next_protocol(out, outlen, in, inlen);
-    if (spdyVersion > 0) {
-        sc.spdyVersion = spdyVersion;
-        sc.spdyNegotiated = YES;
-    }
+  SpdySession *sc = (__bridge SpdySession *)SSL_get_app_data(ssl);
+  int spdyVersion = spdylay_select_next_protocol(out, outlen, in, inlen);
+  if (spdyVersion > 0) {
+    sc.spdyVersion = spdyVersion;
+    sc.spdyNegotiated = YES;
+  }
     
-    return SSL_TLSEXT_ERR_OK;
+  return SSL_TLSEXT_ERR_OK;
 }
 
 #ifdef CONF_Debug
@@ -66,8 +66,8 @@ static int select_next_proto_cb(SSL *ssl,
 
 
 - (void)writeSpdyLog:(NSString *)msg file:(const char *)file line:(int)line {
-    NSLog(@"[%s:%d]", file, line);
-    NSLog(@"%@", msg);
+  NSLog(@"[%s:%d]", file, line);
+  NSLog(@"%@", msg);
 }
 @end
 #endif
@@ -93,45 +93,47 @@ static int select_next_proto_cb(SSL *ssl,
 
 // This logic was stripped from Apple's Reachability.m sample application.
 + (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags {
-    // Host not reachable.
-    if ((flags & kSCNetworkReachabilityFlagsReachable) == 0)
-        return kSpdyNotReachable;
-    
-    // Host reachable by WWAN.
-    if ((flags & kSCNetworkReachabilityFlagsIsWWAN) == kSCNetworkReachabilityFlagsIsWWAN)
-        return kSpdyReachableViaWWAN;
-    
-    // Host reachable and no connection is required. Assume wifi.
-    if ((flags & kSCNetworkReachabilityFlagsConnectionRequired) == 0)
-        return kSpdyReachableViaWiFi;
-    
-    // Host reachable. Connection is on-demand or on-traffic. No user intervention needed. Assume wifi.
-    if (((flags & kSCNetworkReachabilityFlagsConnectionOnDemand) != 0) ||
-        ((flags & kSCNetworkReachabilityFlagsConnectionOnTraffic) != 0)) {
-        if ((flags & kSCNetworkReachabilityFlagsInterventionRequired) == 0)
-            return kSpdyReachableViaWiFi;
-    }
-    
+  // Host not reachable.
+  if ((flags & kSCNetworkReachabilityFlagsReachable) == 0)
     return kSpdyNotReachable;
+    
+  // Host reachable by WWAN.
+  if ((flags & kSCNetworkReachabilityFlagsIsWWAN) == kSCNetworkReachabilityFlagsIsWWAN)
+    return kSpdyReachableViaWWAN;
+    
+  // Host reachable and no connection is required. Assume wifi.
+  if ((flags & kSCNetworkReachabilityFlagsConnectionRequired) == 0)
+    return kSpdyReachableViaWiFi;
+    
+  // Host reachable. Connection is on-demand or on-traffic. No user intervention needed. Assume wifi.
+  if (((flags & kSCNetworkReachabilityFlagsConnectionOnDemand) != 0) ||
+      ((flags & kSCNetworkReachabilityFlagsConnectionOnTraffic) != 0)) {
+    if ((flags & kSCNetworkReachabilityFlagsInterventionRequired) == 0)
+      return kSpdyReachableViaWiFi;
+  }
+    
+  return kSpdyNotReachable;
 }
 
 + (SpdyNetworkStatus)reachabilityStatusForHost:(NSString *)host {	
-    SpdyNetworkStatus status = kSpdyNotReachable;
-    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
-    if (ref) {
-      SCNetworkReachabilityFlags flags = 0;
-      if (SCNetworkReachabilityGetFlags(ref, &flags))
-	status = [self networkStatusForReachabilityFlags:flags];
+  SpdyNetworkStatus status = kSpdyNotReachable;
+  SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
+  if (ref) {
+    SCNetworkReachabilityFlags flags = 0;
+    if (SCNetworkReachabilityGetFlags(ref, &flags))
+      status = [self networkStatusForReachabilityFlags:flags];
         
-      CFRelease(ref);
-    }
-    return status;
+    CFRelease(ref);
+  }
+  return status;
 }
 
 -(SSL_SESSION *)resetSession:(SpdySession*)session  withKey:(SpdySessionKey*)key {
   [session resetStreamsAndGoAway];
   SSL_SESSION * oldSslSession = [session getSslSession];
+  SPDY_LOG(@"removing session object for key %@", key);
   [self.sessions removeObjectForKey:key];
+  SPDY_LOG(@"after remove we have %d sessions", self.sessions.count);
   return oldSslSession;
 }
 
@@ -141,41 +143,58 @@ static int select_next_proto_cb(SSL *ssl,
 			 initFromUrl:key]];
 }
 
-- (SpdySession *)getSession:(NSURL *)url withError:(NSError **)error voip:(BOOL)voip {
-    assert(error != NULL);
-    SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
-    SpdySession *session = [self.sessions objectForKey:key];
-    SPDY_LOG(@"Looking up %@, found %p", key, session);
-    SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
-    SSL_SESSION *oldSslSession =  NULL;
-    if (session != nil && ([session isInvalid] || currentStatus != session.networkStatus)) {
-        SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
-        oldSslSession = [self resetSession:session withKey:key];
-        session = nil;
+- (SpdySession *)getSession:(NSURL *)url withError:(NSError **)error voip:(BOOL)voip create:(BOOL)create {
+
+  assert(error != NULL);
+  SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
+  SpdySession *session = [self.sessions objectForKey:key];
+  SPDY_LOG(@"Looking up %@, found %p", key, session);
+  SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
+  SSL_SESSION *oldSslSession =  NULL;
+  SpdySession *oldSpdySession = nil;
+  if (session != nil && ([session isInvalid] || 
+			 (currentStatus != session.networkStatus &&
+			  !(session.networkStatus == kSpdyReachableViaWWAN && 
+			    currentStatus == kSpdyReachableViaWiFi)))) {
+    SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
+    oldSslSession = [self resetSession:session withKey:key];
+    oldSpdySession = session;
+    session = nil;
+  }
+  if (create && session == nil) {
+    SPDY_LOG(@"creating new session w/ old session %@", oldSpdySession);
+    session = [[SpdySession alloc] init:self.ssl_ctx oldSession:oldSslSession];
+    session.voip = voip;
+
+    SPDY_LOG(@"callbacks are %@ %@ %@", oldSpdySession.readCallback, 
+	     oldSpdySession.writeCallback, oldSpdySession.connectionStateCallback);
+
+    session.readCallback = oldSpdySession.readCallback;
+    session.writeCallback = oldSpdySession.writeCallback;
+    session.connectionStateCallback = oldSpdySession.connectionStateCallback;
+    *error = [session connect:url];
+    if (*error != nil) {
+      SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
+      return nil;
     }
-    if (session == nil) {
-        session = [[SpdySession alloc] init:self.ssl_ctx oldSession:oldSslSession];
-	session.voip = voip;
-        *error = [session connect:url];
-        if (*error != nil) {
-            SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
-            return nil;
-        }
-        SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
-        currentStatus = [self.class reachabilityStatusForHost:key.host];
-        session.networkStatus = currentStatus;
-        [self.sessions setObject:session forKey:key];
-        [session addToLoop];
-    }
-    return session;
+    SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
+    currentStatus = [self.class reachabilityStatusForHost:key.host];
+    session.networkStatus = currentStatus;
+    [self.sessions setObject:session forKey:key];
+    SPDY_LOG(@"self.sessions has %d elements", self.sessions.count);
+    [session addToLoop];
+  }
+  return session;
 }
 
 - (int)pingWithCallback:(void (^)())callback {
   int ret = 0;
+  SPDY_LOG(@"pingWithCallback w/ %d sessions", self.sessions.count);
   for(SpdySessionKey *sessionKey in self.sessions) {
     SpdySession *session = [self.sessions objectForKey:sessionKey];
     if (session != nil) {
       ret++;
+      SPDY_LOG(@"pinging session %@", session);
       [session sendPingWithCallback:callback];
     }
   }
@@ -185,7 +204,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (void)pingRequest:(NSURLRequest*)request callback:(void (^)())callback {
   NSURL *url = [request URL];
   NSError *error;
-  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO];
+  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO create:YES];
   if (session == nil) {
     // XXX log error
     SPDY_LOG(@"could not ping: no session");
@@ -203,7 +222,7 @@ static int select_next_proto_cb(SSL *ssl,
     return;
   }
   NSError *error = nil;
-  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  SpdySession *session = [self getSession:u withError:&error voip:NO create:YES];
   if (session == nil) {
     // XXX log error
     SPDY_LOG(@"could not ping: no session");
@@ -220,7 +239,7 @@ static int select_next_proto_cb(SSL *ssl,
     return nil;
   }
   NSError *error = nil;
-  SpdySession *session = [self getSession:u withError:&error voip:voip];
+  SpdySession *session = [self getSession:u withError:&error voip:voip create:YES];
   if (session == nil) {
     [delegate onError:error];
     return nil;
@@ -233,7 +252,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (void)teardownForRequest:(NSURLRequest*)request {
   NSURL *url = [request URL];
   NSError *error;
-  SpdySession *session = [self getSession:url withError:&error voip:NO];
+  SpdySession *session = [self getSession:url withError:&error voip:NO create:NO];
   if (session == nil) {
     return;
   }
@@ -246,7 +265,7 @@ static int select_next_proto_cb(SSL *ssl,
     return;
   }
   NSError *error = nil;
-  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
     return;
   }
@@ -260,7 +279,7 @@ static int select_next_proto_cb(SSL *ssl,
     return kSpdyHostNotFound;
   }
   NSError *error = nil;
-  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
     return kSpdyStreamNotFound;
   }
@@ -270,7 +289,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request {
   NSURL * u = request.URL;
   NSError *error;
-  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
     return kSpdyStreamNotFound;
   }
@@ -283,7 +302,7 @@ static int select_next_proto_cb(SSL *ssl,
     return kSpdyHostNotFound;
   }
   NSError *error = nil;
-  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
     return kSpdyStreamNotFound;
   }
@@ -296,7 +315,7 @@ static int select_next_proto_cb(SSL *ssl,
     return kSpdyHostNotFound;
   }
   NSError *error;
-  SpdySession *session = [self getSession:u withError:&error voip:NO];
+  SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
     return kSpdyStreamNotFound;
   }
@@ -318,7 +337,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
     CFURLRef url = CFHTTPMessageCopyRequestURL(request);
     NSError *error;
-    SpdySession *session = [self getSession:(__bridge NSURL *)url withError:&error voip:NO];
+    SpdySession *session = [self getSession:(__bridge NSURL *)url withError:&error voip:NO create:YES];
     if (session == nil) {
         [delegate onError:error];
     } else {
@@ -335,7 +354,7 @@ static int select_next_proto_cb(SSL *ssl,
 - (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
   NSURL *url = [request URL];
   NSError *error;
-  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:voip];
+  SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:voip create:YES];
   if (session == nil) {
     [delegate onError:error];
   } else {
@@ -345,15 +364,16 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (NSInteger)closeAllSessions {
-    NSInteger cancelledRequests = 0;
-    NSEnumerator *enumerator = [self.sessions objectEnumerator];
-    SpdySession *session;
+  SPDY_LOG(@"closeAllSessions");
+  NSInteger cancelledRequests = 0;
+  NSEnumerator *enumerator = [self.sessions objectEnumerator];
+  SpdySession *session;
     
-    while ((session = (SpdySession *)[enumerator nextObject])) {
-        cancelledRequests += [session resetStreamsAndGoAway];
-    }
-    [self.sessions removeAllObjects];
-    return cancelledRequests;
+  while ((session = (SpdySession *)[enumerator nextObject])) {
+    cancelledRequests += [session resetStreamsAndGoAway];
+  }
+  [self.sessions removeAllObjects];
+  return cancelledRequests;
 }
 
 - (SPDY *)init {
