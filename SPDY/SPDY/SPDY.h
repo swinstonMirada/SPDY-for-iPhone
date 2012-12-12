@@ -23,11 +23,13 @@
 @class SpdySession;
 
 typedef enum {
-    kSpdyNotConnected,
-    kSpdyConnecting,
-    kSpdySslHandshake,
-    kSpdyConnected,
-    kSpdyError,
+  kSpdyNotConnected,
+  kSpdyConnecting,
+  kSpdySslHandshake,
+  kSpdyConnected,
+  kSpdyGoAwaySubmitted,
+  kSpdyGoAwayReceived,
+  kSpdyError,
 } SpdyConnectState;
 
 #define kSpdyStreamNotFound -1
@@ -60,6 +62,7 @@ enum SpdyErrors {
     kSpdyStreamClosedWithNoRepsonseHeaders = 6,
     kSpdyVoipRequestedButFailed = 7,
     kSpdySslErrorWantReadLoop = 8,
+    kSpdyConnectionTimeout = 9,
 };
 
 @protocol SpdyRequestIdentifier <NSObject>
