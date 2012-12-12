@@ -73,7 +73,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
       // were not reachable, now we are, reconnect
       [self setNetworkStatus:newStatus];
       [self teardown];
-      [self reconnect:nil];
+      [self recoverableReconnect];
     }
   } else if(oldStatus == kSpdyReachableViaWiFi && 
 	    newStatus == kSpdyReachableViaWWAN) {
@@ -81,7 +81,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     // was on wifi, now on wwan, reconnect
     [self setNetworkStatus:newStatus];
     [self teardown];
-    [self reconnect:nil];
+    [self recoverableReconnect];
   } else if(oldStatus == kSpdyReachableViaWWAN && 
 	    newStatus == kSpdyReachableViaWiFi) {
     SPDY_LOG(@"not switching away from 3g in the presence of a wifi network");
@@ -448,16 +448,20 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
--(void)keepalive {
+-(void)sendPing {
   if(!stream_closed && self.connectState == kSpdyConnected) {
     pingTimer = [NSTimer scheduledTimerWithTimeInterval:6 // XXX fudge this interval?
 			 target:self selector:@selector(noPingReceived) 
 			 userInfo:nil repeats:NO];
-    [self sendPing];
+    [super sendPing];
   } else {
     [self teardown];
-    [self reconnect:nil];
+    [self recoverableReconnect];
   }
+}
+
+-(void)keepalive {
+  [self sendPing];
 }
 
 -(SCNetworkReachabilityFlags)reachabilityFlags {
@@ -483,10 +487,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)streamWasClosed {
   stream_closed = YES;
-  [self reconnect:nil];
+  [self recoverableReconnect];
 }
 
 -(void)gotPing {
+  SPDY_LOG(@"gotPing");
   [pingTimer invalidate];
   pingTimer = nil;
   if(self.keepAliveCallback != nil)
@@ -497,7 +502,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   [pingTimer invalidate];
   pingTimer = nil;
   [self teardown];
-  [self reconnect:nil];
+  [self recoverableReconnect];
 }
 
 -(void)dealloc {
