@@ -56,12 +56,17 @@
   } else {
     session = [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
   }
-  session.connectionStateCallback = self.connectionStateCallback;
-  session.readCallback = self.readCallback;
-  session.writeCallback = self.writeCallback;
+  SPDY_LOG(@"sending w/ self.connectionStateCallback %@ self.readCallback %@ self.writeCallback %@", self.connectionStateCallback, self.readCallback, self.writeCallback);
+  if(self.connectionStateCallback != nil)
+    session.connectionStateCallback = self.connectionStateCallback;
+  if(self.readCallback != nil)
+    session.readCallback = self.readCallback;
+  if(self.writeCallback != nil)
+    session.writeCallback = self.writeCallback;
 }
 
 - (void)teardown {
+  SPDY_LOG(@"teardown");
   tearing_down = YES;
   if(ns_url_request == nil) {
     [[SPDY sharedSPDY] teardown:urlString];
