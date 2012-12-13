@@ -18,9 +18,10 @@
 // limitations under the License.
 
 #import <Foundation/Foundation.h>
-#include "openssl/ssl.h"
-#include "SpdyRequest.h"
-#include "SPDY.h"
+#import "openssl/ssl.h"
+#import "SpdyRequest.h"
+#import "SpdyTimer.h"
+#import "SPDY.h"
 
 @class SpdyCallback;
 @class SpdyStream;

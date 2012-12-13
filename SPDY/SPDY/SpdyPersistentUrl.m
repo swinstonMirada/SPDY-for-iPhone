@@ -4,6 +4,7 @@
 #import <UIKit/UIKit.h>
 #import <errno.h>
 #import <netdb.h>
+#import "SpdyTimer.h"
 
 @implementation SpdyPersistentUrl {
   SpdyTimer * pingTimer;

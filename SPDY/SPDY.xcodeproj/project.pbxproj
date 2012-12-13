@@ -46,6 +46,8 @@
 		38FFF69414E9A303001A974E /* SPDY.h in Headers */ = {isa = PBXBuildFile; fileRef = 3870AF5A14E47F8E009D8118 /* SPDY.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		847FA66E1655CABF004B2707 /* SpdyRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 847FA66C1655CABF004B2707 /* SpdyRequest.h */; };
 		847FA66F1655CABF004B2707 /* SpdyRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 847FA66D1655CABF004B2707 /* SpdyRequest.m */; };
+		849F1487167A82E8008ED1EF /* SpdyTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F1484167A82E8008ED1EF /* SpdyTimer.h */; };
+		849F1488167A82E8008ED1EF /* SpdyTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1486167A82E8008ED1EF /* SpdyTimer.m */; };
 		84C05737165B08C500151001 /* SpdyPersistentUrl.h in Headers */ = {isa = PBXBuildFile; fileRef = 84C05734165B08C500151001 /* SpdyPersistentUrl.h */; };
 		84C05738165B08C500151001 /* SpdyPersistentUrl.m in Sources */ = {isa = PBXBuildFile; fileRef = 84C05736165B08C500151001 /* SpdyPersistentUrl.m */; };
 		84D46BFB1667EAD900226B4B /* SpdyRequestCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46BF81667EAD900226B4B /* SpdyRequestCallback.h */; };
@@ -118,6 +120,8 @@
 		38D935B7152A417E00383797 /* SpdyUrlConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyUrlConnection.m; sourceTree = "<group>"; };
 		847FA66C1655CABF004B2707 /* SpdyRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyRequest.h; sourceTree = "<group>"; };
 		847FA66D1655CABF004B2707 /* SpdyRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyRequest.m; sourceTree = "<group>"; };
+		849F1484167A82E8008ED1EF /* SpdyTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyTimer.h; sourceTree = "<group>"; };
+		849F1486167A82E8008ED1EF /* SpdyTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyTimer.m; sourceTree = "<group>"; };
 		84C05734165B08C500151001 /* SpdyPersistentUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyPersistentUrl.h; sourceTree = "<group>"; };
 		84C05736165B08C500151001 /* SpdyPersistentUrl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyPersistentUrl.m; sourceTree = "<group>"; };
 		84D46BF81667EAD900226B4B /* SpdyRequestCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyRequestCallback.h; sourceTree = "<group>"; };
@@ -207,6 +211,8 @@
 		3870AF5714E47F8E009D8118 /* SPDY */ = {
 			isa = PBXGroup;
 			children = (
+				849F1484167A82E8008ED1EF /* SpdyTimer.h */,
+				849F1486167A82E8008ED1EF /* SpdyTimer.m */,
 				84D46C1C1668157700226B4B /* SpdyPushCallback.h */,
 				84D46C1E1668157700226B4B /* SpdyPushCallback.m */,
 				84D46C111668155F00226B4B /* SpdyBufferedCallback.h */,
@@ -302,6 +308,7 @@
 				84D46C171668155F00226B4B /* SpdyBufferedCallback.h in Headers */,
 				84D46C191668155F00226B4B /* SpdyCallback.h in Headers */,
 				84D46C1F1668157700226B4B /* SpdyPushCallback.h in Headers */,
+				849F1487167A82E8008ED1EF /* SpdyTimer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,6 +423,7 @@
 				84D46C181668155F00226B4B /* SpdyBufferedCallback.m in Sources */,
 				84D46C1A1668155F00226B4B /* SpdyCallback.m in Sources */,
 				84D46C201668157700226B4B /* SpdyPushCallback.m in Sources */,
+				849F1488167A82E8008ED1EF /* SpdyTimer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

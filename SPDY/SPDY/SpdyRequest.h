@@ -88,10 +88,3 @@ typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 @end
 
 
-// XXX move this
-@interface SpdyTimer : NSObject
--(id)initWithInterval:(NSTimeInterval)_interval andBlock:(void(^)())_block;
--(void)start;
--(void)invalidate;
-@end
-// XXX move this
