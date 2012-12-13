@@ -177,7 +177,6 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (NSError *)connectTo:(NSURL *)url {
-  struct addrinfo hints;
     
   char service[10];
   NSNumber *port = [url port];
@@ -208,6 +207,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     }
   }
     
+  struct addrinfo hints;
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
@@ -916,8 +916,6 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
  }
 
 -(BOOL)sessionConnect {
-  SPDY_LOG(@"sessionConnect");
-
   if (self.connectState == kSpdyConnecting) {
     SPDY_LOG(@"Connected");
     self.connectState = kSpdySslHandshake;
@@ -940,27 +938,22 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
  
 -(void)sessionRead {
-  SPDY_LOG(@"sessionRead");
   if([self sessionConnect]) {
     spdylay_session *laySession = [self session];
     if(laySession == NULL) {
       SPDY_LOG(@"spdylay session is null!!");
     } else {
-      SPDY_LOG(@"reading from socket");
       spdylay_session_recv(laySession);
     }
   }
 }
 
 -(void)sessionWrite {
-  SPDY_LOG(@"sessionWrite");
   if([self sessionConnect]) {
     spdylay_session *laySession = [self session];
     if(laySession == NULL) {
       SPDY_LOG(@"spdylay session is null!!");
     } else {
-      SPDY_LOG(@"writing to socket");
-
       size_t outbound_queue_size = 
 	spdylay_session_get_outbound_queue_size(laySession);
  
