@@ -56,7 +56,6 @@ struct spdylay_session;
 - (void)fetch:(NSURL *)path delegate:(SpdyCallback *)delegate;
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
-- (void)addToLoop;
 - (int)sendPing;
 - (int)sendPingWithCallback:(void (^)())callback;
 - (void)onPingReceived;

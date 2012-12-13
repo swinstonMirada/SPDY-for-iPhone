@@ -182,7 +182,6 @@ static int select_next_proto_cb(SSL *ssl,
     session.networkStatus = currentStatus;
     [self.sessions setObject:session forKey:key];
     SPDY_LOG(@"self.sessions has %d elements", self.sessions.count);
-    [session addToLoop];
   }
   return session;
 }

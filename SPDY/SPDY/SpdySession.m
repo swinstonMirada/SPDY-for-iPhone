@@ -64,7 +64,6 @@ static const int priority = 1;
 - (BOOL)submitRequest:(SpdyStream *)stream;
 - (BOOL)wouldBlock:(int)r;
 - (ssize_t)fixUpCallbackValue:(int)r;
-- (void)enableWriteCallback;
 
 @property (nonatomic, assign) CFReadStreamRef readStream;
 @property (nonatomic, assign) CFWriteStreamRef writeStream;
@@ -83,9 +82,20 @@ static const int priority = 1;
   spdylay_session_callbacks *callbacks;
 
   SpdyTimer * connectionTimer;
-  @public
+
   dispatch_source_t read_source;
   dispatch_source_t write_source;
+
+  BOOL write_source_enabled;
+}
+
+-(id)init {
+  self = [super init];
+  if(self) {
+    read_source = NULL;
+    write_source = NULL;
+  }
+  return self;
 }
 
 @synthesize spdyNegotiated;
@@ -105,12 +115,6 @@ static const int priority = 1;
   if(self.connectionStateCallback != NULL)
     self.connectionStateCallback(state);
 }
-
-static void sessionCallBack(CFSocketRef s,
-                            CFSocketCallBackType callbackType,
-                            CFDataRef address,
-                            const void *data,
-                            void *info);
 
 - (SpdyStream*)pushStreamForId:(int32_t)stream_id {
   return [pushStreams objectForKey:STREAM_KEY(stream_id)];
@@ -187,7 +191,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       /* 
 	 in theory, bare http could be supported.
 	 in practice, we require tls / ssl / https.
-
+	 
 	 } else if([scheme isEqualToString:@"http"]) {
 	 snprintf(service, sizeof(service), "80");
       */
@@ -227,8 +231,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   if (rp != NULL) {
     CFSocketContext ctx = {0, (__bridge void *)(self), NULL, NULL, NULL};
     CFDataRef address = CFDataCreate(NULL, (const uint8_t*)rp->ai_addr, rp->ai_addrlen);
-    socket = CFSocketCreate(NULL, PF_INET, SOCK_STREAM, IPPROTO_TCP, kCFSocketConnectCallBack | kCFSocketReadCallBack | kCFSocketWriteCallBack,
-			    &sessionCallBack, &ctx);
+    socket = CFSocketCreate(NULL, PF_INET, SOCK_STREAM, IPPROTO_TCP, 0, NULL, &ctx);
 
     int sock = CFSocketGetNative(socket);
 
@@ -244,24 +247,29 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, sock, 
 			     0, __spdy_dispatch_queue());
 
-    dispatch_source_set_event_handler(read_source, ^{
-					sessionCallBack(socket, 
-							kCFSocketReadCallBack,
-							NULL, NULL, 
-							(__bridge void*)self);
-				      });
+    dispatch_source_set_event_handler(read_source, ^{ [self sessionRead]; });
+    dispatch_source_set_event_handler(write_source, ^{ [self sessionWrite]; });
 
-    dispatch_source_set_event_handler(write_source, ^{
-					sessionCallBack(socket, 
-							kCFSocketWriteCallBack,
-							NULL, NULL, 
-							(__bridge void*)self);
-				      });
+    // we don't want to reference self here, because the ivar is NULLed out 
+    // in releaseDispatchSources.  So we keep create a local copy for the blocks
+    dispatch_source_t local_read_source = read_source;
+    dispatch_source_t local_write_source = write_source;
 
-    dispatch_source_set_cancel_handler(write_source, ^{ close(sock); });
-    dispatch_source_set_cancel_handler(read_source, ^{ close(sock); });
+    dispatch_block_t write_cancel_handler = ^{ 
+      dispatch_release(local_write_source);
+      close(sock); 
+    };
+
+    dispatch_block_t read_cancel_handler = ^{ 
+      dispatch_release(local_read_source);
+      close(sock); 
+    };
+
+    dispatch_source_set_cancel_handler(write_source, write_cancel_handler);
+    dispatch_source_set_cancel_handler(read_source, read_cancel_handler);
 
     dispatch_resume(write_source);
+    write_source_enabled = YES;
     dispatch_resume(read_source);
 
     CFSocketConnectToAddress(socket, address, -1);
@@ -277,9 +285,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     SPDY_LOG(@"%p starting connectionTimer", self);
     [connectionTimer invalidate];
     connectionTimer = [[SpdyTimer alloc] initWithInterval:12 // XXX hardcoded
-					 andBlock:^{
-      [self connectionTimedOut];
-    }];
+					 andBlock:^{ [self connectionTimedOut]; }];
     [connectionTimer start];
     return nil;
   }
@@ -342,10 +348,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     if (session != nil) {
       spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
       spdylay_session_send(session);
-    }/*
-    SPDY_LOG(@"releaseStreams");
-    [self releaseStreams];
-     */
+    }
     return cancelledStreams;
   }
 }
@@ -502,11 +505,11 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 -(void)releaseDispatchSources {
   if(read_source != NULL) {
     dispatch_source_cancel(read_source);
-    dispatch_release(read_source);
+    read_source = NULL;
   }
   if(write_source != NULL) {
     dispatch_source_cancel(write_source);
-    dispatch_release(write_source);
+    write_source = NULL;
   }
 }
 
@@ -568,7 +571,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   return [self sslHandshakeWrapper];
 }
 
-- (NSError *)connect:(NSURL *)h {
+ - (NSError *)connect:(NSURL *)h {
   SPDY_LOG(@"connect:%@", h);
   self.host = h;
   return [self connectTo:h];
@@ -613,12 +616,6 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   [self addStream:stream];
 }
 
-- (void)addToLoop {
-  CFRunLoopSourceRef loop_ref = CFSocketCreateRunLoopSource (NULL, socket, 0);
-  CFRunLoopAddSource(CFRunLoopGetCurrent(), loop_ref, kCFRunLoopCommonModes);
-  CFRelease(loop_ref);
-}
-
 - (int)recv_data:(uint8_t *)data len:(size_t)len flags:(int)flags {
   int ret = SSL_read(ssl, data, (int)len);
   SPDY_LOG(@"%p readCallback is %@", self, self.readCallback);
@@ -631,7 +628,6 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (ssize_t)fixUpCallbackValue:(int)r {
-  [self enableWriteCallback];
 
   if (r > 0)
     return r;
@@ -669,17 +665,19 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 }
 
 - (int)send_data:(const uint8_t *)data len:(size_t)len flags:(int)flags {
+
+  // this is in case we can't write all the data right now
+  if(!write_source_enabled && write_source != nil) {
+    dispatch_resume(write_source); 
+    write_source_enabled = YES;
+  }
+
   int ret = SSL_write(ssl, data, (int)len);
   SPDY_LOG(@"%p writeCallback is %@", self, self.writeCallback);
   if(ret != 0 && self.writeCallback != nil) {
     self.writeCallback((int)len);
   }
   return ret;
-}
-
-- (void)enableWriteCallback {
-  if (socket != NULL)
-    CFSocketEnableCallBacks(socket, kCFSocketWriteCallBack | kCFSocketReadCallBack);    
 }
 
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
@@ -835,8 +833,8 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   pushStreams = [[NSMutableDictionary alloc] init];
   return self;
 }
-
-- (int)sendPingWithCallback:(void (^)())callback {
+ 
+ - (int)sendPingWithCallback:(void (^)())callback {
   pingCallback = callback;
   return [self sendPing];
 }
@@ -852,7 +850,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   return ret;
 }
 
-- (void)onPingReceived {
+ - (void)onPingReceived {
   if(pingCallback != nil) 
     pingCallback();
 }
@@ -861,7 +859,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   self.connectState = kSpdyGoAwayReceived;
 }
 
-- (void)dealloc {
+ - (void)dealloc {
   SPDY_LOG(@"%p dealloc", self);
   if (session != NULL) {
     self.connectState = kSpdyGoAwaySubmitted;
@@ -877,11 +875,11 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   free(callbacks);
 }
 
-- (NSString *)description {
+ - (NSString *)description {
   return [NSString stringWithFormat:@"%@ host: %@, spdyVersion=%d, state=%d, networkStatus: %d", [super description], host, self.spdyVersion, self.connectState, self.networkStatus];
 }
 
--(void)maybeEnableVoip {
+ -(void)maybeEnableVoip {
   if(self.voip) {
     // these streams are only used for wakeup, all acutal i/o 
     // happens via the socket and openssl.
@@ -915,54 +913,52 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
       [self sendVoipError];
     }
   }
-}
+ }
 
-@end
+-(BOOL)sessionConnect {
+  SPDY_LOG(@"sessionConnect");
 
-static void sessionCallBack(CFSocketRef s,
-                            CFSocketCallBackType callbackType,
-                            CFDataRef address,
-                            const void *data,
-                            void *info) {
-  SPDY_DEBUG_LOG(@"Calling session callback: %p", info);
-  if (info == NULL) {
-    return;
-  }
-
-  SpdySession *session = (__bridge SpdySession *)info;
-  if (session.connectState == kSpdyConnecting) {
-    SPDY_LOG(@"we are connecting");
-    if (data != NULL) {
-      int e = *(int *)data;
-      [session connectionFailed:e domain:(NSString *)kCFErrorDomainPOSIX];
-      return;
-    }
-
-    SPDY_LOG(@"Connected to %@", info);
-    session.connectState = kSpdySslHandshake;
-    [session maybeEnableVoip];
-    if (![session sslConnect]) {
+  if (self.connectState == kSpdyConnecting) {
+    SPDY_LOG(@"Connected");
+    self.connectState = kSpdySslHandshake;
+    [self maybeEnableVoip];
+    if (![self sslConnect]) {
       SPDY_LOG(@"ssl connect failed");
-      return;
+      return NO;
     }
-    callbackType |= kCFSocketWriteCallBack;
   }
-  if (session.connectState == kSpdySslHandshake) {
+  if (self.connectState == kSpdySslHandshake) {
     SPDY_LOG(@"doing ssl handshake");
-    if(![session sslHandshakeWrapper]) {
+    if(![self sslHandshakeWrapper]) {
       SPDY_LOG(@"ssl handshake failed");
-      return;
+      return NO;
     } else {
       SPDY_LOG(@"ssl handshake succeeded");
     }
-    callbackType |= kCFSocketWriteCallBack;
   }
+  return YES;
+}
+ 
+-(void)sessionRead {
+  SPDY_LOG(@"sessionRead");
+  if([self sessionConnect]) {
+    spdylay_session *laySession = [self session];
+    if(laySession == NULL) {
+      SPDY_LOG(@"spdylay session is null!!");
+    } else {
+      SPDY_LOG(@"reading from socket");
+      spdylay_session_recv(laySession);
+    }
+  }
+}
 
-  spdylay_session *laySession = [session session];
-  if(laySession == NULL) {
-    SPDY_LOG(@"spdylay session is null!!");
-  } else {
-    if (callbackType & kCFSocketWriteCallBack) {
+-(void)sessionWrite {
+  SPDY_LOG(@"sessionWrite");
+  if([self sessionConnect]) {
+    spdylay_session *laySession = [self session];
+    if(laySession == NULL) {
+      SPDY_LOG(@"spdylay session is null!!");
+    } else {
       SPDY_LOG(@"writing to socket");
 
       size_t outbound_queue_size = 
@@ -973,16 +969,14 @@ static void sessionCallBack(CFSocketRef s,
 	if (err != 0) {
 	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
 	}
-      } else {
-	dispatch_suspend(session->write_source);
-	// XXX disable write interest
+      } else if(write_source != NULL) {
+	// disable write interest when outbound queue is empty (otherwise we loop)
+	dispatch_suspend(write_source);
+	write_source_enabled = NO;
       }
-    }
-    if (callbackType & kCFSocketReadCallBack) {
-      SPDY_LOG(@"reading from socket");
-      spdylay_session_recv(laySession);
     }
   }
 }
 
+@end
 
