@@ -38,7 +38,7 @@
 #import "SPDY.h"
 #import "SpdyStream.h"
 #import "SpdyCallback.h"
-
+#import "SpdyRequest+Private.h"
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 #include "spdylay/spdylay.h"
@@ -83,6 +83,9 @@ static const int priority = 1;
   spdylay_session_callbacks *callbacks;
 
   SpdyTimer * connectionTimer;
+  @public
+  dispatch_source_t read_source;
+  dispatch_source_t write_source;
 }
 
 @synthesize spdyNegotiated;
@@ -226,12 +229,45 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     socket = CFSocketCreate(NULL, PF_INET, SOCK_STREAM, IPPROTO_TCP, kCFSocketConnectCallBack | kCFSocketReadCallBack | kCFSocketWriteCallBack,
 			    &sessionCallBack, &ctx);
 
+    int sock = CFSocketGetNative(socket);
+
+    read_source = 
+      dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, sock, 
+			     0, __spdy_dispatch_queue());
+
+    write_source = 
+      dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, sock, 
+			     0, __spdy_dispatch_queue());
+
+    dispatch_source_set_event_handler(read_source, ^{
+					sessionCallBack(socket, 
+							kCFSocketReadCallBack,
+							NULL, NULL, 
+							(__bridge void*)self);
+				      });
+
+    dispatch_source_set_event_handler(write_source, ^{
+					sessionCallBack(socket, 
+							kCFSocketWriteCallBack,
+							NULL, NULL, 
+							(__bridge void*)self);
+				      });
+
+    dispatch_source_set_cancel_handler(write_source, ^{
+					 close(sock);
+				       });
+
+    dispatch_source_set_cancel_handler(read_source, ^{
+					 close(sock);
+				       });
+
+    dispatch_resume(write_source);
+    dispatch_resume(read_source);
 
     CFSocketConnectToAddress(socket, address, -1);
         
     // Ignore write failures, and deal with then on write.
     int set = 1;
-    int sock = CFSocketGetNative(socket);
     setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
 
     CFRelease(address);
@@ -891,13 +927,14 @@ static void sessionCallBack(CFSocketRef s,
 
   SpdySession *session = (__bridge SpdySession *)info;
   if (session.connectState == kSpdyConnecting) {
+    SPDY_LOG(@"we are connecting");
     if (data != NULL) {
       int e = *(int *)data;
       [session connectionFailed:e domain:(NSString *)kCFErrorDomainPOSIX];
       return;
     }
 
-    //SPDY_LOG(@"Connected to %@", info);
+    SPDY_LOG(@"Connected to %@", info);
     session.connectState = kSpdySslHandshake;
     [session maybeEnableVoip];
     if (![session sslConnect]) {
@@ -923,9 +960,18 @@ static void sessionCallBack(CFSocketRef s,
   } else {
     if (callbackType & kCFSocketWriteCallBack) {
       SPDY_LOG(@"writing to socket");
-      int err = spdylay_session_send(laySession);
-      if (err != 0) {
-	SPDY_LOG(@"Error writing data in write callback for session %@", session);
+
+      size_t outbound_queue_size = 
+	spdylay_session_get_outbound_queue_size(laySession);
+ 
+      if(outbound_queue_size > 0) {
+	int err = spdylay_session_send(laySession);
+	if (err != 0) {
+	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
+	}
+      } else {
+	dispatch_suspend(session->write_source);
+	// XXX disable write interest
       }
     }
     if (callbackType & kCFSocketReadCallBack) {
