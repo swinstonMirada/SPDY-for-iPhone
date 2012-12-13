@@ -60,6 +60,7 @@ struct spdylay_session;
 - (int)sendPing;
 - (int)sendPingWithCallback:(void (^)())callback;
 - (void)onPingReceived;
+- (void)onGoAwayReceived;
 
 - (NSInteger)resetStreamsAndGoAway;
 - (SSL_SESSION *)getSslSession;

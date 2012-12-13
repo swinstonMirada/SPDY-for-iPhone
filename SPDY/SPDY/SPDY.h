@@ -61,8 +61,7 @@ enum SpdyErrors {
     kSpdyHttpSchemeNotSupported = 5,
     kSpdyStreamClosedWithNoRepsonseHeaders = 6,
     kSpdyVoipRequestedButFailed = 7,
-    kSpdySslErrorWantReadLoop = 8,
-    kSpdyConnectionTimeout = 9,
+    kSpdyConnectTimeout = 9,
 };
 
 @protocol SpdyRequestIdentifier <NSObject>

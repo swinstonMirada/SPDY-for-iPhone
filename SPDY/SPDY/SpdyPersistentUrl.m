@@ -1,12 +1,13 @@
 #import "SpdyPersistentUrl.h"
+#import "SpdyRequest+Private.h"
 #import <SystemConfiguration/SystemConfiguration.h>
 #import <UIKit/UIKit.h>
 #import <errno.h>
 #import <netdb.h>
 
 @implementation SpdyPersistentUrl {
-  NSTimer * pingTimer;
-  NSTimer * retryTimer;
+  SpdyTimer * pingTimer;
+  SpdyTimer * retryTimer;
   BOOL stream_closed;
   SCNetworkReachabilityRef reachabilityRef;
   SpdyNetworkStatus networkStatus;
@@ -16,8 +17,11 @@
 
 -(void)setNetworkStatus:(SpdyNetworkStatus) _networkStatus {
   networkStatus = _networkStatus;
-  if(self.networkStatusCallback != NULL)
-    self.networkStatusCallback(networkStatus);
+  if(self.networkStatusCallback != NULL) {
+    __spdy_dispatchAsyncOnMainThread(^{
+				       self.networkStatusCallback(networkStatus);
+				     });
+  }
 }
 
 static NSString * reachabilityString(SCNetworkReachabilityFlags    flags) {
@@ -45,8 +49,11 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)newState {
 
-  if(self.reachabilityCallback != NULL) 
-    self.reachabilityCallback(newState);
+  if(self.reachabilityCallback != NULL) {
+    __spdy_dispatchAsyncOnMainThread(^{
+				       self.reachabilityCallback(newState);
+				     });
+  }
 
   PrintReachabilityFlags(newState);
 
@@ -119,35 +126,42 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 - (BOOL) startNotifier {
-  const char * host = [self.URL.host UTF8String];
-  SPDY_LOG(@"host is %s", host);
-  if(host == NULL) {
-    SPDY_LOG(@"host is null, unable to start reachability notifier");
-    return NO;
-  }
-
-  reachabilityRef = SCNetworkReachabilityCreateWithName(NULL, host);
-
-  SCNetworkReachabilityFlags flags = 0;
-  if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
-    [self setNetworkStatus:[SPDY networkStatusForReachabilityFlags:flags]];
-  }
-
-  BOOL retVal = NO;
-  SCNetworkReachabilityContext	context = {0, (__bridge void *)(self), NULL, NULL, NULL};
-  SPDY_LOG(@"reachabilityRef %p", reachabilityRef);
-  if(SCNetworkReachabilitySetCallback(reachabilityRef, ReachabilityCallback, &context)) {
-    if(SCNetworkReachabilityScheduleWithRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)) {
-      retVal = YES;
+  __block BOOL retVal = NO;
+  void (^block)() = ^{
+    const char * host = [self.URL.host UTF8String];
+    SPDY_LOG(@"host is %s", host);
+    if(host == NULL) {
+      SPDY_LOG(@"host is null, unable to start reachability notifier");
+      retVal = NO;
+      return;
     }
-  }
+
+    reachabilityRef = SCNetworkReachabilityCreateWithName(NULL, host);
+
+    SCNetworkReachabilityFlags flags = 0;
+    if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
+      [self setNetworkStatus:[SPDY networkStatusForReachabilityFlags:flags]];
+    }
+
+    SCNetworkReachabilityContext context = {0, (__bridge void *)(self), NULL, NULL, NULL};
+    SPDY_LOG(@"reachabilityRef %p", reachabilityRef);
+    if(SCNetworkReachabilitySetCallback(reachabilityRef, ReachabilityCallback, &context)) {
+      if(SCNetworkReachabilityScheduleWithRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)) {
+	retVal = YES;
+      }
+    }
+  };
+  __spdy_dispatchSync(block);
   return retVal;
 }
 
 - (void) stopNotifier {
   if(reachabilityRef != NULL) {
-    SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-    CFRelease(reachabilityRef);
+    void (^block)() = ^{
+      SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+      CFRelease(reachabilityRef);
+    };
+    __spdy_dispatchSync(block);
   }
 }
 
@@ -191,7 +205,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	@((int)kSpdyRequestCancelled) : @INTERNAL_FAILURE,
 
 	/* this happens when the ssl handshake loops on SSL_ERROR_WANT_READ */
-	@((int)kSpdySslErrorWantReadLoop) : @HARD_FAILURE,
+	@((int)kSpdyConnectTimeout) : @TRANSIENT_FAILURE,
       },
       
       // these are bsd level errors
@@ -347,7 +361,9 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)dieOnError:(NSError*)error {
   if(self.fatalErrorCallback != nil) {
-    self.fatalErrorCallback(error);
+    __spdy_dispatchAsyncOnMainThread(^{
+				       self.fatalErrorCallback(error);
+				     });
   }
   [self teardown];
 }
@@ -372,23 +388,25 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   [self reconnectWithMax:MAX_RECOVERABLE_RECONNECTS];
 }
 
--(void)scheduleReconnectWithSelector:(SEL)selector 
-		     initialInterval:(NSTimeInterval)retry_interval
-			   andFactor:(double)factor {
+-(void)scheduleReconnectWithInitialInterval:(NSTimeInterval)retry_interval
+				     factor:(double)factor
+				   andBlock:(void(^)())block {
   // schedule reconnect in the future
 
   // exponential backoff
   for(int i = 0 ; i <= num_reconnects ; i++) retry_interval *= factor;
 
-  SPDY_LOG(@"will retry with selector %@ in %lf seconds", 
-	   NSStringFromSelector(selector), retry_interval);
+  SPDY_LOG(@"will retry in %lf seconds", retry_interval);
 
   [retryTimer invalidate];
-  retryTimer = [NSTimer scheduledTimerWithTimeInterval:retry_interval
-			target:self selector:selector
-			userInfo:nil repeats:NO];
-
-  if(self.retryCallback != NULL) self.retryCallback(retry_interval);
+  retryTimer = [[SpdyTimer alloc] initWithInterval:12 // XXX hardcoded
+				  andBlock:block];
+  [retryTimer start];
+  if(self.retryCallback != NULL) {
+    __spdy_dispatchAsyncOnMainThread(^{
+				       self.retryCallback(retry_interval);
+				     });
+  }
 }
 
 -(void)reconnect:(NSError*)error {
@@ -432,17 +450,21 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       break;
 
     case RECOVERABLE_FAILURE:
-      SPDY_LOG(@"error type is RECOVERABLE_FAILURE");
-      [self teardown];
-      [self scheduleReconnectWithSelector:@selector(recoverableReconnect) 
-	    initialInterval:0.2 andFactor:1.6];
+      {
+	SPDY_LOG(@"error type is RECOVERABLE_FAILURE");
+	[self teardown];
+	[self scheduleReconnectWithInitialInterval:0.2
+	      factor:1.6 andBlock:^{ [self recoverableReconnect];}];
+      }
       break;
 
     case TRANSIENT_FAILURE:
-      SPDY_LOG(@"error type is TRANSIENT_FAILURE");
-      [self teardown];
-      [self scheduleReconnectWithSelector:@selector(transientReconnect) 
-	    initialInterval:0.8 andFactor:1.7];
+      {
+	SPDY_LOG(@"error type is TRANSIENT_FAILURE");
+	[self teardown];
+	[self scheduleReconnectWithInitialInterval:0.8
+	      factor:1.7 andBlock:^{ [self transientReconnect];}];
+      }
       break;
     }
   }
@@ -450,9 +472,12 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)sendPing {
   if(!stream_closed && self.connectState == kSpdyConnected) {
-    pingTimer = [NSTimer scheduledTimerWithTimeInterval:6 // XXX fudge this interval?
-			 target:self selector:@selector(noPingReceived) 
-			 userInfo:nil repeats:NO];
+    [pingTimer invalidate];
+    pingTimer = [[SpdyTimer alloc] initWithInterval:6 // XXX hardcoded
+				   andBlock:^{
+      [self noPingReceived];
+    }];
+    [pingTimer start];
     [super sendPing];
   } else {
     [self teardown];
@@ -494,8 +519,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   SPDY_LOG(@"gotPing");
   [pingTimer invalidate];
   pingTimer = nil;
-  if(self.keepAliveCallback != nil)
-    self.keepAliveCallback();
+  if(self.keepAliveCallback != nil) {
+    __spdy_dispatchAsyncOnMainThread(^{
+				       self.keepAliveCallback();
+				     });
+  }
 }
 
 -(void)noPingReceived {
@@ -518,8 +546,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   self.errorCallback = ^(NSError * error) {
     SPDY_LOG(@"errorCallback");
 #ifdef CONF_Debug
-    if(self.debugErrorCallback != nil)
-      self.debugErrorCallback(error);
+    if(unsafe_self.debugErrorCallback != nil) {
+      __spdy_dispatchAsyncOnMainThread(^{
+					 unsafe_self.debugErrorCallback(error);
+				       });
+    }
 #endif
     [unsafe_self reconnect:error];
   };

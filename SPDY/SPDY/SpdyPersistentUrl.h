@@ -49,6 +49,7 @@
 @property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
 
 +(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags;
+
 -(SCNetworkReachabilityFlags)reachabilityFlags;
 
 @end

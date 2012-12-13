@@ -28,6 +28,7 @@ typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 /* closes all streams and sends a GOAWAY on the associated session */
 - (void)teardown;
 
+/* returns true if the associated session is being torn down */
 - (BOOL)tearingDown;
 
 /* the url being loaded, as a string */
@@ -85,3 +86,12 @@ typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 @property (nonatomic, copy) SpdyIntCallback writeCallback;
 
 @end
+
+
+// XXX move this
+@interface SpdyTimer : NSObject
+-(id)initWithInterval:(NSTimeInterval)_interval andBlock:(void(^)())_block;
+-(void)start;
+-(void)invalidate;
+@end
+// XXX move this

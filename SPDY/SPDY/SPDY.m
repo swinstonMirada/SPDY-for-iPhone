@@ -232,6 +232,7 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 -(SpdySession*)fetch_internal:(NSString*)url delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
+  SPDY_LOG(@"fetch_internal");
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
     NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
@@ -245,6 +246,7 @@ static int select_next_proto_cb(SSL *ssl,
     return nil;
   }
   session.voip = voip;
+  SPDY_LOG(@"calling fetch on session %@", session); 
   [session fetch:u delegate:delegate];
   return session;
 }
@@ -323,18 +325,22 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (SpdySession*)fetch:(NSString *)url delegate:(SpdyCallback *)delegate {
+  SPDY_LOG(@"fetch:");
   return [self fetch_internal:url delegate:delegate voip:NO];
 }
 
 - (SpdySession*)fetch:(NSString *)url delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
+  SPDY_LOG(@"fetch:");
   return [self fetch_internal:url delegate:delegate voip:voip];
 }
 
 - (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate {
+  SPDY_LOG(@"fetch:");
   return [self fetchFromMessage:request delegate:delegate body:nil];
 }
 
 - (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
+  SPDY_LOG(@"fetch:");
     CFURLRef url = CFHTTPMessageCopyRequestURL(request);
     NSError *error;
     SpdySession *session = [self getSession:(__bridge NSURL *)url withError:&error voip:NO create:YES];
@@ -348,10 +354,12 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 - (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
+  SPDY_LOG(@"fetch:");
   return [self fetchFromRequest:request delegate:delegate voip:NO];
 }
 
 - (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip {
+  SPDY_LOG(@"fetch:");
   NSURL *url = [request URL];
   NSError *error;
   SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:voip create:YES];
