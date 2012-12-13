@@ -78,23 +78,17 @@
     SPDY_LOG(@"sending w/ self.connectionStateCallback %@ self.readCallback %@ self.writeCallback %@", self.connectionStateCallback, self.readCallback, self.writeCallback);
     if(self.connectionStateCallback != nil) {
       session.connectionStateCallback = ^(int arg) {	
-	__spdy_dispatchAsyncOnMainThread(^{
-					   self.connectionStateCallback(arg);
-					 });
+	__spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(arg); });
       };
     }
     if(self.readCallback != nil) {
       session.readCallback = ^(int arg) {
-	__spdy_dispatchAsyncOnMainThread(^{
-					   self.readCallback(arg);
-					 });
+	__spdy_dispatchAsyncOnMainThread(^{ self.readCallback(arg); });
       };
     }
     if(self.writeCallback != nil) {
       session.writeCallback = ^(int arg) {
-	__spdy_dispatchAsyncOnMainThread(^{
-					   self.writeCallback(arg);
-					 });
+	__spdy_dispatchAsyncOnMainThread(^{ self.writeCallback(arg); });
       };
     }
   };

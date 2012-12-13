@@ -125,6 +125,7 @@ static void sessionCallBack(CFSocketRef s,
   CFSocketInvalidate(socket);
   CFRelease(socket);
   [self releaseStreams];
+  [self releaseDispatchSources];
   socket = nil;
 }
 
@@ -231,9 +232,13 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
     int sock = CFSocketGetNative(socket);
 
+    if(read_source != NULL) dispatch_release(read_source);
+
     read_source = 
       dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, sock, 
 			     0, __spdy_dispatch_queue());
+
+    if(write_source != NULL) dispatch_release(write_source);
 
     write_source = 
       dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, sock, 
@@ -253,13 +258,8 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 							(__bridge void*)self);
 				      });
 
-    dispatch_source_set_cancel_handler(write_source, ^{
-					 close(sock);
-				       });
-
-    dispatch_source_set_cancel_handler(read_source, ^{
-					 close(sock);
-				       });
+    dispatch_source_set_cancel_handler(write_source, ^{ close(sock); });
+    dispatch_source_set_cancel_handler(read_source, ^{ close(sock); });
 
     dispatch_resume(write_source);
     dispatch_resume(read_source);
@@ -342,11 +342,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     if (session != nil) {
       spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
       spdylay_session_send(session);
-    }
-    if(self.voip) {
-      SPDY_LOG(@"releaseStreams");
-      [self releaseStreams];
-    }
+    }/*
+    SPDY_LOG(@"releaseStreams");
+    [self releaseStreams];
+     */
     return cancelledStreams;
   }
 }
@@ -500,6 +499,17 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   return -666;
 }
 
+-(void)releaseDispatchSources {
+  if(read_source != NULL) {
+    dispatch_source_cancel(read_source);
+    dispatch_release(read_source);
+  }
+  if(write_source != NULL) {
+    dispatch_source_cancel(write_source);
+    dispatch_release(write_source);
+  }
+}
+
 -(void)releaseStreams {
   if(self.readStream != NULL) {
     SPDY_LOG(@"closing and releasing read stream"); 
@@ -550,12 +560,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 -(BOOL) sslHandshakeWrapper {
-  int ret = [self sslHandshake];
-  
-  while(ret == SSL_HANDSHAKE_NEED_TO_RETRY) 
-    ret = [self sslHandshake];
-
-  return ret == SSL_HANDSHAKE_SUCCESS;
+  return [self sslHandshake] == SSL_HANDSHAKE_SUCCESS;
 }
 
 - (BOOL)sslConnect {
@@ -858,7 +863,6 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 
 - (void)dealloc {
   SPDY_LOG(@"%p dealloc", self);
-  [self releaseStreams];
   if (session != NULL) {
     self.connectState = kSpdyGoAwaySubmitted;
     spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
