@@ -51,6 +51,8 @@ CFReadStreamRef SpdyCreateSpdyReadStream(CFAllocatorRef alloc, CFHTTPMessageRef 
 
 extern NSString *kSpdyErrorDomain;
 extern NSString *kOpenSSLErrorDomain;
+extern NSString *kSpdyTimeoutHeader;
+
 
 enum SpdyErrors {
     kSpdyConnectionOk = 0,
@@ -123,6 +125,12 @@ enum SpdyErrors {
 #ifdef CONF_Debug
 @property (strong) NSObject<SpdyLogger> *logger;
 #endif
+
+// Like closeAllSessions above, but only cancels and closes for url.host:url.port.
+- (NSInteger)closeAllSessionsForURL:(NSURL *)url;
+
+@property (retain) NSObject<SpdyLogger> *logger;
+
 @end
 
 

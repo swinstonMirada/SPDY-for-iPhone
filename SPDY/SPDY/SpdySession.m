@@ -52,6 +52,8 @@ static const int priority = 1;
 #define SSL_HANDSHAKE_SUCCESS 0
 #define SSL_HANDSHAKE_NEED_TO_RETRY 1
 
+@property (retain, nonatomic) NSDate *lastCallbackTime;
+
 - (void)_cancelStream:(SpdyStream *)stream;
 - (NSError *)connectTo:(NSURL *)url;
 - (void)connectionFailed:(NSInteger)error domain:(NSString *)domain;
@@ -334,8 +336,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)cancelStream:(SpdyStream *)stream {
-  // Do not remove the stream here as it will be removed on the close callback when spdylay is done with the object.
-  [self _cancelStream:stream];
+    // Do not remove the stream here as it will be removed on the close callback when spdylay is done with the object.
+    [self _cancelStream:stream];
+    if ([[NSDate date] compare:[self.lastCallbackTime dateByAddingTimeInterval:stream.streamTimeoutInterval]] == NSOrderedDescending)
+        SPDY_LOG(@"Stream %@ timed out, timeout set at %fs", stream, stream.streamTimeoutInterval);
 }
 
 - (NSInteger)resetStreamsAndGoAway {
@@ -916,6 +920,8 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
  }
 
 -(BOOL)sessionConnect {
+  self.lastCallbackTime = [NSDate date];
+
   if (self.connectState == kSpdyConnecting) {
     SPDY_LOG(@"Connected");
     self.connectState = kSpdySslHandshake;
