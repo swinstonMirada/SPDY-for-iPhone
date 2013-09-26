@@ -14,7 +14,7 @@
  * - leaves the stream open after the response has been sent
  *
  * In addition, the server should support push.  If a push is received,
- * the pushSuccessCallback (declared in SpduUrl) will be invoked.
+ * the pushSuccessCallback (declared in SpdyUrl) will be invoked.
  *
  * This class handles keepalive and reconnect details.  It provides an 
  * errorCallback for the SpdyRequest superclass which will attempt to 
@@ -47,6 +47,8 @@
 @property (nonatomic, copy) SpdyIntCallback reachabilityCallback;
 
 @property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
+
+@property (nonatomic, assign) BOOL dontReconnect;
 
 +(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags;
 
