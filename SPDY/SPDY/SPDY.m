@@ -385,7 +385,7 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (NSInteger)closeAllSessionsForURL:(NSURL *)url {
     NSInteger cancelledRequests = 0;
-    SpdySessionKey *urlKey = [[[SpdySessionKey alloc] initFromUrl:url] autorelease];
+    SpdySessionKey *urlKey = [[SpdySessionKey alloc] initFromUrl:url];
     SpdySession *session = [self.sessions objectForKey:urlKey];
     if (session != nil) {
         cancelledRequests = [session resetStreamsAndGoAway];

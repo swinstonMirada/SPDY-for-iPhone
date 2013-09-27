@@ -20,12 +20,16 @@
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 
+@class SpdySession;
+
 typedef enum {
-    kSpdyNotConnected,
-    kSpdyConnecting,
-    kSpdySslHandshake,
-    kSpdyConnected,
-    kSpdyError,
+  kSpdyNotConnected,
+  kSpdyConnecting,
+  kSpdySslHandshake,
+  kSpdyConnected,
+  kSpdyGoAwaySubmitted,
+  kSpdyGoAwayReceived,
+  kSpdyError,
 } SpdyConnectState;
 
 #define kSpdyStreamNotFound -1
@@ -47,6 +51,8 @@ CFReadStreamRef SpdyCreateSpdyReadStream(CFAllocatorRef alloc, CFHTTPMessageRef 
 
 extern NSString *kSpdyErrorDomain;
 extern NSString *kOpenSSLErrorDomain;
+extern NSString *kSpdyTimeoutHeader;
+
 
 enum SpdyErrors {
     kSpdyConnectionOk = 0,
@@ -57,6 +63,7 @@ enum SpdyErrors {
     kSpdyHttpSchemeNotSupported = 5,
     kSpdyStreamClosedWithNoRepsonseHeaders = 6,
     kSpdyVoipRequestedButFailed = 7,
+    kSpdyConnectTimeout = 9,
 };
 
 @protocol SpdyRequestIdentifier <NSObject>
@@ -106,11 +113,11 @@ enum SpdyErrors {
 - (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request;
 
 // A reference to delegate is kept until the stream is closed.  The caller will get an onError or onStreamClose before the stream is closed.
-- (void)fetch:(NSString *)path delegate:(SpdyCallback *)delegate;
-- (void)fetch:(NSString *)path delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
+- (SpdySession*)fetch:(NSString *)path delegate:(SpdyCallback *)delegate;
+- (SpdySession*)fetch:(NSString *)path delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
+- (SpdySession*)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate;
+- (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
+- (SpdySession*)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate voip:(BOOL)voip;
 
 // Cancels all active requests and closes all connections.  Returns the number of requests that were cancelled.  Ideally this should be called when all requests have already been canceled.
 - (NSInteger)closeAllSessions;
@@ -118,6 +125,10 @@ enum SpdyErrors {
 #ifdef CONF_Debug
 @property (strong) NSObject<SpdyLogger> *logger;
 #endif
+
+// Like closeAllSessions above, but only cancels and closes for url.host:url.port.
+- (NSInteger)closeAllSessionsForURL:(NSURL *)url;
+
 @end
 
 
