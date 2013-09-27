@@ -46,7 +46,7 @@ tar zxvf "zlib-${ZLIB_VERSION}.tar.gz"
 pushd "zlib-${ZLIB_VERSION}"
 export DEVROOT="${DEVELOPER}/Platforms/${PLATFORM}.platform/Developer"
 export SDKROOT="${DEVROOT}/SDKs/${PLATFORM}${SDK}.sdk"
-export CC=${DEVROOT}/usr/bin/gcc
+export CC="${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang";
 export LD=${DEVROOT}/usr/bin/ld
 export CPP=${DEVROOT}/usr/bin/cpp
 export CXX=${DEVROOT}/usr/bin/g++
