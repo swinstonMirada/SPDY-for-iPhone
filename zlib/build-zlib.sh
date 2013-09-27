@@ -30,6 +30,7 @@ set -e
 ZLIB_VERSION=${ZLIB_VERSION:-1.2.8}
 ARCH=${ARCH:-armv7}
 DEVELOPER=${DEVELOPER:-`xcode-select --print-path`}
+DEVELOPER=${DEVELOPER:-/Applications/Xcode.app/Contents/Developer}
 PLATFORM=${PLATFORM:-iPhoneOS}
 SDK=${SDK:-`xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//g' | tail -n 1`}
 MIN_IOS_VERSION=${MIN_IOS_VERSION:-4.3}
