@@ -22,6 +22,10 @@ typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 /* causes the request to be loaded */
 - (void)send;
 
+/* causes the request to be loaded.  The passed callback will be called 
+   after the request has been scheduled */
+-(void)send:(void(^)())callback;
+
 /* causes spdy to send a ping over the associated session, if connected */
 - (void)sendPing;
 

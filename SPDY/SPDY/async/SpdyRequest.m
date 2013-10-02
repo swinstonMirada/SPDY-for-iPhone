@@ -65,7 +65,7 @@
   __spdy_dispatchAsync(block);
 }
 
--(void)send {
+-(void)send:(void(^)())callback {
   void (^block)() = ^{
     SpdySession * session = nil;
     if(ns_url_request == nil) {
@@ -91,8 +91,14 @@
 	__spdy_dispatchAsyncOnMainThread(^{ self.writeCallback(arg); });
       };
     }
+    if(callback != nil)
+      callback();
   };
   __spdy_dispatchAsync(block);
+}
+
+-(void)send {
+  [self send:nil];
 }
 
 - (void)teardown {
