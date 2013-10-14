@@ -39,6 +39,9 @@
 /* called on all errors.  for debugging */
 @property (nonatomic, copy) SpdyErrorCallback debugErrorCallback;
 
+/* called on retry.  In case a background task is needed, this is NOT 
+   called on the main thread, unlike all the other callbacks. 
+   It is called synchronously so that a background task may be allocated. */
 @property (nonatomic, copy) SpdyTimeIntervalCallback retryCallback;
 
 /* called on keepalive */

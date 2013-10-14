@@ -71,6 +71,9 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     // we were reachable, but no longer are, disconnect
     [self setNetworkStatus:newStatus];
     [self teardown];
+    // XXX perhaps we should call a new callback, separate from 
+    // but similar to the retryCallback().  We may want to allow 
+    // users of the library to start a background task here.
   } else if(oldStatus == kSpdyNotReachable) {
     SPDY_LOG(@"were not reachable, now we are");
     if(self.connectState == kSpdyConnected) {
@@ -400,14 +403,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   SPDY_LOG(@"will retry in %lf seconds", retry_interval);
 
   [retryTimer invalidate];
-  retryTimer = [[SpdyTimer alloc] initWithInterval:12 // XXX hardcoded
+  retryTimer = [[SpdyTimer alloc] initWithInterval:retry_interval
 				  andBlock:block];
   [retryTimer start];
-  if(self.retryCallback != NULL) {
-    __spdy_dispatchAsyncOnMainThread(^{
-				       self.retryCallback(retry_interval);
-				     });
-  }
+  if(self.retryCallback != NULL)
+    self.retryCallback(retry_interval);
 }
 
 -(void)reconnect:(NSError*)error {
