@@ -49,11 +49,11 @@
 }
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
-  //SPDY_LOG(@"Loading");
   return [super onResponseData:bytes length:length];
 }
 
 - (void)onStreamClose {
+  [super onStreamClose];
   __spdy_dispatchAsyncOnMainThread(^{
 				     [spdy_url doStreamCloseCallback];
 				   });
