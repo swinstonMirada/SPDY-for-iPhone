@@ -455,7 +455,10 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	SPDY_LOG(@"error type is RECOVERABLE_FAILURE");
 	[self teardown];
 	[self scheduleReconnectWithInitialInterval:0.2
-	      factor:1.6 andBlock:^{ [self recoverableReconnect];}];
+	      factor:1.6 andBlock:^{ 
+	  SPDY_LOG(@"recoverableReconnect retry");
+	  [self recoverableReconnect];
+	}];
       }
       break;
 
@@ -472,21 +475,27 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)sendPing {
+  SPDY_LOG(@"sendPing");
   if(!stream_closed && self.connectState == kSpdyConnected) {
+    SPDY_LOG(@"really sending ping");
     [pingTimer invalidate];
     pingTimer = [[SpdyTimer alloc] initWithInterval:6 // XXX hardcoded
 				   andBlock:^{
+      SPDY_LOG(@"doh, we didn't get a ping response");
       [self noPingReceived];
     }];
     [pingTimer start];
     [super sendPing];
   } else {
+    SPDY_LOG(@"not sending a ping because stream_closed %d and self.connectState %d != %d", 
+	     stream_closed, self.connectState, kSpdyConnected);
     [self teardown];
     [self recoverableReconnect];
   }
 }
 
 -(void)keepalive {
+  SPDY_LOG(@"keepalive");
   [self sendPing];
 }
 
@@ -512,6 +521,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)streamWasClosed {
+  SPDY_LOG(@"streamWasClosed");
   stream_closed = YES;
   [self recoverableReconnect];
 }
@@ -528,6 +538,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)noPingReceived {
+  SPDY_LOG(@"did not get ping");
   [pingTimer invalidate];
   pingTimer = nil;
   [self teardown];
