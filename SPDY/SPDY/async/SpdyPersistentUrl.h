@@ -47,6 +47,9 @@
 /* called on keepalive */
 @property (nonatomic, copy) SpdyVoidCallback keepAliveCallback;
 
+/* called on initial connection */
+@property (nonatomic, copy) SpdyVoidCallback connectCallback;
+
 @property (nonatomic, copy) SpdyIntCallback reachabilityCallback;
 
 @property (nonatomic, copy) SpdyIntCallback networkStatusCallback;

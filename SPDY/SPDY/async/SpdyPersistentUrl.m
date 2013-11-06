@@ -518,6 +518,9 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
   [retryTimer invalidate];
   num_reconnects = 0;
+
+  if(self.connectCallback != nil) 
+    __spdy_dispatchAsyncOnMainThread(self.connectCallback);
 }
 
 -(void)streamWasClosed {
@@ -530,11 +533,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   SPDY_LOG(@"gotPing");
   [pingTimer invalidate];
   pingTimer = nil;
-  if(self.keepAliveCallback != nil) {
-    __spdy_dispatchAsyncOnMainThread(^{
-				       self.keepAliveCallback();
-				     });
-  }
+  if(self.keepAliveCallback != nil) 
+    __spdy_dispatchAsyncOnMainThread(self.keepAliveCallback);
 }
 
 -(void)noPingReceived {
