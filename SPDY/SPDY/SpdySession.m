@@ -313,6 +313,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)connectionFailed:(NSInteger)err domain:(NSString *)domain {
+  if([SPDY sharedSPDY].needToStartBackgroundTaskBlock != NULL) 
+    [SPDY sharedSPDY].needToStartBackgroundTaskBlock();
+
   SPDY_LOG(@"%p invalidating connectionTimer", self);
   [connectionTimer invalidate];
   connectionTimer = nil;
@@ -326,6 +329,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       [value.delegate onError:error];
     }
   }
+  
+  if([SPDY sharedSPDY].finishedWithBackgroundTaskBlock != NULL) 
+    [SPDY sharedSPDY].finishedWithBackgroundTaskBlock();
 }
 
 - (void)_cancelStream:(SpdyStream *)stream {

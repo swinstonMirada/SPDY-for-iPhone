@@ -26,6 +26,9 @@
 }
 
 - (void)onError:(NSError *)error {
+  if([SPDY sharedSPDY].needToStartBackgroundTaskBlock != NULL) 
+    [SPDY sharedSPDY].needToStartBackgroundTaskBlock();
+
   void (^block)() = ^{
     SPDY_LOG(@"Got error: %@", error);
     if(spdy_url.errorCallback != nil) {
@@ -33,6 +36,8 @@
     } else {
       SPDY_LOG(@"dropping error %@ w/ no callback", error);
     }
+    if([SPDY sharedSPDY].finishedWithBackgroundTaskBlock != NULL) 
+      [SPDY sharedSPDY].finishedWithBackgroundTaskBlock();
   };
   __spdy_dispatchAsyncOnMainThread(block);
 }

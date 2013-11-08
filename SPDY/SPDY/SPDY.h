@@ -42,6 +42,13 @@ typedef enum {
 } SpdyNetworkStatus;
 
 @class SpdyCallback;
+@class SpdyHTTPResponse;
+
+typedef void (^SpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
+typedef void (^SpdyErrorCallback)(NSError*);
+typedef void (^SpdyVoidCallback)();
+typedef void (^SpdyIntCallback)(int);
+typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 
 // Returns a CFReadStream.  If requestBody is non-NULL the request method in requestHeaders must
 // support a message body and the requestBody will override the body that may already be in requestHeaders.  If
@@ -88,6 +95,9 @@ enum SpdyErrors {
 @interface SPDY : NSObject
 
 + (SPDY *)sharedSPDY;
+
+@property (nonatomic,copy) SpdyVoidCallback needToStartBackgroundTaskBlock;
+@property (nonatomic,copy) SpdyVoidCallback finishedWithBackgroundTaskBlock;
 
 // Call registerForNSURLConnection to enable spdy when using NSURLConnection.  SPDY responses can be identified (in iOS 5.0+) by looking for
 // the @"protocol-was: spdy" header with the value @"YES".  "protocol-was: spdy" is not a valid http header, thus it is safe to add it.
