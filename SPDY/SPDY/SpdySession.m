@@ -588,6 +588,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)addStream:(SpdyStream *)stream {
+  SPDY_LOG(@"addStream:%p", stream);
   stream.parentSession = self;
   @synchronized(streams) {
     [streams addObject:stream];
@@ -659,7 +660,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     SPDY_LOG(@"SSL Error %d, System error %d, retValue %d, closing connection", sslError, sysError, r);
     r = SPDYLAY_ERR_CALLBACK_FAILURE;
     [self connectionFailed:ECONNRESET domain:(NSString *)kCFErrorDomainPOSIX];
-    [self invalidateSocket];
+    //[self invalidateSocket];
   }
 
   // Clear any errors that we could have encountered.
@@ -810,8 +811,10 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 
 - (void)removeStream:(SpdyStream *)stream {
   @synchronized(streams) {
+    SPDY_LOG(@"removeStream:%p", stream);
     [streams removeObject:stream];
     [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
+    SPDY_LOG(@"after removeStream, we have %d streams", streams.count);
   }
 }
 
