@@ -554,27 +554,27 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   num_reconnects = 0;
   self.voip = YES;
   stream_closed = NO;
-  SpdyPersistentUrl * __unsafe_unretained unsafe_self = self;
+  SpdyPersistentUrl * __weak weak_self = self;
   self.errorCallback = ^(NSError * error) {
     SPDY_LOG(@"errorCallback");
 #ifdef CONF_Debug
-    if(unsafe_self.debugErrorCallback != nil) {
+    if(weak_self.debugErrorCallback != nil) {
       __spdy_dispatchAsyncOnMainThread(^{
-					 unsafe_self.debugErrorCallback(error);
+					 weak_self.debugErrorCallback(error);
 				       });
     }
 #endif
-    [unsafe_self reconnect:error];
+    [weak_self reconnect:error];
   };
   self.pingCallback = ^ {
-    [unsafe_self gotPing];
+    [weak_self gotPing];
   };
   self.streamCloseCallback = ^ {
     SPDY_LOG(@"streamCloseCallback");
-    [unsafe_self streamWasClosed];
+    [weak_self streamWasClosed];
   };
   self.connectCallback = ^ {
-    [unsafe_self streamWasConnected];
+    [weak_self streamWasConnected];
   };
   [self startNotifier];
 }
