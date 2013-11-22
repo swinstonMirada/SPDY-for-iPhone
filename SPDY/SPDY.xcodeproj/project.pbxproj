@@ -461,7 +461,7 @@
 			buildSettings = {
 				"ADDITIONAL_SDKS[arch=*]" = "";
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = "$(SRCROOT)/../build/lib";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -484,7 +484,6 @@
 				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = debugging;
 				TEST_AFTER_BUILD = YES;
-				VALID_ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 			};
 			name = Debug;
 		};
@@ -492,7 +491,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = "$(SRCROOT)/../build/lib";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -509,7 +508,6 @@
 				STRIP_STYLE = debugging;
 				TEST_AFTER_BUILD = YES;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 			};
 			name = Release;
 		};
@@ -576,7 +574,7 @@
 		3870AF7A14E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
@@ -593,7 +591,6 @@
 					"\"$(SRCROOT)/../build/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				VALID_ARCHS = "i386 armv6 armv7";
 				WRAPPER_EXTENSION = octest;
 			};
 			name = Debug;
@@ -601,7 +598,7 @@
 		3870AF7B14E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
@@ -618,7 +615,6 @@
 					"\"$(SRCROOT)/../build/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				VALID_ARCHS = "i386 armv6 armv7";
 				WRAPPER_EXTENSION = octest;
 			};
 			name = Release;
