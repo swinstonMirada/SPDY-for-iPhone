@@ -5,7 +5,7 @@ all: SPDY
 
 
 build/lib/libcrypto.a: OpenSSL-for-iPhone/build-libssl.sh
-	cd OpenSSL-for-iPhone && INSTALL_DIR=$(BUILD) ./build-libssl.sh
+	cd OpenSSL-for-iPhone && INSTALL_DIR=$(BUILD) make all
 
 openssl: build/lib/libcrypto.a
 
