@@ -33,7 +33,7 @@ DEVELOPER=${DEVELOPER:-`xcode-select --print-path`}
 DEVELOPER=${DEVELOPER:-/Applications/Xcode.app/Contents/Developer}
 PLATFORM=${PLATFORM:-iPhoneOS}
 SDK=${SDK:-`xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//g' | tail -n 1`}
-MIN_IOS_VERSION=${MIN_IOS_VERSION:-4.3}
+MIN_IOS_VERSION=${MIN_IOS_VERSION:-6.0}
 if [ ! -e "zlib-${ZLIB_VERSION}.tar.gz" ]
 then
   curl -O "http://zlib.net/zlib-${ZLIB_VERSION}.tar.gz"

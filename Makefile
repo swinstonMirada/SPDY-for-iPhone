@@ -55,7 +55,10 @@ build/armv7/lib/libz.a: zlib/build-zlib.sh
 build/armv7s/lib/libz.a: zlib/build-zlib.sh
 	cd zlib && PLATFORM=iPhoneOS ARCH=armv7s ROOTDIR=$(BUILD)/armv7s ./build-zlib.sh
 
-build/lib/libz.a: build/i386/lib/libz.a build/armv7/lib/libz.a build/armv7s/lib/libz.a
+build/arm64/lib/libz.a: zlib/build-zlib.sh
+	cd zlib && PLATFORM=iPhoneOS ARCH=arm64 ROOTDIR=$(BUILD)/arm64 ./build-zlib.sh
+
+build/lib/libz.a: build/i386/lib/libz.a build/armv7/lib/libz.a build/armv7s/lib/libz.a build/arm64/lib/libz.a
 	-mkdir -p build/lib/pkgconfig
 	lipo -create $^ -output $@
 	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/armv7/lib/pkgconfig/zlib.pc > build/lib/pkgconfig/zlib.pc
@@ -74,7 +77,7 @@ clean:
 
 update-spdylay:
 	cd spdylay && git pull
-	-rm build/lib/libspdylay.* build/{armv7s,armv7,i386}/lib/libspdylay.*
+	-rm build/lib/libspdylay.* build/{armv7s,armv7,arm64,i386}/lib/libspdylay.*
 
 
 check: SPDY
