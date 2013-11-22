@@ -43,7 +43,7 @@
 #include "openssl/err.h"
 #include "spdylay/spdylay.h"
 
-#define STREAM_KEY(streamId) [NSString stringWithFormat:@"%d", streamId]
+#define STREAM_KEY(streamId) [NSString stringWithFormat:@"%ld", (long)streamId]
 
 static const int priority = 1;
 
@@ -237,13 +237,9 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
     int sock = CFSocketGetNative(socket);
 
-    if(read_source != NULL) dispatch_release(read_source);
-
     read_source = 
       dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, sock, 
 			     0, __spdy_dispatch_queue());
-
-    if(write_source != NULL) dispatch_release(write_source);
 
     write_source = 
       dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, sock, 
@@ -252,18 +248,11 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     dispatch_source_set_event_handler(read_source, ^{ [self sessionRead]; });
     dispatch_source_set_event_handler(write_source, ^{ [self sessionWrite]; });
 
-    // we don't want to reference self here, because the ivar is NULLed out 
-    // in releaseDispatchSources.  So we keep create a local copy for the blocks
-    dispatch_source_t local_read_source = read_source;
-    dispatch_source_t local_write_source = write_source;
-
     dispatch_block_t write_cancel_handler = ^{ 
-      dispatch_release(local_write_source);
       close(sock); 
     };
 
     dispatch_block_t read_cancel_handler = ^{ 
-      dispatch_release(local_read_source);
       close(sock); 
     };
 
@@ -322,7 +311,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   self.connectState = kSpdyError;
   [self invalidateSocket];
   NSError *error = [NSError errorWithDomain:domain code:err userInfo:nil];
-  SPDY_LOG(@"we have %d streams", streams.count);
+  SPDY_LOG(@"we have %lu streams", (unsigned long)streams.count);
   @synchronized(streams) {
     for (SpdyStream *value in streams) {
       SPDY_LOG(@"sending error to delegate %@", value.delegate);
@@ -337,7 +326,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 - (void)_cancelStream:(SpdyStream *)stream {
   [stream cancelStream];
   if (stream.streamId > 0) {
-    spdylay_submit_rst_stream([self session], stream.streamId, SPDYLAY_CANCEL);
+    spdylay_submit_rst_stream([self session], (int32_t)stream.streamId, SPDYLAY_CANCEL);
   }
 }
 
@@ -649,7 +638,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   } else {
     int sysError = sslError;
     if (sslError == SSL_ERROR_SYSCALL) {
-      sysError = ERR_get_error();
+      sysError = (int)ERR_get_error();
       if (sysError == 0) {
 	if (r == 0)
 	  sysError = -1;
@@ -814,7 +803,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     SPDY_LOG(@"removeStream:%p", stream);
     [streams removeObject:stream];
     [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
-    SPDY_LOG(@"after removeStream, we have %d streams", streams.count);
+    SPDY_LOG(@"after removeStream, we have %lu streams", (unsigned long)streams.count);
   }
 }
 

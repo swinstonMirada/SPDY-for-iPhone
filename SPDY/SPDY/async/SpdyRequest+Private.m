@@ -4,9 +4,14 @@
 
 static dispatch_queue_t _dispatchQueue = NULL;
 
+static char * dispatch_queue_key = "key";
+static char * dispatch_queue_key_value = "spdy";
+
 dispatch_queue_t __spdy_dispatch_queue() {
   if(_dispatchQueue == NULL) {
     _dispatchQueue = dispatch_queue_create("Spdy", NULL);
+    dispatch_queue_set_specific(_dispatchQueue, dispatch_queue_key, 
+				dispatch_queue_key_value, NULL);
 #ifdef CONF_Debug
     __spdy_dispatchAsync(^{ [[NSThread currentThread] setName:@"Spdy"]; });
 #endif    
@@ -16,7 +21,8 @@ dispatch_queue_t __spdy_dispatch_queue() {
 
 void __spdy_dispatchSync(void(^block)()) {
   dispatch_queue_t dispatchQueue = __spdy_dispatch_queue();
-  if(dispatch_get_current_queue() == dispatchQueue) {
+  char * value = dispatch_get_specific(dispatch_queue_key);
+  if(value == dispatch_queue_key_value) {
     block();
   } else {
     dispatch_sync(dispatchQueue, block);

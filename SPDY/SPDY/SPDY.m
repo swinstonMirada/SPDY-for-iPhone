@@ -133,7 +133,7 @@ static int select_next_proto_cb(SSL *ssl,
   SSL_SESSION * oldSslSession = [session getSslSession];
   SPDY_LOG(@"removing session object for key %@", key);
   [self.sessions removeObjectForKey:key];
-  SPDY_LOG(@"after remove we have %d sessions", self.sessions.count);
+  SPDY_LOG(@"after remove we have %lu sessions", (unsigned long)self.sessions.count);
   return oldSslSession;
 }
 
@@ -177,18 +177,18 @@ static int select_next_proto_cb(SSL *ssl,
       SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
       return nil;
     }
-    SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
+    SPDY_LOG(@"Adding %@ to sessions (size = %lu)", key, (unsigned long)([self.sessions count] + 1));
     currentStatus = [self.class reachabilityStatusForHost:key.host];
     session.networkStatus = currentStatus;
     [self.sessions setObject:session forKey:key];
-    SPDY_LOG(@"self.sessions has %d elements", self.sessions.count);
+    SPDY_LOG(@"self.sessions has %lu elements", (unsigned long)self.sessions.count);
   }
   return session;
 }
 
 - (int)pingWithCallback:(void (^)())callback {
   int ret = 0;
-  SPDY_LOG(@"pingWithCallback w/ %d sessions", self.sessions.count);
+  SPDY_LOG(@"pingWithCallback w/ %lu sessions", (unsigned long)self.sessions.count);
   for(SpdySessionKey *sessionKey in self.sessions) {
     SpdySession *session = [self.sessions objectForKey:sessionKey];
     if (session != nil) {

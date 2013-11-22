@@ -37,7 +37,7 @@
 
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@ %@:%@ (%u)", [super description], self.host, self.port, [self hash]];
+  return [NSString stringWithFormat:@"%@ %@:%@ (%lu)", [super description], self.host, self.port, (unsigned long)[self hash]];
 }
 
 - (NSUInteger)hash {

@@ -81,7 +81,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 }
 
 - (void)onRequestBytesSent:(NSInteger)bytesSend {
-    SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onRequestBytesSent: %d", self.protocol, bytesSend);
+  SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onRequestBytesSent: %ld", self.protocol, (long)bytesSend);
     // The updated byte count should be sent, but the URLProtocolClient doesn't have a method to do that.
     //[[self.protocol client] URLProtocol:self.protocol didSendBodyData:bytesSend];
     self.requestBytesSent += bytesSend;
@@ -102,7 +102,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
     SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onResponseData: %lu", self.protocol, length);
     if (self.needUnzip) {
-        _zlibContext.avail_in = length;
+      _zlibContext.avail_in = (uInt)length;
         _zlibContext.next_in = (uint8_t *)bytes;
         while (self.zlibContext.avail_in > 0) {
             NSInteger bytesHad = self.zlibContext.total_out;
@@ -112,7 +112,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
             NSInteger inflatedBytes = self.zlibContext.total_out - bytesHad;
 #ifdef CONF_Debug	    
             int inflateStatus = inflate(&_zlibContext, Z_SYNC_FLUSH);
-            SPDY_LOG(@"Unzip status: %d, inflated %d bytes", inflateStatus, inflatedBytes);
+            SPDY_LOG(@"Unzip status: %d, inflated %ld bytes", inflateStatus, (long)inflatedBytes);
 #endif
             NSData *data = [NSData dataWithBytes:[inflateData bytes] length:inflatedBytes];
             [[self.protocol client] URLProtocol:self.protocol didLoadData:data];
