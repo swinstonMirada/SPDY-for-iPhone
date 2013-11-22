@@ -17,7 +17,7 @@
 
 default_gcc_version=4.2
 default_ios_version=`xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//' | tail -n 1`
-default_min_ios_version=4.3
+default_min_ios_version=6.0
 default_macosx_version=10.6
 
 DEVELOPER=${DEVELOPER:-`xcode-select -print-path`}
@@ -74,7 +74,13 @@ case $target in
         host=arm-apple-darwin10
         ;;
 
-    iphone )
+    iphone-arm64 )
+        arch=arm64
+        platform=iPhoneOS
+        host=arm-apple-darwin10
+        ;;
+
+    iphone-armv7 )
         arch=armv7
         platform=iPhoneOS
         host=arm-apple-darwin10
@@ -127,7 +133,7 @@ export CXXFLAGS="$CPPFLAGS -g2 -arch ${arch} -isysroot $SDKROOT -isystem $SDKROO
 export LDFLAGS="-miphoneos-version-min=${MIN_IOS_VERSION} -arch ${arch} -isysroot $SDKROOT -L$SDKROOT/usr/lib -L$DEVROOT/usr/lib"
 export CPP="${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -E -arch ${arch}";
 export CXXCPP="${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -E -arch ${arch}";
-export CC="${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang";
+export CC="${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -arch ${arch}";
 export CXX="$DEVROOT/usr/bin/llvm-g++-${GCC_VERSION}"
 export LD="$DEVROOT/usr/bin/ld"
 export STRIP="$DEVROOT/usr/bin/strip"
