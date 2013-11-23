@@ -3,14 +3,7 @@ PKG_CONFIG_PATH=$(BUILD)/lib/pkgconfig
 
 all: SPDY
 
-
-build/lib/libcrypto.a: OpenSSL-for-iPhone/Makefile
-	cd OpenSSL-for-iPhone && INSTALL_DIR=$(BUILD) make all
-
-openssl: build/lib/libcrypto.a
-
-
-spdylay/configure: spdylay/configure.ac build/lib/libz.a build/lib/libcrypto.a
+spdylay/configure: spdylay/configure.ac build/lib/libz.a
 	cd spdylay && autoreconf -i && automake && autoconf
 	touch spdylay/configure
 
@@ -38,7 +31,8 @@ build/i386/lib/libspdylay.a: spdylay/configure ios-configure
 #build/lib/libspdylay.a: build/armv7s/lib/libspdylay.a build/armv7/lib/libspdylay.a build/i386/lib/libspdylay.a build/native/lib/libspdylay.a
 build/lib/libspdylay.a: build/armv7s/lib/libspdylay.a build/armv7/lib/libspdylay.a build/arm64/lib/libspdylay.a build/i386/lib/libspdylay.a
 	lipo -create $^ -output $@
-	cp -r build/armv7/include/* build/include
+	mkdir -p $(BUILD)/include
+	cp -r build/armv7/include/* $(BUILD)/include
 
 spdylay: build/lib/libspdylay.a
 
@@ -84,4 +78,4 @@ check: SPDY
 	cd SPDY && make check
 
 
-.PHONY: all check spdylay zlib openssl SPDY clean update-spdylay
+.PHONY: all check spdylay zlib SPDY clean update-spdylay

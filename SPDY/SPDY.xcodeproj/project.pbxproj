@@ -527,7 +527,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
+				HEADER_SEARCH_PATHS = (
+                                        "$(SRCROOT)/../build/include",
+                                        "$(OPENSSL_INCLUDE)",
+                                );
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -557,7 +560,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
+				HEADER_SEARCH_PATHS = (
+                                        "$(SRCROOT)/../build/include",
+                                        "$(OPENSSL_INCLUDE)",
+                                );
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -584,7 +590,10 @@
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
+				HEADER_SEARCH_PATHS = (
+                                        "$(SRCROOT)/../build/include",
+                                        "$(OPENSSL_INCLUDE)",
+                                );
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -608,7 +617,10 @@
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
+				HEADER_SEARCH_PATHS = (
+                                        "$(SRCROOT)/../build/include",
+                                        "$(OPENSSL_INCLUDE)",
+                                );
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
