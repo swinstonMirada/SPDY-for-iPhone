@@ -78,4 +78,9 @@ check: SPDY
 	cd SPDY && make check
 
 
-.PHONY: all check spdylay zlib SPDY clean update-spdylay
+framework-local: build/$(CURRENT_ARCH)/lib/libspdylay.a
+	mkdir -p $(BUILD)/include
+	cp -a build/$(CURRENT_ARCH)/include/* $(BUILD)/include	
+	cd SPDY && make framework-local
+
+.PHONY: all check spdylay zlib SPDY clean update-spdylay framework-local

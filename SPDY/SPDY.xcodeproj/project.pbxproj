@@ -514,6 +514,7 @@
 		3870AF7714E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
@@ -535,6 +536,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -547,6 +549,7 @@
 		3870AF7814E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
@@ -568,6 +571,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -598,6 +602,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
@@ -625,6 +630,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
