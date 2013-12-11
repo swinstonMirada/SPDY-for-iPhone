@@ -16,7 +16,7 @@ check-%:
 
 check: check-$(LATEST_SDK)
 
-framework-local:
+local:
 	mkdir -p ../install/include/SPDY ../install/lib
 	xcodebuild clean 
 	xcodebuild  -arch $(CURRENT_ARCH) -sdk $(SDK_NAME) -configuration $(CONFIGURATION) install
