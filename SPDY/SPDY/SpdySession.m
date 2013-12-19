@@ -52,6 +52,9 @@ static const int priority = 1;
 #define SSL_HANDSHAKE_SUCCESS 0
 #define SSL_HANDSHAKE_NEED_TO_RETRY 1
 
+#define HTTPS_SCHEME @"https"
+#define HTTPS_PORT "443"
+
 @property (retain, nonatomic) NSDate *lastCallbackTime;
 
 - (void)_cancelStream:(SpdyStream *)stream;
@@ -73,6 +76,13 @@ static const int priority = 1;
 
 
 @implementation SpdySession {
+  struct spdylay_session *session;
+    
+  BOOL spdyNegotiated;
+  SpdyConnectState connectState;
+  SpdyNetworkStatus networkStatus;
+  void (^pingCallback)();
+
   NSMutableSet *streams;
   NSMutableDictionary *pushStreams;
     
@@ -187,15 +197,12 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   } else {
     NSString * scheme = [url scheme];
     //SPDY_LOG(@"got scheme %@", scheme);
-    if([scheme isEqualToString:@"https"]) {
-      snprintf(service, sizeof(service), "443");
+    if([scheme isEqualToString:HTTPS_SCHEME ]) {
+      snprintf(service, sizeof(service), HTTPS_PORT);
       /* 
 	 in theory, bare http could be supported.
 	 in practice, we require tls / ssl / https.
-	 
-	 } else if([scheme isEqualToString:@"http"]) {
-	 snprintf(service, sizeof(service), "80");
-      */
+      */	 
     } else {
       self.connectState = kSpdyError;
       NSDictionary * dict = [NSDictionary 
@@ -502,6 +509,12 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 -(void)releaseDispatchSources {
+  if(!write_source_enabled) {
+    // if we cancel a suspended dispatch source, badness ensues
+    dispatch_resume(write_source);
+    write_source_enabled = YES;
+  }
+
   if(read_source != NULL) {
     dispatch_source_cancel(read_source);
     read_source = NULL;
@@ -680,9 +693,26 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
   return ret;
 }
 
+// this method has some problems with sign extention still
+// but it is only used for debugging, so that's ok for now.
++(NSString*)formatData:(const uint8_t *)data length:(size_t)len {
+  NSMutableString * ret = [[NSMutableString alloc] init];
+  for(int i = 0 ; i < len ; i++) {
+    char byte = data[i];
+    if(byte >= 32 && byte < 127)
+      [ret appendFormat:@"%c", (char)byte];
+    else
+      [ret appendFormat:@"[%02x]", (unsigned int)byte];
+  }
+  return ret;
+}
+
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
   SPDY_LOG(@"send_callback (flags %d) (%zd bytes): %@", 
 	   flags, len, [[NSData alloc] initWithBytes:data length:len]);
+  SPDY_LOG(@"send_callback (flags %d) (%zd bytes): %@", 
+	   flags, len, [SpdySession formatData:data length:len]);
+
   SpdySession *ss = (__bridge SpdySession*)user_data;
   int r = [ss send_data:data len:len flags:flags];
   return [ss fixUpCallbackValue:r];
@@ -717,6 +747,8 @@ static void on_data_chunk_recv_callback(spdylay_session *session, uint8_t flags,
 
   SPDY_LOG(@"on_data_chunk_recv_callback (flags %d) (%zd bytes): %@", 
 	   flags, len, [[NSData alloc] initWithBytes:data length:len]);
+  SPDY_LOG(@"response is %@", [[NSString alloc] initWithData:[[NSData alloc] initWithBytes:data length:len] encoding:NSUTF8StringEncoding]);
+
   SpdyStream *stream = get_stream_for_id(session, stream_id, user_data);
   if(stream != nil) {
     [stream writeBytes:data len:len];

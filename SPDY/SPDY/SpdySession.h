@@ -28,14 +28,7 @@
 
 struct spdylay_session;
 
-@interface SpdySession : NSObject {
-  struct spdylay_session *session;
-    
-  BOOL spdyNegotiated;
-  SpdyConnectState connectState;
-  SpdyNetworkStatus networkStatus;
-  void (^pingCallback)();
-}
+@interface SpdySession : NSObject 
 
 @property (assign) BOOL spdyNegotiated;
 @property (assign) uint16_t spdyVersion;
