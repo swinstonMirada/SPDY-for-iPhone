@@ -182,6 +182,8 @@ static int select_next_proto_cb(SSL *ssl,
     session.networkStatus = currentStatus;
     [self.sessions setObject:session forKey:key];
     SPDY_LOG(@"self.sessions has %lu elements", (unsigned long)self.sessions.count);
+  } else {
+    SPDY_LOG(@"not creating new session, returing %@", session);
   }
   return session;
 }
