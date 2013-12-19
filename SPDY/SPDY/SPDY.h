@@ -41,6 +41,23 @@ typedef enum {
     kSpdyReachableViaWiFi	
 } SpdyNetworkStatus;
 
+typedef enum {
+  SpdyRadioAccessTechnologyNone = 0,
+  SpdyRadioAccessTechnologyUnknown,
+  SpdyRadioAccessTechnologyGPRS,
+  SpdyRadioAccessTechnologyEdge,
+  SpdyRadioAccessTechnologyWCDMA,
+  SpdyRadioAccessTechnologyHSDPA,
+  SpdyRadioAccessTechnologyHSUPA,
+  SpdyRadioAccessTechnologyCDMA1x,
+  SpdyRadioAccessTechnologyCDMAEVDORev0,
+  SpdyRadioAccessTechnologyCDMAEVDORevA,
+  SpdyRadioAccessTechnologyCDMAEVDORevB,
+  SpdyRadioAccessTechnologyeHRPD,
+  SpdyRadioAccessTechnologyLTE
+} SpdyRadioAccessTechnology;
+
+
 @class SpdyCallback;
 @class SpdyHTTPResponse;
 
