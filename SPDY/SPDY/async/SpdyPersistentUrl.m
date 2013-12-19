@@ -1,10 +1,13 @@
 #import "SpdyPersistentUrl.h"
 #import "SpdyRequest+Private.h"
 #import <SystemConfiguration/SystemConfiguration.h>
+#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <UIKit/UIKit.h>
 #import <errno.h>
 #import <netdb.h>
 #import "SpdyTimer.h"
+
+static NSDictionary * radioAccessMap = nil;
 
 @implementation SpdyPersistentUrl {
   SpdyTimer * pingTimer;
@@ -12,8 +15,10 @@
   BOOL stream_closed;
   SCNetworkReachabilityRef reachabilityRef;
   SpdyNetworkStatus networkStatus;
+  SpdyRadioAccessTechnology radioAccessTechnology;
   int num_reconnects;
   NSDictionary * errorDict;
+  id radioAccessObserver;
 }
 
 -(void)setNetworkStatus:(SpdyNetworkStatus) _networkStatus {
@@ -129,7 +134,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
-- (BOOL) startNotifier {
+- (BOOL) startReachabilityNotifier {
   __block BOOL retVal = NO;
   void (^block)() = ^{
     const char * host = [self.URL.host UTF8String];
@@ -159,7 +164,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   return retVal;
 }
 
-- (void) stopNotifier {
+- (void) stopReachabilityNotifier {
   if(reachabilityRef != NULL) {
     void (^block)() = ^{
       SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
@@ -167,6 +172,48 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     };
     __spdy_dispatchSync(block);
   }
+}
+
+-(SpdyRadioAccessTechnology)radioAccessTechnologyForNotification:(NSNotification*)notification {
+  id object = notification.object;
+
+  if(object == nil) 
+    return SpdyRadioAccessTechnologyNone;
+  
+  NSNumber * ret = radioAccessMap[object];
+  if(ret == nil) 
+    return SpdyRadioAccessTechnologyUnknown;
+
+  return [ret intValue];
+}
+
+- (void) startRadioAccessNotifier {
+  radioAccessObserver = 
+    [[NSNotificationCenter defaultCenter] 
+      addObserverForName:CTRadioAccessTechnologyDidChangeNotification
+      object:nil queue:nil usingBlock:^(NSNotification*notification) {
+      SPDY_LOG(@"got radio access change: %@", notification);
+      if([notification.name isEqualToString:CTRadioAccessTechnologyDidChangeNotification]) {
+	SpdyRadioAccessTechnology newAccessType = [self radioAccessTechnologyForNotification:notification];
+	SpdyRadioAccessTechnology oldAccessType = radioAccessTechnology;
+
+	if(self.networkStatus == kSpdyReachableViaWWAN &&
+	   oldAccessType != newAccessType) {
+	  SPDY_LOG(@"we're connected via wwan, and got radio access change from %d to %d, sending a ping", oldAccessType, newAccessType);
+	  [self sendPing];
+	}
+
+	radioAccessTechnology = newAccessType;
+      } else {
+	SPDY_LOG(@"got unexpected notification %@", notification);
+      }
+    }];
+}
+
+- (void) stopRadioAccessNotifier {
+  if(radioAccessObserver != nil) 
+    [[NSNotificationCenter defaultCenter] removeObserver:radioAccessObserver];
+  radioAccessObserver = nil;
 }
 
 #define RECOVERABLE_FAILURE 1
@@ -547,10 +594,26 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)dealloc {
   [self clearKeepAlive];
-  [self stopNotifier];
+  [self stopReachabilityNotifier];
+  [self stopRadioAccessNotifier];
 }
 
 -(void)setup {
+  if(radioAccessMap == nil) {
+    radioAccessMap = @{
+      CTRadioAccessTechnologyGPRS : @(SpdyRadioAccessTechnologyGPRS),
+      CTRadioAccessTechnologyEdge : @(SpdyRadioAccessTechnologyEdge),
+      CTRadioAccessTechnologyWCDMA : @(SpdyRadioAccessTechnologyWCDMA),
+      CTRadioAccessTechnologyHSDPA : @(SpdyRadioAccessTechnologyHSDPA),
+      CTRadioAccessTechnologyHSUPA : @(SpdyRadioAccessTechnologyHSUPA),
+      CTRadioAccessTechnologyCDMA1x : @(SpdyRadioAccessTechnologyCDMA1x),
+      CTRadioAccessTechnologyCDMAEVDORev0 : @(SpdyRadioAccessTechnologyCDMAEVDORev0),
+      CTRadioAccessTechnologyCDMAEVDORevA : @(SpdyRadioAccessTechnologyCDMAEVDORevA),
+      CTRadioAccessTechnologyCDMAEVDORevB : @(SpdyRadioAccessTechnologyCDMAEVDORevB),
+      CTRadioAccessTechnologyeHRPD : @(SpdyRadioAccessTechnologyeHRPD),
+      CTRadioAccessTechnologyLTE : @(SpdyRadioAccessTechnologyLTE)
+    };
+  }
   num_reconnects = 0;
   self.voip = YES;
   stream_closed = NO;
@@ -576,7 +639,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   self.connectCallback = ^ {
     [weak_self streamWasConnected];
   };
-  [self startNotifier];
+  [self startReachabilityNotifier];
+  [self startRadioAccessNotifier];
 }
 
 - (id)initWithRequest:(NSURLRequest *)request {
