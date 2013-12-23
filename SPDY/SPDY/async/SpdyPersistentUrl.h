@@ -58,6 +58,8 @@
 
 @property (nonatomic, assign) BOOL dontReconnect;
 
+@property (nonatomic, readonly) SpdyRadioAccessTechnology radioAccessTechnology;
+
 +(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags;
 
 -(SCNetworkReachabilityFlags)reachabilityFlags;

@@ -174,6 +174,10 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
+-(SpdyRadioAccessTechnology)radioAccessTechnology {
+  return [self radioAccessTechnology:[[CTTelephonyNetworkInfo alloc] init].currentRadioAccessTechnology];
+}
+
 -(SpdyRadioAccessTechnology)radioAccessTechnology:(id)object {
   if(object == nil) 
     return SpdyRadioAccessTechnologyNone;
@@ -219,12 +223,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     }];
 
   if(self.radioAccessCallback != NULL) {
-    SpdyRadioAccessTechnology srat = [self radioAccessTechnology:[[CTTelephonyNetworkInfo alloc] init].currentRadioAccessTechnology];
+    SpdyRadioAccessTechnology srat = [self radioAccessTechnology];
     __spdy_dispatchAsyncOnMainThread(^{
 				       self.radioAccessCallback(srat);
 				     });
   }
-
 }
 
 - (void) stopRadioAccessNotifier {
