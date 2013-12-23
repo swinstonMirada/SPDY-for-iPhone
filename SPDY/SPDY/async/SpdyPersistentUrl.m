@@ -529,7 +529,17 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       SPDY_LOG(@"UNHANDLED_FAILURE UNHANDLED_FAILURE UNHANDLED_FAILURE");
       SPDY_LOG(@"UNHANDLED_FAILURE UNHANDLED_FAILURE UNHANDLED_FAILURE");
       SPDY_LOG(@"UNHANDLED_FAILURE UNHANDLED_FAILURE UNHANDLED_FAILURE");
-      [self dieOnError:error];
+      
+      {
+	SPDY_LOG(@"error type is UNHANDLED_FAILURE");
+	[self teardown];
+	[self scheduleReconnectWithInitialInterval:0.2
+	      factor:1.6 andBlock:^{ 
+	  SPDY_LOG(@"UNHANDLED_FAILURE retry");
+	  [self recoverableReconnect];
+	}];
+      }
+      //[self dieOnError:error];
       break;
 
     case INTERNAL_FAILURE:
