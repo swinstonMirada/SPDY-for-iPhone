@@ -81,6 +81,8 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     // users of the library to start a background task here.
   } else if(oldStatus == kSpdyNotReachable) {
     SPDY_LOG(@"were not reachable, now we are");
+    // reset num_reconnects because the previous ones are now irrelevant
+    num_reconnects = 0;
     if(self.connectState == kSpdyConnected) {
       SPDY_LOG(@"BUT we think we were already connected, sending ping");
       [self sendPing];
@@ -93,6 +95,10 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     }
   } else if(oldStatus == kSpdyReachableViaWiFi && 
 	    newStatus == kSpdyReachableViaWWAN) {
+
+    // reset num_reconnects because the previous ones are now irrelevant
+    num_reconnects = 0;
+
     SPDY_LOG(@"was on wifi, now on wwan, reconnect");
     // was on wifi, now on wwan, reconnect
     [self setNetworkStatus:newStatus];
@@ -100,6 +106,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     [self recoverableReconnect];
   } else if(oldStatus == kSpdyReachableViaWWAN && 
 	    newStatus == kSpdyReachableViaWiFi) {
+
     SPDY_LOG(@"not switching away from 3g in the presence of a wifi network");
     // in this case we explicitly don't set our network status to 
     // the new status because we are still relying upon the old status (3g)
@@ -210,6 +217,9 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	}
 
 	radioAccessTechnology = newAccessType;
+
+	// reset num_reconnects because the previous ones are now irrelevant
+	num_reconnects = 0;
 
 	if(self.radioAccessCallback != NULL) {
 	  __spdy_dispatchAsyncOnMainThread(^{
@@ -425,6 +435,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(int)errorType:(NSError*)error {
+  SPDY_LOG(@"errorType domain %@ code %lu", error.domain, (unsigned long)error.code);
   NSNumber * type = [self errorDict][error.domain][@(error.code)];
   if(type == nil) return UNHANDLED_FAILURE;
   return [type intValue];
@@ -464,6 +475,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 				   andBlock:(void(^)())block {
   // schedule reconnect in the future
 
+  SPDY_LOG(@"scheduleReconnectWithInitialInterval:%lf factor:%lf num_reconnects %d", retry_interval, factor, num_reconnects);
+
   // exponential backoff
   for(int i = 0 ; i <= num_reconnects ; i++) retry_interval *= factor;
 
@@ -490,11 +503,21 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     switch(error_type) {
 
     case HARD_FAILURE:
-      SPDY_LOG(@"error type is HARD_FAILURE");
       // No retry is attempted
       // call fatalErrorCallback block
       // teardown the session (socket)
-      [self dieOnError:error];
+      //[self dieOnError:error];
+
+      {
+	SPDY_LOG(@"error type is HARD_FAILURE");
+	[self teardown];
+	[self scheduleReconnectWithInitialInterval:0.2
+	      factor:1.6 andBlock:^{ 
+	  SPDY_LOG(@"HARD FAILURE retry");
+	  [self recoverableReconnect];
+	}];
+      }
+
       break;
 
       
@@ -515,6 +538,16 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       // this is because on fatal errors we call
       // [SpdyStream cancelStream] which sends us kSpdyRequestCancelled
       // which if also marked fatal will cause a loop
+
+      {
+	// XXX this is not congruent with the comment above
+	[self teardown];
+	[self scheduleReconnectWithInitialInterval:0.2
+	      factor:1.6 andBlock:^{ 
+	  SPDY_LOG(@"recoverableReconnect retry");
+	  [self recoverableReconnect];
+	}];
+      }
       break;
 
     case RECOVERABLE_FAILURE:
