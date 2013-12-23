@@ -123,7 +123,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   NSCAssert([(__bridge NSObject*) info isKindOfClass: [SpdyPersistentUrl class]], @"info was wrong class in ReachabilityCallback");
 
   //We're on the main RunLoop, so an NSAutoreleasePool is not necessary, but is added defensively
-  // in case someon uses the Reachablity object in a different thread.
+  // in case someone uses the Reachablity object in a different thread.
   @autoreleasepool {
 	
     SpdyPersistentUrl* self = (__bridge SpdyPersistentUrl*) info;
@@ -174,17 +174,19 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
--(SpdyRadioAccessTechnology)radioAccessTechnologyForNotification:(NSNotification*)notification {
-  id object = notification.object;
-
+-(SpdyRadioAccessTechnology)radioAccessTechnology:(id)object {
   if(object == nil) 
     return SpdyRadioAccessTechnologyNone;
-  
+ 
   NSNumber * ret = radioAccessMap[object];
   if(ret == nil) 
     return SpdyRadioAccessTechnologyUnknown;
 
   return [ret intValue];
+}
+
+-(SpdyRadioAccessTechnology)radioAccessTechnologyForNotification:(NSNotification*)notification {
+  return [self radioAccessTechnology:notification.object];
 }
 
 - (void) startRadioAccessNotifier {
@@ -204,10 +206,25 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	}
 
 	radioAccessTechnology = newAccessType;
+
+	if(self.radioAccessCallback != NULL) {
+	  __spdy_dispatchAsyncOnMainThread(^{
+					     self.radioAccessCallback(radioAccessTechnology);
+					   });
+	}
+
       } else {
 	SPDY_LOG(@"got unexpected notification %@", notification);
       }
     }];
+
+  if(self.radioAccessCallback != NULL) {
+    SpdyRadioAccessTechnology srat = [self radioAccessTechnology:[[CTTelephonyNetworkInfo alloc] init].currentRadioAccessTechnology];
+    __spdy_dispatchAsyncOnMainThread(^{
+				       self.radioAccessCallback(srat);
+				     });
+  }
+
 }
 
 - (void) stopRadioAccessNotifier {

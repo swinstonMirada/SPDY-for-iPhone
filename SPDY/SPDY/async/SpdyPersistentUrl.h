@@ -54,6 +54,8 @@
 
 @property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
 
+@property (nonatomic, copy) SpdyIntCallback radioAccessCallback;
+
 @property (nonatomic, assign) BOOL dontReconnect;
 
 +(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags;
