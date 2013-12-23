@@ -693,12 +693,10 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
   return ret;
 }
 
-// this method has some problems with sign extention still
-// but it is only used for debugging, so that's ok for now.
 +(NSString*)formatData:(const uint8_t *)data length:(size_t)len {
   NSMutableString * ret = [[NSMutableString alloc] init];
   for(int i = 0 ; i < len ; i++) {
-    char byte = data[i];
+    uint8_t byte = data[i];
     if(byte >= 32 && byte < 127)
       [ret appendFormat:@"%c", (char)byte];
     else
