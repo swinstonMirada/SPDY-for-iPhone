@@ -461,7 +461,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       break;
       
     case SSL_ERROR_WANT_READ:
-      SPDY_LOG(@"SSL_ERROR_WANT_READ");
+      //SPDY_LOG(@"SSL_ERROR_WANT_READ");
       again = YES;
       break;
       
@@ -960,9 +960,9 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     }
   }
   if (self.connectState == kSpdySslHandshake) {
-    SPDY_LOG(@"doing ssl handshake");
+    //SPDY_LOG(@"doing ssl handshake");
     if(![self sslHandshakeWrapper]) {
-      SPDY_LOG(@"ssl handshake failed");
+      //SPDY_LOG(@"ssl handshake failed");
       return NO;
     } else {
       SPDY_LOG(@"ssl handshake succeeded");
