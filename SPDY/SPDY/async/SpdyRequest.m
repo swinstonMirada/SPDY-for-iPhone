@@ -80,6 +80,7 @@
       session.connectionStateCallback = ^(int arg) {	
 	__spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(arg); });
       };
+      __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(session.connectState); });
     }
     if(self.readCallback != nil) {
       session.readCallback = ^(int arg) {
