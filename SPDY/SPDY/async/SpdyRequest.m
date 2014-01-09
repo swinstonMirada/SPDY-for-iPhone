@@ -69,18 +69,21 @@
   void (^block)() = ^{
     SpdySession * session = nil;
     if(ns_url_request == nil) {
-      SPDY_LOG(@"WTF?");
       session = [[SPDY sharedSPDY] fetch:urlString delegate:delegate voip:_voip];
     } else {
-      SPDY_LOG(@"WTF2?");
       session = [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
     }
     SPDY_LOG(@"sending w/ self.connectionStateCallback %@ self.readCallback %@ self.writeCallback %@", self.connectionStateCallback, self.readCallback, self.writeCallback);
     if(self.connectionStateCallback != nil) {
       session.connectionStateCallback = ^(int arg) {	
+        _isConnecting = NO;
 	__spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(arg); });
       };
       __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(session.connectState); });
+    } else {
+      session.connectionStateCallback = ^(int arg) {	
+        _isConnecting = NO;
+      };
     }
     if(self.readCallback != nil) {
       session.readCallback = ^(int arg) {
@@ -93,6 +96,8 @@
       };
     }
   };
+  _isConnecting = YES;
+  
   __spdy_dispatchAsync(block);
 }
 

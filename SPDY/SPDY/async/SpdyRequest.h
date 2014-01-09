@@ -79,6 +79,14 @@
 
 @property (nonatomic, copy) SpdyIntCallback writeCallback;
 
+// this state is kept separate from the connection state in SpdySession
+// (which it overlaps somewhat with).  The reason for this is that the
+// SpdySession state is not updated on the same thread, and it's possible
+// to get multiple reconnects happening at the same time given the window
+// between calling send here and having the SpdySession update its 
+// connection state to kSpdyConnecting
+@property (nonatomic, readonly) BOOL isConnecting;
+
 @end
 
 
