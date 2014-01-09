@@ -257,7 +257,8 @@ static int select_next_proto_cb(SSL *ssl,
   NSError *error;
   SpdySession *session = [self getSession:url withError:&error voip:NO create:NO];
   if (session == nil) {
-    return;
+    SPDY_LOG(@"Warning, session == nil in teardownForRequest:%@", request);
+   return;
   }
   [self resetSession:session withUrl:url];
 }
@@ -270,6 +271,7 @@ static int select_next_proto_cb(SSL *ssl,
   NSError *error = nil;
   SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
+    SPDY_LOG(@"Warning, session == nil in teardown:%@", url);
     return;
   }
   SPDY_LOG(@"tearing down spdy session %p", session);
