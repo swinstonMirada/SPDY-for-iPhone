@@ -23,9 +23,9 @@ static NSDictionary * radioAccessMap = nil;
 
 -(void)setNetworkStatus:(SpdyNetworkStatus) _networkStatus {
   networkStatus = _networkStatus;
-  if(self.networkStatusCallback != NULL) {
+  if(super.networkStatusCallback != NULL) {
     __spdy_dispatchAsyncOnMainThread(^{
-				       self.networkStatusCallback(networkStatus);
+				       super.networkStatusCallback(networkStatus);
 				     });
   }
 }
@@ -75,7 +75,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     SPDY_LOG(@"we were reachable, but no longer are, disconnect");
     // we were reachable, but no longer are, disconnect
     [self setNetworkStatus:newStatus];
-    [self teardown];
+    [super teardown];
     // XXX perhaps we should call a new callback, separate from 
     // but similar to the retryCallback().  We may want to allow 
     // users of the library to start a background task here.
@@ -83,14 +83,14 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     SPDY_LOG(@"were not reachable, now we are");
     // reset num_reconnects because the previous ones are now irrelevant
     num_reconnects = 0;
-    if(self.connectState == kSpdyConnected) {
+    if(super.connectState == kSpdyConnected) {
       SPDY_LOG(@"BUT we think we were already connected, sending ping");
       [self sendPing];
     } else {
       SPDY_LOG(@"reconnect");
       // were not reachable, now we are, reconnect
       [self setNetworkStatus:newStatus];
-      [self teardown];
+      [super teardown];
       [self recoverableReconnect];
     }
   } else if(oldStatus == kSpdyReachableViaWiFi && 
@@ -102,7 +102,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     SPDY_LOG(@"was on wifi, now on wwan, reconnect");
     // was on wifi, now on wwan, reconnect
     [self setNetworkStatus:newStatus];
-    [self teardown];
+    [super teardown];
     [self recoverableReconnect];
   } else if(oldStatus == kSpdyReachableViaWWAN && 
 	    newStatus == kSpdyReachableViaWiFi) {
@@ -214,7 +214,9 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	   oldAccessType != newAccessType) {
 	  SPDY_LOG(@"we're connected via wwan, and got radio access change from %d to %d, sending a ping", oldAccessType, newAccessType);
 	  [self sendPing];
-	}
+	} else {
+	  SPDY_LOG(@"we're NOT connected via wwan, and got radio access change from %d to %d, NOT sending a ping", oldAccessType, newAccessType);
+        }
 
 	radioAccessTechnology = newAccessType;
 
@@ -282,7 +284,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	/* we asked for voip, but didn't get it */
 	@((int)kSpdyVoipRequestedButFailed) : @HARD_FAILURE,
 
-	/* we ignore these, they happen every time we call [self teardown] */
+	/* we ignore these, they happen every time we call [super teardown] */
 	@((int)kSpdyRequestCancelled) : @INTERNAL_FAILURE,
 
 	/* this happens when the ssl handshake loops on SSL_ERROR_WANT_READ */
@@ -413,10 +415,15 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)reconnect {
   // here we do reconnect logic
-  SpdyConnectState connectState = self.connectState;
+  SpdyConnectState connectState = super.connectState;
   if(self.networkStatus == kSpdyNotReachable) {
     SPDY_LOG(@"not reachable");
     return;			// no point in connecting
+  }
+
+  if(super.isConnecting) {
+    SPDY_LOG(@"connecting already, not doing it again");
+    return;
   }
 
   if(!stream_closed && connectState == kSpdyConnected) {
@@ -431,7 +438,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
   SPDY_LOG(@"doing reconnect");
   // we are reachable, and not connected, and the error is not fatal, reconnect
-  [self send];
+  [super send];
 }
 
 -(int)errorType:(NSError*)error {
@@ -447,7 +454,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 				       self.fatalErrorCallback(error);
 				     });
   }
-  [self teardown];
+  [super teardown];
 }
 
 -(void)reconnectWithMax:(int)max {
@@ -493,7 +500,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 -(void)reconnect:(NSError*)error {
   SPDY_LOG(@"reconnect:%@", error);
 
-  if([self tearingDown]) {
+  if([super tearingDown]) {
     SPDY_LOG(@"IGNORING ERROR WHILE TEARING DOWN");
     return;
   }
@@ -510,7 +517,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
       {
 	SPDY_LOG(@"error type is HARD_FAILURE");
-	[self teardown];
+	[super teardown];
 	[self scheduleReconnectWithInitialInterval:0.2
 	      factor:1.6 andBlock:^{ 
 	  SPDY_LOG(@"HARD FAILURE retry");
@@ -532,7 +539,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       
       {
 	SPDY_LOG(@"error type is UNHANDLED_FAILURE");
-	[self teardown];
+	[super teardown];
 	[self scheduleReconnectWithInitialInterval:0.2
 	      factor:1.6 andBlock:^{ 
 	  SPDY_LOG(@"UNHANDLED_FAILURE retry");
@@ -551,7 +558,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
       {
 	// XXX this is not congruent with the comment above
-	[self teardown];
+	[super teardown];
 	[self scheduleReconnectWithInitialInterval:0.2
 	      factor:1.6 andBlock:^{ 
 	  SPDY_LOG(@"recoverableReconnect retry");
@@ -563,7 +570,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     case RECOVERABLE_FAILURE:
       {
 	SPDY_LOG(@"error type is RECOVERABLE_FAILURE");
-	[self teardown];
+	[super teardown];
 	[self scheduleReconnectWithInitialInterval:0.2
 	      factor:1.6 andBlock:^{ 
 	  SPDY_LOG(@"recoverableReconnect retry");
@@ -575,7 +582,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     case TRANSIENT_FAILURE:
       {
 	SPDY_LOG(@"error type is TRANSIENT_FAILURE");
-	[self teardown];
+	[super teardown];
 	[self scheduleReconnectWithInitialInterval:0.8
 	      factor:1.7 andBlock:^{ [self transientReconnect];}];
       }
@@ -586,7 +593,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)sendPing {
   SPDY_LOG(@"sendPing");
-  if(!stream_closed && self.connectState == kSpdyConnected) {
+  if(!stream_closed && super.connectState == kSpdyConnected) {
     SPDY_LOG(@"really sending ping");
     [pingTimer invalidate];
     pingTimer = [[SpdyTimer alloc] initWithInterval:6 // XXX hardcoded
@@ -596,10 +603,14 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     }];
     [pingTimer start];
     [super sendPing];
+  } else if(super.isConnecting) {
+    SPDY_LOG(@"tried to send a ping while we were connecting, not doing it");
+  } else if(super.connectState == kSpdyConnecting || 
+            super.connectState == kSpdySslHandshake) {
+    SPDY_LOG(@"tried to send a ping with connectState %d, not gonna do it", super.connectState);
   } else {
-    SPDY_LOG(@"not sending a ping because stream_closed %d and self.connectState %d != %d", 
-	     stream_closed, self.connectState, kSpdyConnected);
-    [self teardown];
+    SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_closed %d or super.connectState %d != %d", stream_closed, super.connectState, kSpdyConnected);
+    [super teardown];
     [self recoverableReconnect];
   }
 }
@@ -628,10 +639,19 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
   [retryTimer invalidate];
   num_reconnects = 0;
-
-  if(self.connectCallback != nil) 
-    __spdy_dispatchAsyncOnMainThread(self.connectCallback);
 }
+
+
+#define DONT_CALL_ME(var,callbackType)                                  \
+-(void)var:(callbackType)callback {                                     \
+  [NSException raise:@"InvalidOperation"                                \
+               format:@"cannot call %s on a SpdyPersistentUrl", #var];  \
+}                                                                       \
+
+DONT_CALL_ME(setStreamCloseCallback,SpdyVoidCallback);
+DONT_CALL_ME(setConnectCallback,SpdyVoidCallback);
+DONT_CALL_ME(setPingCallback,SpdyVoidCallback);
+DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 
 -(void)streamWasClosed {
   SPDY_LOG(@"streamWasClosed");
@@ -651,7 +671,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   SPDY_LOG(@"did not get ping");
   [pingTimer invalidate];
   pingTimer = nil;
-  [self teardown];
+  [super teardown];
   [self recoverableReconnect];
 }
 
@@ -678,10 +698,10 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     };
   }
   num_reconnects = 0;
-  self.voip = YES;
+  super.voip = YES;
   stream_closed = NO;
   SpdyPersistentUrl * __weak weak_self = self;
-  self.errorCallback = ^(NSError * error) {
+  super.errorCallback = ^(NSError * error) {
     SPDY_LOG(@"errorCallback");
 #ifdef CONF_Debug
     if(weak_self.debugErrorCallback != nil) {
@@ -692,14 +712,15 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 #endif
     [weak_self reconnect:error];
   };
-  self.pingCallback = ^ {
+  super.pingCallback = ^ {
     [weak_self gotPing];
   };
-  self.streamCloseCallback = ^ {
+  super.streamCloseCallback = ^ {
     SPDY_LOG(@"streamCloseCallback");
     [weak_self streamWasClosed];
   };
-  self.connectCallback = ^ {
+  super.connectCallback = ^ {
+    SPDY_LOG(@"connectCallback");
     [weak_self streamWasConnected];
   };
   [self startReachabilityNotifier];
