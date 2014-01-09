@@ -44,13 +44,11 @@
 
 - (void)onConnect:(id<SpdyRequestIdentifier>)u {
   [super onConnect:u];
-  //SPDY_LOG(@"connected");
+  SPDY_LOG(@"connected");
   spdy_url.URL = u.url;
   __spdy_dispatchAsyncOnMainThread(^{
-				     if(spdy_url.connectCallback != nil) {
-				       spdy_url.connectCallback();
-				     }
-				   });
+                                     [spdy_url doConnectCallback];
+                                   });
 }
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
