@@ -47,6 +47,12 @@ void __spdy_dispatchAsyncOnMainThread(void(^block)()) {
 
 @implementation SpdyRequest (Private)
 
+-(void)doConnectCallback {
+  if(self.connectCallback != nil) {
+    self.connectCallback();
+  }
+} 
+
 -(void)doStreamCloseCallback {
   if(self.streamCloseCallback != nil) {
     self.streamCloseCallback();

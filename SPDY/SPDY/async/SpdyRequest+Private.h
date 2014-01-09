@@ -9,6 +9,7 @@ void __spdy_dispatchAsyncOnMainThread(void(^block)());
 @interface SpdyRequest (Private)
 -(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId;
 -(void)doSuccessCallbackWithMessage:(CFHTTPMessageRef)message;
+-(void)doConnectCallback;
 -(void)doStreamCloseCallback;
 @end
 @interface NSDictionary (SpdyNetworkAdditions)
