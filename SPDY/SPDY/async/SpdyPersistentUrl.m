@@ -458,12 +458,16 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)reconnectWithMax:(int)max {
-  if(num_reconnects < max) {
-    num_reconnects++;
-    SPDY_LOG(@"reconnecting on failure for the %dth time", num_reconnects);
-    [self reconnect];
+  if(_dontReconnect) { 
+    SPDY_LOG(@"NOT reconnecting because dontReconnect is set");
   } else {
-    SPDY_LOG(@"NOT reconnecting on failure for the %dth time", num_reconnects);
+    if(num_reconnects < max) {
+      num_reconnects++;
+      SPDY_LOG(@"reconnecting on failure for the %dth time", num_reconnects);
+      [self reconnect];
+    } else {
+      SPDY_LOG(@"NOT reconnecting on failure for the %dth time", num_reconnects);
+    }
   }
 }
 
