@@ -486,6 +486,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 				   andBlock:(void(^)())block {
   // schedule reconnect in the future
 
+  [super clearConnectionStatus];
+
   SPDY_LOG(@"scheduleReconnectWithInitialInterval:%lf factor:%lf num_reconnects %d", retry_interval, factor, num_reconnects);
 
   // exponential backoff

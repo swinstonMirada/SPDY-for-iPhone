@@ -50,6 +50,11 @@
   return ret;
 }
 
+-(void)clearConnectionStatus {
+  SPDY_LOG(@"%p _isConnecting = NO;", self);
+  _isConnecting = NO;
+}
+
 - (void)sendPing {
   // make sure the ping callback happens on the main thread
   SpdyVoidCallback glue = ^ {	
@@ -76,12 +81,14 @@
     SPDY_LOG(@"sending w/ self.connectionStateCallback %@ self.readCallback %@ self.writeCallback %@", self.connectionStateCallback, self.readCallback, self.writeCallback);
     if(self.connectionStateCallback != nil) {
       session.connectionStateCallback = ^(int arg) {	
+        SPDY_LOG(@"%p _isConnecting = NO;", self);
         _isConnecting = NO;
 	__spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(arg); });
       };
       __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(session.connectState); });
     } else {
       session.connectionStateCallback = ^(int arg) {	
+        SPDY_LOG(@"%p _isConnecting = NO;", self);
         _isConnecting = NO;
       };
     }
@@ -96,6 +103,7 @@
       };
     }
   };
+  SPDY_LOG(@"%p _isConnecting = YES;", self);
   _isConnecting = YES;
   
   __spdy_dispatchAsync(block);
