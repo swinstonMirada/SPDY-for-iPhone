@@ -156,6 +156,8 @@ enum SpdyErrors {
 // Like closeAllSessions above, but only cancels and closes for url.host:url.port.
 - (NSInteger)closeAllSessionsForURL:(NSURL *)url;
 
++(NSString*)connStatusString:(SpdyNetworkStatus)status;
++(NSString*)radioAccessString:(SpdyRadioAccessTechnology)status;
 @end
 
 

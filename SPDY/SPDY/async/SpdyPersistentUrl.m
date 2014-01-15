@@ -212,10 +212,10 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 	if(self.networkStatus == kSpdyReachableViaWWAN &&
 	   oldAccessType != newAccessType) {
-	  SPDY_LOG(@"we're connected via wwan, and got radio access change from %d to %d, sending a ping", oldAccessType, newAccessType);
+	  SPDY_LOG(@"we're connected via wwan, and got radio access change from %@ to %@, sending a ping", [SPDY radioAccessString:oldAccessType], [SPDY radioAccessString:newAccessType]);
 	  [self sendPing];
 	} else {
-	  SPDY_LOG(@"we're NOT connected via wwan, and got radio access change from %d to %d, NOT sending a ping", oldAccessType, newAccessType);
+	  SPDY_LOG(@"we're NOT connected via wwan, and got radio access change from %@ to %@, NOT sending a ping", [SPDY radioAccessString:oldAccessType], [SPDY radioAccessString:newAccessType]);
         }
 
 	radioAccessTechnology = newAccessType;

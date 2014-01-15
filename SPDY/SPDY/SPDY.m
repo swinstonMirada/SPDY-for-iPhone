@@ -461,6 +461,70 @@ static int select_next_proto_cb(SSL *ssl,
 - (void)unregisterForNSURLConnection {
     [SpdyUrlConnection unregister];
 }
+
++(NSString*)radioAccessString:(SpdyRadioAccessTechnology)status {
+  switch(status) {
+  case SpdyRadioAccessTechnologyNone:
+    return @"None";
+    break;
+  case SpdyRadioAccessTechnologyGPRS:
+    return @"GPRS";
+    break;
+  case SpdyRadioAccessTechnologyEdge:
+    return @"Edge";
+    break;
+  case SpdyRadioAccessTechnologyWCDMA:
+    return @"WCDMA";
+    break;
+  case SpdyRadioAccessTechnologyHSDPA:
+    return @"HSDPA";
+    break;
+  case SpdyRadioAccessTechnologyHSUPA:
+    return @"HSUPA";
+    break;
+  case SpdyRadioAccessTechnologyCDMA1x:
+    return @"CDMA1x";
+    break;
+  case SpdyRadioAccessTechnologyCDMAEVDORev0:
+    return @"CDMAEVDORev0";
+    break;
+  case SpdyRadioAccessTechnologyCDMAEVDORevA:
+    return @"CDMAEVDORevA";
+    break;
+  case SpdyRadioAccessTechnologyCDMAEVDORevB:
+    return @"CDMAEVDORevB";
+    break;
+  case SpdyRadioAccessTechnologyeHRPD:
+    return @"eHRPD";
+    break;
+  case SpdyRadioAccessTechnologyLTE:
+    return @"LTE";
+    break;
+  default:
+  case SpdyRadioAccessTechnologyUnknown:
+    return @"Unknown";
+    break;
+  }
+}
+
++(NSString*)connStatusString:(SpdyNetworkStatus)status {
+  NSString * label = @"Unknown";
+
+  switch(status) {
+  case kSpdyNotReachable:
+    label = @"Not";
+    break;
+  case kSpdyReachableViaWWAN:
+    label = @"WWAN";
+    break;
+  case kSpdyReachableViaWiFi:  
+    label = @"WIFI";
+    break;
+  }
+
+  return label;
+}
+
 @end
 
 
@@ -476,6 +540,7 @@ static int select_next_proto_cb(SSL *ssl,
 @property (assign) BOOL opened;
 @property (assign) int error;
 @property (strong) SpdyInputStream *readStreamPair;
+
 @end
 
 
@@ -547,7 +612,6 @@ static int select_next_proto_cb(SSL *ssl,
     self.readStreamPair.error = error_code;
     self.opened = NO;
 }
-
 @end
 
 CFReadStreamRef SpdyCreateSpdyReadStream(CFAllocatorRef alloc, CFHTTPMessageRef requestHeaders, CFReadStreamRef requestBody) {
