@@ -12,7 +12,7 @@ static NSDictionary * radioAccessMap = nil;
 @implementation SpdyPersistentUrl {
   SpdyTimer * pingTimer;
   SpdyTimer * retryTimer;
-  BOOL stream_closed;
+  BOOL stream_is_invalid;
   SCNetworkReachabilityRef reachabilityRef;
   SpdyNetworkStatus networkStatus;
   SpdyRadioAccessTechnology radioAccessTechnology;
@@ -67,7 +67,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
 
   SpdyNetworkStatus oldStatus = networkStatus;
 
-  SPDY_LOG(@"reachabilityChanged: old %d new %d", oldStatus, newStatus);
+  SPDY_LOG(@"reachabilityChanged: old %@ new %@", [SPDY connStatusString:oldStatus], [SPDY connStatusString:newStatus]);
 
   if(oldStatus == newStatus) {
     // reachability didn't actually change.
@@ -81,8 +81,8 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     // users of the library to start a background task here.
   } else if(oldStatus == kSpdyNotReachable) {
     SPDY_LOG(@"were not reachable, now we are");
-    // reset num_reconnects because the previous ones are now irrelevant
-    num_reconnects = 0;
+    // reset state because the previous state is now irrelevant
+    [self resetState];
     if(super.connectState == kSpdyConnected) {
       SPDY_LOG(@"BUT we think we were already connected, sending ping");
       [self sendPing];
@@ -96,8 +96,8 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
   } else if(oldStatus == kSpdyReachableViaWiFi && 
 	    newStatus == kSpdyReachableViaWWAN) {
 
-    // reset num_reconnects because the previous ones are now irrelevant
-    num_reconnects = 0;
+    // reset state because the previous state is now irrelevant
+    [self resetState];
 
     SPDY_LOG(@"was on wifi, now on wwan, reconnect");
     // was on wifi, now on wwan, reconnect
@@ -220,8 +220,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 	radioAccessTechnology = newAccessType;
 
-	// reset num_reconnects because the previous ones are now irrelevant
-	num_reconnects = 0;
+        // reset state because the previous state is now irrelevant
+        [self resetState];
 
 	if(self.radioAccessCallback != NULL) {
 	  __spdy_dispatchAsyncOnMainThread(^{
@@ -426,7 +426,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     return;
   }
 
-  if(!stream_closed && connectState == kSpdyConnected) {
+  if(!stream_is_invalid && connectState == kSpdyConnected) {
     SPDY_LOG(@"already connected, not reconnecting");
     return;			// already connected;
   }
@@ -599,7 +599,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)sendPing {
   SPDY_LOG(@"sendPing");
-  if(!stream_closed && super.connectState == kSpdyConnected) {
+  if(!stream_is_invalid && super.connectState == kSpdyConnected) {
     SPDY_LOG(@"really sending ping");
     [pingTimer invalidate];
     pingTimer = [[SpdyTimer alloc] initWithInterval:6 // XXX hardcoded
@@ -615,7 +615,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
             super.connectState == kSpdySslHandshake) {
     SPDY_LOG(@"tried to send a ping with connectState %d, not gonna do it", super.connectState);
   } else {
-    SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_closed %d or super.connectState %d != %d", stream_closed, super.connectState, kSpdyConnected);
+    SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_is_invalid %d or super.connectState %d != %d", stream_is_invalid, super.connectState, kSpdyConnected);
     [super teardown];
     [self recoverableReconnect];
   }
@@ -644,7 +644,9 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   SPDY_LOG(@"stream was connected");
 
   [retryTimer invalidate];
-  num_reconnects = 0;
+
+  // reset state because the previous state is now irrelevant
+  [self resetState];
 }
 
 
@@ -661,8 +663,12 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 
 -(void)streamWasClosed {
   SPDY_LOG(@"streamWasClosed");
-  stream_closed = YES;
-  [self recoverableReconnect];
+  stream_is_invalid = YES;
+  [self scheduleReconnectWithInitialInterval:0.2
+        factor:1.6 andBlock:^{ 
+    SPDY_LOG(@"STREAM CLOSED retry");
+    [self recoverableReconnect];
+  }];
 }
 
 -(void)gotPing {
@@ -677,14 +683,27 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
   SPDY_LOG(@"did not get ping");
   [pingTimer invalidate];
   pingTimer = nil;
+  
+  // the stream wasn't really closed, but we use this flag anyways
+  stream_is_invalid = YES;
   [super teardown];
-  [self recoverableReconnect];
+
+  [self scheduleReconnectWithInitialInterval:0.2
+        factor:1.6 andBlock:^{ 
+    SPDY_LOG(@"PING FAILURE retry");
+    [self recoverableReconnect];
+  }];
 }
 
 -(void)dealloc {
   [self clearKeepAlive];
   [self stopReachabilityNotifier];
   [self stopRadioAccessNotifier];
+}
+
+-(void)resetState {
+  num_reconnects = 0;
+  stream_is_invalid = NO;
 }
 
 -(void)setup {
@@ -703,9 +722,8 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
       CTRadioAccessTechnologyLTE : @(SpdyRadioAccessTechnologyLTE)
     };
   }
-  num_reconnects = 0;
+  [self resetState];
   super.voip = YES;
-  stream_closed = NO;
   SpdyPersistentUrl * __weak weak_self = self;
   super.errorCallback = ^(NSError * error) {
     SPDY_LOG(@"errorCallback");
