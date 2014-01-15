@@ -136,6 +136,8 @@ static const int priority = 1;
   if (socket == nil)
     return;
 
+  SPDY_LOG(@"invalidateSocket");
+
   self.connectState = kSpdyNotConnected;
 
   CFSocketInvalidate(socket);
