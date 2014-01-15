@@ -39,9 +39,16 @@ typedef enum {
     kSpdyNotReachable = 0,
     kSpdyReachableViaWWAN,
     kSpdyReachableViaWiFi	
-} SpdyNetworkStatus;
+} SpdyReachability;
 
 @class SpdyCallback;
+@class SpdyHTTPResponse;
+
+typedef void (^SpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
+typedef void (^SpdyErrorCallback)(NSError*);
+typedef void (^SpdyVoidCallback)();
+typedef void (^SpdyIntCallback)(int);
+typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 
 // Returns a CFReadStream.  If requestBody is non-NULL the request method in requestHeaders must
 // support a message body and the requestBody will override the body that may already be in requestHeaders.  If
@@ -89,6 +96,9 @@ enum SpdyErrors {
 
 + (SPDY *)sharedSPDY;
 
+@property (nonatomic,copy) SpdyVoidCallback needToStartBackgroundTaskBlock;
+@property (nonatomic,copy) SpdyVoidCallback finishedWithBackgroundTaskBlock;
+
 // Call registerForNSURLConnection to enable spdy when using NSURLConnection.  SPDY responses can be identified (in iOS 5.0+) by looking for
 // the @"protocol-was: spdy" header with the value @"YES".  "protocol-was: spdy" is not a valid http header, thus it is safe to add it.
 // WARNING: Using NSURLConnection means that upload progress can not be monitored.  This is because of a lack of an API in URLProtocolClient.
@@ -106,9 +116,9 @@ enum SpdyErrors {
 - (void)teardown:(NSString*)url;
 - (void)teardownForRequest:(NSURLRequest*)url;
 
-+ (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags;
-- (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url;
-- (SpdyNetworkStatus)networkStatusForRequest:(NSURLRequest*)request;
++ (SpdyReachability)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags;
+- (SpdyReachability)networkStatusForUrlString:(NSString*)url;
+- (SpdyReachability)networkStatusForRequest:(NSURLRequest*)request;
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url;
 - (SpdyConnectState)connectStateForRequest:(NSURLRequest*)request;
 

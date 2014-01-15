@@ -91,7 +91,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
       // were not reachable, now we are, reconnect
       [self setNetworkStatus:newStatus];
       [super teardown];
-      [self recoverableReconnect];
+      [self scheduleRecoverableReconnect:@"NOW REACHABLE"];
     }
   } else if(oldStatus == kSpdyReachableViaWiFi && 
 	    newStatus == kSpdyReachableViaWWAN) {
@@ -103,7 +103,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     // was on wifi, now on wwan, reconnect
     [self setNetworkStatus:newStatus];
     [super teardown];
-    [self recoverableReconnect];
+    [self scheduleRecoverableReconnect:@"WIFI TURNED OFF"];
   } else if(oldStatus == kSpdyReachableViaWWAN && 
 	    newStatus == kSpdyReachableViaWiFi) {
 
@@ -471,6 +471,14 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
+-(void)scheduleRecoverableReconnect:(NSString*)tag {
+  [self scheduleReconnectWithInitialInterval:0.2
+        factor:1.6 andBlock:^{ 
+    SPDY_LOG(@"%@ retry", tag);
+    [self recoverableReconnect];
+  }];
+}
+
 -(void)transientReconnect {
   SPDY_LOG(@"transientReconnect");
   [self reconnectWithMax:MAX_TRANSIENT_RECONNECTS];
@@ -524,11 +532,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       {
 	SPDY_LOG(@"error type is HARD_FAILURE");
 	[super teardown];
-	[self scheduleReconnectWithInitialInterval:0.2
-	      factor:1.6 andBlock:^{ 
-	  SPDY_LOG(@"HARD FAILURE retry");
-	  [self recoverableReconnect];
-	}];
+        [self scheduleRecoverableReconnect:@"HARD FAILURE"];
       }
 
       break;
@@ -546,11 +550,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       {
 	SPDY_LOG(@"error type is UNHANDLED_FAILURE");
 	[super teardown];
-	[self scheduleReconnectWithInitialInterval:0.2
-	      factor:1.6 andBlock:^{ 
-	  SPDY_LOG(@"UNHANDLED_FAILURE retry");
-	  [self recoverableReconnect];
-	}];
+        [self scheduleRecoverableReconnect:@"UNHANDLED FAILURE"];
       }
       //[self dieOnError:error];
       break;
@@ -565,11 +565,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       {
 	// XXX this is not congruent with the comment above
 	[super teardown];
-	[self scheduleReconnectWithInitialInterval:0.2
-	      factor:1.6 andBlock:^{ 
-	  SPDY_LOG(@"recoverableReconnect retry");
-	  [self recoverableReconnect];
-	}];
+        [self scheduleRecoverableReconnect:@"INTERNAL FAILURE"];
       }
       break;
 
@@ -577,11 +573,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       {
 	SPDY_LOG(@"error type is RECOVERABLE_FAILURE");
 	[super teardown];
-	[self scheduleReconnectWithInitialInterval:0.2
-	      factor:1.6 andBlock:^{ 
-	  SPDY_LOG(@"recoverableReconnect retry");
-	  [self recoverableReconnect];
-	}];
+        [self scheduleRecoverableReconnect:@"RECOVERABLE FAILURE"];
       }
       break;
 
@@ -589,8 +581,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
       {
 	SPDY_LOG(@"error type is TRANSIENT_FAILURE");
 	[super teardown];
-	[self scheduleReconnectWithInitialInterval:0.8
-	      factor:1.7 andBlock:^{ [self transientReconnect];}];
+        [self scheduleRecoverableReconnect:@"TRANSIENT FAILURE"];
       }
       break;
     }
@@ -617,7 +608,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   } else {
     SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_is_invalid %d or super.connectState %d != %d", stream_is_invalid, super.connectState, kSpdyConnected);
     [super teardown];
-    [self recoverableReconnect];
+    [self scheduleRecoverableReconnect:@"NOT SENDING PING"];
   }
 }
 
@@ -664,11 +655,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 -(void)streamWasClosed {
   SPDY_LOG(@"streamWasClosed");
   stream_is_invalid = YES;
-  [self scheduleReconnectWithInitialInterval:0.2
-        factor:1.6 andBlock:^{ 
-    SPDY_LOG(@"STREAM CLOSED retry");
-    [self recoverableReconnect];
-  }];
+  [self scheduleRecoverableReconnect:@"STREAM CLOSED"];
 }
 
 -(void)gotPing {
@@ -688,11 +675,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
   stream_is_invalid = YES;
   [super teardown];
 
-  [self scheduleReconnectWithInitialInterval:0.2
-        factor:1.6 andBlock:^{ 
-    SPDY_LOG(@"PING FAILURE retry");
-    [self recoverableReconnect];
-  }];
+  [self scheduleRecoverableReconnect:@"NO PING"];
 }
 
 -(void)dealloc {
