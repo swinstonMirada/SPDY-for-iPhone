@@ -95,28 +95,28 @@ static int select_next_proto_cb(SSL *ssl,
 + (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags {
   // Host not reachable.
   if ((flags & kSCNetworkReachabilityFlagsReachable) == 0)
-    return kSpdyNotReachable;
+    return kSpdyNetworkStatusNotReachable;
     
   // Host reachable by WWAN.
   if ((flags & kSCNetworkReachabilityFlagsIsWWAN) == kSCNetworkReachabilityFlagsIsWWAN)
-    return kSpdyReachableViaWWAN;
+    return kSpdyNetworkStatusReachableViaWWAN;
     
   // Host reachable and no connection is required. Assume wifi.
   if ((flags & kSCNetworkReachabilityFlagsConnectionRequired) == 0)
-    return kSpdyReachableViaWiFi;
+    return kSpdyNetworkStatusReachableViaWiFi;
     
   // Host reachable. Connection is on-demand or on-traffic. No user intervention needed. Assume wifi.
   if (((flags & kSCNetworkReachabilityFlagsConnectionOnDemand) != 0) ||
       ((flags & kSCNetworkReachabilityFlagsConnectionOnTraffic) != 0)) {
     if ((flags & kSCNetworkReachabilityFlagsInterventionRequired) == 0)
-      return kSpdyReachableViaWiFi;
+      return kSpdyNetworkStatusReachableViaWiFi;
   }
     
-  return kSpdyNotReachable;
+  return kSpdyNetworkStatusNotReachable;
 }
 
 + (SpdyNetworkStatus)reachabilityStatusForHost:(NSString *)host {	
-  SpdyNetworkStatus status = kSpdyNotReachable;
+  SpdyNetworkStatus status = kSpdyNetworkStatusNotReachable;
   SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
   if (ref) {
     SCNetworkReachabilityFlags flags = 0;
@@ -154,8 +154,8 @@ static int select_next_proto_cb(SSL *ssl,
   SpdySession *oldSpdySession = nil;
   if (session != nil && ([session isInvalid] || 
 			 (currentStatus != session.networkStatus &&
-			  !(session.networkStatus == kSpdyReachableViaWWAN && 
-			    currentStatus == kSpdyReachableViaWiFi)))) {
+			  !(session.networkStatus == kSpdyNetworkStatusReachableViaWWAN && 
+			    currentStatus == kSpdyNetworkStatusReachableViaWiFi)))) {
     SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
     oldSslSession = [self resetSession:session withKey:key];
     oldSpdySession = session;
@@ -281,12 +281,12 @@ static int select_next_proto_cb(SSL *ssl,
 - (SpdyConnectState)connectStateForUrlString:(NSString*)url {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
-    return kSpdyHostNotFound;
+    return kSpdyConnectStateHostNotFound;
   }
   NSError *error = nil;
   SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
-    return kSpdyStreamNotFound;
+    return kSpdyConnectStateStreamNotFound;
   }
   return session.connectState;
 }
@@ -296,7 +296,7 @@ static int select_next_proto_cb(SSL *ssl,
   NSError *error;
   SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
-    return kSpdyStreamNotFound;
+    return kSpdyConnectStateStreamNotFound;
   }
   return session.connectState;
 }
@@ -304,12 +304,12 @@ static int select_next_proto_cb(SSL *ssl,
 - (SpdyNetworkStatus)networkStatusForUrlString:(NSString*)url {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
-    return kSpdyHostNotFound;
+    return kSpdyNetworkStatusHostNotFound;
   }
   NSError *error = nil;
   SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
-    return kSpdyStreamNotFound;
+    return kSpdyNetworkStatusStreamNotFound;
   }
   return session.networkStatus;
 }
@@ -317,12 +317,12 @@ static int select_next_proto_cb(SSL *ssl,
 - (SpdyNetworkStatus)networkStatusForRequest:(NSURLRequest*)request {
   NSURL *u = request.URL;
   if (u == nil || u.host == nil) {
-    return kSpdyHostNotFound;
+    return kSpdyNetworkStatusHostNotFound;
   }
   NSError *error;
   SpdySession *session = [self getSession:u withError:&error voip:NO create:NO];
   if (session == nil) {
-    return kSpdyStreamNotFound;
+    return kSpdyNetworkStatusStreamNotFound;
   }
   return session.networkStatus;
 }
@@ -464,24 +464,30 @@ static int select_next_proto_cb(SSL *ssl,
 
 
 +(NSString*)connectionStateString:(SpdyConnectState) state {
-    switch(state) {
-    case kSpdyNotConnected:
-      return @"NotConnected";
-    case kSpdyConnecting:
-      return @"Connecting";
-    case kSpdySslHandshake:
-      return @"SslHandshake";
-    case kSpdyConnected:
-      return @"Connected";
-    case kSpdyError:
-      return @"Error";
-    case kSpdyGoAwaySubmitted:
-      return @"Sent GoAway";
-    case kSpdyGoAwayReceived:
-      return @"Got GoAway";
-    default:
-      return @"Unknown";
-    }
+  switch(state) {
+  case kSpdyConnectStateNotConnected:
+    return @"NotConnected";
+  case kSpdyConnectStateConnecting:
+    return @"Connecting";
+  case kSpdyConnectStateSslHandshake:
+    return @"SslHandshake";
+  case kSpdyConnectStateConnected:
+    return @"Connected";
+  case kSpdyConnectStateError:
+    return @"Error";
+  case kSpdyConnectStateGoAwaySubmitted:
+    return @"Sent GoAway";
+  case kSpdyConnectStateGoAwayReceived:
+    return @"Got GoAway";
+  case kSpdyConnectStateHostNotFound:
+    return @"NO HOST";
+  case kSpdyConnectStateStreamNotFound:
+    return @"NO STREAM";
+  }
+
+
+  return @"Unknown";
+
 }
 
 +(NSString*)radioAccessString:(SpdyRadioAccessTechnology)status {
@@ -530,21 +536,20 @@ static int select_next_proto_cb(SSL *ssl,
 }
 
 +(NSString*)networkStatusString:(SpdyNetworkStatus)status {
-  NSString * label = @"Unknown";
-
   switch(status) {
-  case kSpdyNotReachable:
-    label = @"Not";
-    break;
-  case kSpdyReachableViaWWAN:
-    label = @"WWAN";
-    break;
-  case kSpdyReachableViaWiFi:  
-    label = @"WIFI";
-    break;
+  case kSpdyNetworkStatusNotReachable:
+    return @"Not";
+  case kSpdyNetworkStatusReachableViaWWAN:
+    return @"WWAN";
+  case kSpdyNetworkStatusReachableViaWiFi:  
+    return @"WIFI";
+  case kSpdyNetworkStatusHostNotFound:
+    return @"NO HOST";
+  case kSpdyNetworkStatusStreamNotFound:
+    return @"NO STREAM";
   }
 
-  return label;
+  return @"Unknown";
 }
 
 @end

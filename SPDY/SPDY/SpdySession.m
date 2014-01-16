@@ -138,7 +138,7 @@ static const int priority = 1;
 
   SPDY_LOG(@"%p invalidateSocket", self);
 
-  self.connectState = kSpdyNotConnected;
+  self.connectState = kSpdyConnectStateNotConnected;
 
   CFSocketInvalidate(socket);
   CFRelease(socket);
@@ -206,7 +206,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 	 in practice, we require tls / ssl / https.
       */	 
     } else {
-      self.connectState = kSpdyError;
+      self.connectState = kSpdyConnectStateError;
       NSDictionary * dict = [NSDictionary 
 			      dictionaryWithObjectsAndKeys:
 				[[NSString alloc] 
@@ -234,7 +234,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       error = [NSError errorWithDomain:@"kCFStreamErrorDomainNetDB" code:err userInfo:nil];
     }
     SPDY_LOG(@"%p Error getting IP address for %@ (%@)", self, url, error);
-    self.connectState = kSpdyError;
+    self.connectState = kSpdyConnectStateError;
     return error;
   }
 
@@ -279,7 +279,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
 
     CFRelease(address);
-    self.connectState = kSpdyConnecting;
+    self.connectState = kSpdyConnectStateConnecting;
     freeaddrinfo(res);
 
     SPDY_LOG(@"%p starting connectionTimer", self);
@@ -289,12 +289,12 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     [connectionTimer start];
     return nil;
   }
-  self.connectState = kSpdyError;
+  self.connectState = kSpdyConnectStateError;
   return [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
 }
 
 - (void)notSpdyError {
-  self.connectState = kSpdyError;
+  self.connectState = kSpdyConnectStateError;
     
   @synchronized(streams) {
     for (SpdyStream *stream in streams) {
@@ -319,7 +319,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   SPDY_LOG(@"%p invalidating connectionTimer", self);
   [connectionTimer invalidate];
   connectionTimer = nil;
-  self.connectState = kSpdyError;
+  self.connectState = kSpdyConnectStateError;
   [self invalidateSocket];
   NSError *error = [NSError errorWithDomain:domain code:err userInfo:nil];
   SPDY_LOG(@"%p we have %lu streams", self, (unsigned long)streams.count);
@@ -354,7 +354,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     for (SpdyStream *stream in streams) {
       [self _cancelStream:stream];
     }
-    self.connectState = kSpdyGoAwaySubmitted;
+    self.connectState = kSpdyConnectStateGoAwaySubmitted;
     if (session != nil) {
       spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
       spdylay_session_send(session);
@@ -403,7 +403,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     // The TLS/SSL handshake was successfully completed, 
     // a TLS/SSL connection has been established.
     SPDY_LOG(@"%p connected", self);
-    self.connectState = kSpdyConnected;
+    self.connectState = kSpdyConnectStateConnected;
     if (!self.spdyNegotiated) {
       SPDY_LOG(@"%p spdy not negotiated", self);
       [self notSpdyError];
@@ -499,7 +499,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     }
     if(r < 0 && !again) {
       //SPDY_LOG(@"%p calling error callback", self);
-      self.connectState = kSpdyError;
+      self.connectState = kSpdyConnectStateError;
       if (err == SSL_ERROR_SYSCALL)
 	[self connectionFailed:oldErrno domain:(NSString *)kCFErrorDomainPOSIX];
       else
@@ -600,7 +600,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     [streams addObject:stream];
     SPDY_LOG(@"%p after addStream, we have %lu streams", self, (unsigned long)streams.count);
   }
-  if (self.connectState == kSpdyConnected) {
+  if (self.connectState == kSpdyConnectStateConnected) {
     if (![self submitRequest:stream]) {
       SPDY_LOG(@"%p not able to submit request", self);
       return;
@@ -868,7 +868,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     session = NULL;
     self.spdyNegotiated = NO;
     self.spdyVersion = -1;
-    self.connectState = kSpdyNotConnected;
+    self.connectState = kSpdyConnectStateNotConnected;
     
     streams = [[NSMutableSet alloc] init];
     pushStreams = [[NSMutableDictionary alloc] init];
@@ -898,13 +898,13 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (void)onGoAwayReceived {
-  self.connectState = kSpdyGoAwayReceived;
+  self.connectState = kSpdyConnectStateGoAwayReceived;
 }
 
  - (void)dealloc {
   SPDY_LOG(@"%p dealloc", self);
   if (session != NULL) {
-    self.connectState = kSpdyGoAwaySubmitted;
+    self.connectState = kSpdyConnectStateGoAwaySubmitted;
     spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
     spdylay_session_del(session);
     session = NULL;
@@ -960,16 +960,16 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 -(BOOL)sessionConnect {
   self.lastCallbackTime = [NSDate date];
 
-  if (self.connectState == kSpdyConnecting) {
+  if (self.connectState == kSpdyConnectStateConnecting) {
     SPDY_LOG(@"%p Connected", self);
-    self.connectState = kSpdySslHandshake;
+    self.connectState = kSpdyConnectStateSslHandshake;
     [self maybeEnableVoip];
     if (![self sslConnect]) {
       SPDY_LOG(@"%p ssl connect failed", self);
       return NO;
     }
   }
-  if (self.connectState == kSpdySslHandshake) {
+  if (self.connectState == kSpdyConnectStateSslHandshake) {
     //SPDY_LOG(@"doing ssl handshake", self);
     if(![self sslHandshakeWrapper]) {
       //SPDY_LOG(@"ssl handshake failed", self);

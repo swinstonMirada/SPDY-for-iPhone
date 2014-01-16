@@ -23,23 +23,27 @@
 @class SpdySession;
 
 typedef enum {
-  kSpdyNotConnected,
-  kSpdyConnecting,
-  kSpdySslHandshake,
-  kSpdyConnected,
-  kSpdyGoAwaySubmitted,
-  kSpdyGoAwayReceived,
-  kSpdyError,
+  kSpdyConnectStateNotConnected,
+  kSpdyConnectStateConnecting,
+  kSpdyConnectStateSslHandshake,
+  kSpdyConnectStateConnected,
+  kSpdyConnectStateGoAwaySubmitted,
+  kSpdyConnectStateGoAwayReceived,
+  kSpdyConnectStateError,
+  kSpdyConnectStateStreamNotFound,
+  kSpdyConnectStateHostNotFound
 } SpdyConnectState;
 
-#define kSpdyStreamNotFound -1
-#define kSpdyHostNotFound -2
-
 typedef enum {
-    kSpdyNotReachable = 0,
-    kSpdyReachableViaWWAN,
-    kSpdyReachableViaWiFi	
+  kSpdyNetworkStatusNotReachable = 0,
+  kSpdyNetworkStatusReachableViaWWAN,
+  kSpdyNetworkStatusReachableViaWiFi,
+  kSpdyNetworkStatusStreamNotFound,
+  kSpdyNetworkStatusHostNotFound
 } SpdyNetworkStatus;
+
+#define SPDY_NOT_REACHABLE(status)              \
+  (status == kSpdyNetworkStatusNotReachable
 
 typedef enum {
   SpdyRadioAccessTechnologyNone = 0,
