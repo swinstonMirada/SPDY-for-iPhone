@@ -67,7 +67,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
 
   SpdyNetworkStatus oldStatus = networkStatus;
 
-  SPDY_LOG(@"reachabilityChanged: old %@ new %@", [SPDY connStatusString:oldStatus], [SPDY connStatusString:newStatus]);
+  SPDY_LOG(@"reachabilityChanged: old %@ new %@", [SPDY networkStatusString:oldStatus], [SPDY networkStatusString:newStatus]);
 
   if(oldStatus == newStatus) {
     // reachability didn't actually change.
@@ -87,7 +87,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
       SPDY_LOG(@"BUT we think we were already connected, sending ping");
       [self sendPing];
     } else {
-      SPDY_LOG(@"reconnect");
+      SPDY_LOG(@"were not reachable, now we are, reconnect");
       // were not reachable, now we are, reconnect
       [self setNetworkStatus:newStatus];
       [super teardown];
@@ -210,12 +210,14 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	SpdyRadioAccessTechnology newAccessType = [self radioAccessTechnologyForNotification:notification];
 	SpdyRadioAccessTechnology oldAccessType = radioAccessTechnology;
 
-	if(self.networkStatus == kSpdyReachableViaWWAN &&
+	if(/*self.networkStatus == kSpdyReachableViaWWAN && */
 	   oldAccessType != newAccessType) {
-	  SPDY_LOG(@"we're connected via wwan, and got radio access change from %@ to %@, sending a ping", [SPDY radioAccessString:oldAccessType], [SPDY radioAccessString:newAccessType]);
+	  SPDY_LOG(@"we got radio access change from %@ to %@, sending a ping", [SPDY radioAccessString:oldAccessType], [SPDY radioAccessString:newAccessType]);
 	  [self sendPing];
+          /*
 	} else {
 	  SPDY_LOG(@"we're NOT connected via wwan, and got radio access change from %@ to %@, NOT sending a ping", [SPDY radioAccessString:oldAccessType], [SPDY radioAccessString:newAccessType]);
+          */
         }
 
 	radioAccessTechnology = newAccessType;
@@ -415,8 +417,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)reconnect {
   // here we do reconnect logic
-  SpdyConnectState connectState = super.connectState;
-  if(self.networkStatus == kSpdyNotReachable) {
+  SpdyConnectState currentConnectionState = super.connectState;
+  SpdyNetworkStatus CurrentNetworkStatus = self.networkStatus;
+  SPDY_LOG(@"reconnect: connectState %@ networkStatus %@", [SPDY connectionStateString:currentConnectionState], [SPDY networkStatusString:CurrentNetworkStatus]);
+
+  if(CurrentNetworkStatus == kSpdyNotReachable) {
     SPDY_LOG(@"not reachable");
     return;			// no point in connecting
   }
@@ -426,12 +431,13 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     return;
   }
 
-  if(!stream_is_invalid && connectState == kSpdyConnected) {
+  if(!stream_is_invalid && currentConnectionState == kSpdyConnected) {
     SPDY_LOG(@"already connected, not reconnecting");
     return;			// already connected;
   }
 
-  if(connectState == kSpdyConnecting || connectState == kSpdySslHandshake) {
+  if(currentConnectionState == kSpdyConnecting || 
+     currentConnectionState == kSpdySslHandshake) {
     SPDY_LOG(@"already connecting, sending data anyways");
     //return;			// may want to set a timeout for lingering connects
   }
