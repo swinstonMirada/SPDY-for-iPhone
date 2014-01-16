@@ -162,8 +162,8 @@ static int select_next_proto_cb(SSL *ssl,
     session = nil;
   }
   if (create && session == nil) {
-    SPDY_LOG(@"creating new session w/ old session %@", oldSpdySession);
     session = [[SpdySession alloc] init:self.ssl_ctx oldSession:oldSslSession];
+    SPDY_LOG(@"creating new session %p w/ old session %@", session, oldSpdySession);
     session.voip = voip;
 
     SPDY_LOG(@"callbacks are %@ %@ %@", oldSpdySession.readCallback, 

@@ -598,6 +598,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   stream.parentSession = self;
   @synchronized(streams) {
     [streams addObject:stream];
+    SPDY_LOG(@"%p after addStream, we have %lu streams", self, (unsigned long)streams.count);
   }
   if (self.connectState == kSpdyConnected) {
     if (![self submitRequest:stream]) {
@@ -619,16 +620,19 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)fetch:(NSURL *)u delegate:(SpdyCallback *)delegate {
+  SPDY_LOG(@"%p fetch: delegate: body:", self);
   SpdyStream *stream = [SpdyStream newFromNSURL:u delegate:delegate];
   [self addStream:stream];
 }
 
 - (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
+  SPDY_LOG(@"%p fetchFromMessage: delegate: body:", self);
   SpdyStream *stream = [SpdyStream newFromCFHTTPMessage:request delegate:delegate body:body];
   [self addStream:stream];
 }
 
 - (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
+  SPDY_LOG(@"%p fetchFromRequest: delegate:", self);
   SpdyStream *stream = [SpdyStream newFromRequest:(NSURLRequest *)request delegate:delegate];
   [self addStream:stream];
 }
@@ -664,6 +668,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       }
     }
     SPDY_LOG(@"%p SSL Error %d, System error %d, retValue %d, closing connection", self, sslError, sysError, r);
+    SPDY_LOG(@"%p on SSL ERROR, we have %lu streams", self, (unsigned long)streams.count);
     r = SPDYLAY_ERR_CALLBACK_FAILURE;
     [self connectionFailed:ECONNRESET domain:(NSString *)kCFErrorDomainPOSIX];
     //[self invalidateSocket];

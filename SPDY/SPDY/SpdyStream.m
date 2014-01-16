@@ -62,6 +62,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     if (self == nil) {
         return nil;
     }
+    SPDY_LOG(@"%p init", self);
     streamClosed = NO;
     self.body = nil;
     self.streamId = -1;
@@ -72,6 +73,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)dealloc {
+    SPDY_LOG(@"%p dealloc", self);
     free(nameValues);
 }
 
@@ -140,6 +142,8 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)closeStream {
+    SPDY_LOG(@"%p closeStream", self);
+
     if (streamClosed != YES) {
         streamClosed = YES;
         [delegate onStreamClose];
@@ -147,11 +151,13 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)cancelStream {
+    SPDY_LOG(@"%p cancelStream", self);
     streamClosed = YES;
     [delegate onError:[NSError errorWithDomain:kSpdyErrorDomain code:kSpdyRequestCancelled userInfo:nil]];
 }
 
 - (void)close {
+    SPDY_LOG(@"%p close", self);
     [self.parentSession cancelStream:self];
 }
 
@@ -160,6 +166,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)connectionError {
+    SPDY_LOG(@"connectionError")
     [delegate onError:[NSError errorWithDomain:kSpdyErrorDomain code:kSpdyConnectionFailed userInfo:nil]];
 }
 
