@@ -136,7 +136,7 @@ static const int priority = 1;
   if (socket == nil)
     return;
 
-  SPDY_LOG(@"invalidateSocket");
+  SPDY_LOG(@"%p invalidateSocket", self);
 
   self.connectState = kSpdyNotConnected;
 
@@ -148,7 +148,7 @@ static const int priority = 1;
 }
 
 - (void)sslError {
-  SPDY_LOG(@"%s", ERR_error_string(ERR_get_error(), 0));
+  SPDY_LOG(@"%p %s", self, ERR_error_string(ERR_get_error(), 0));
   [self invalidateSocket];
 }
 
@@ -185,7 +185,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       [[spdyStream delegate] onRequestBytesSent:bytesRead];
     }
   } else {
-    SPDY_LOG(@"unhandled stream in read_from_data_callback");
+    SPDY_LOG(@"%p unhandled stream in read_from_data_callback", spdyStream);
   }
   return bytesRead;
 }
@@ -198,7 +198,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     snprintf(service, sizeof(service), "%u", [port intValue]);
   } else {
     NSString * scheme = [url scheme];
-    //SPDY_LOG(@"got scheme %@", scheme);
+    //SPDY_LOG(@"%p got scheme %@", self, scheme);
     if([scheme isEqualToString:HTTPS_SCHEME ]) {
       snprintf(service, sizeof(service), HTTPS_PORT);
       /* 
@@ -224,7 +224,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   hints.ai_socktype = SOCK_STREAM;
     
   struct addrinfo *res;
-  SPDY_LOG(@"Looking up hostname for %@", [url host]);
+  SPDY_LOG(@"%p Looking up hostname for %@", self, [url host]);
   int err = getaddrinfo([[url host] UTF8String], service, &hints, &res);
   if (err != 0) {
     NSError *error;
@@ -233,7 +233,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     } else {
       error = [NSError errorWithDomain:@"kCFStreamErrorDomainNetDB" code:err userInfo:nil];
     }
-    SPDY_LOG(@"Error getting IP address for %@ (%@)", url, error);
+    SPDY_LOG(@"%p Error getting IP address for %@ (%@)", self, url, error);
     self.connectState = kSpdyError;
     return error;
   }
@@ -311,6 +311,8 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)connectionFailed:(NSInteger)err domain:(NSString *)domain {
+  SPDY_LOG(@"%p connectionFailed:%ld domain:%@", self, (long)err, domain);
+
   if([SPDY sharedSPDY].needToStartBackgroundTaskBlock != NULL) 
     [SPDY sharedSPDY].needToStartBackgroundTaskBlock();
 
@@ -320,10 +322,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   self.connectState = kSpdyError;
   [self invalidateSocket];
   NSError *error = [NSError errorWithDomain:domain code:err userInfo:nil];
-  SPDY_LOG(@"we have %lu streams", (unsigned long)streams.count);
+  SPDY_LOG(@"%p we have %lu streams", self, (unsigned long)streams.count);
   @synchronized(streams) {
     for (SpdyStream *value in streams) {
-      SPDY_LOG(@"sending error to delegate %@", value.delegate);
+      SPDY_LOG(@"%p sending error to delegate %@", self, value.delegate);
       [value.delegate onError:error];
     }
   }
@@ -343,7 +345,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     // Do not remove the stream here as it will be removed on the close callback when spdylay is done with the object.
     [self _cancelStream:stream];
     if ([[NSDate date] compare:[self.lastCallbackTime dateByAddingTimeInterval:stream.streamTimeoutInterval]] == NSOrderedDescending)
-        SPDY_LOG(@"Stream %@ timed out, timeout set at %fs", stream, stream.streamTimeoutInterval);
+        SPDY_LOG(@"%p Stream %@ timed out, timeout set at %fs", self, stream, stream.streamTimeoutInterval);
 }
 
 - (NSInteger)resetStreamsAndGoAway {
@@ -373,7 +375,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 - (BOOL)submitRequest:(SpdyStream *)stream {
   
-  SPDY_LOG(@"submit request");
+  SPDY_LOG(@"%p submit request", self);
   if (!self.spdyNegotiated) {
     [stream notSpdyError];
     return NO;
@@ -386,7 +388,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     data_prd.read_callback = read_from_data_callback;
   }
   if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, (__bridge void *)(stream)) < 0) {
-    SPDY_LOG(@"Failed to submit request for %@", stream);
+    SPDY_LOG(@"%p Failed to submit request for %@", self, stream);
     [stream connectionError];
     return NO;
   }
@@ -400,10 +402,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   if (r == 1) {
     // The TLS/SSL handshake was successfully completed, 
     // a TLS/SSL connection has been established.
-    SPDY_LOG(@"connected");
+    SPDY_LOG(@"%p connected", self);
     self.connectState = kSpdyConnected;
     if (!self.spdyNegotiated) {
-      SPDY_LOG(@"spdy not negotiated");
+      SPDY_LOG(@"%p spdy not negotiated", self);
       [self notSpdyError];
       [self invalidateSocket];
       return -1;
@@ -421,12 +423,12 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
       while ((stream = [enumerator nextObject])) {
 	if (![self submitRequest:stream]) {
-	  SPDY_LOG(@"submitRequest failed");
+	  SPDY_LOG(@"%p submitRequest failed", self);
 	  [streams removeObject:stream];
 	}
       }
     }
-    SPDY_LOG(@"Reused session: %ld", SSL_session_reused(ssl));
+    SPDY_LOG(@"%p Reused session: %ld", self, SSL_session_reused(ssl));
     return SSL_HANDSHAKE_SUCCESS;
   }
   if (r < 1) {
@@ -455,55 +457,55 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     
     switch(err) {
     case SSL_ERROR_NONE:
-      SPDY_LOG(@"SSL_ERROR_NONE");
+      SPDY_LOG(@"%p SSL_ERROR_NONE", self);
       break;
 
     case SSL_ERROR_ZERO_RETURN:
-      SPDY_LOG(@"SSL_ERROR_ZERO_RETURN");
+      SPDY_LOG(@"%p SSL_ERROR_ZERO_RETURN", self);
       break;
       
     case SSL_ERROR_WANT_READ:
-      //SPDY_LOG(@"SSL_ERROR_WANT_READ");
+      //SPDY_LOG(@"%p SSL_ERROR_WANT_READ", self);
       again = YES;
       break;
       
     case SSL_ERROR_WANT_WRITE:
-      SPDY_LOG(@"SSL_ERROR_WANT_WRITE");
+      SPDY_LOG(@"%p SSL_ERROR_WANT_WRITE", self);
       again = YES;
       break;
       
     case SSL_ERROR_WANT_CONNECT:
-      SPDY_LOG(@"SSL_ERROR_WANT_CONNECT");
+      SPDY_LOG(@"%p SSL_ERROR_WANT_CONNECT", self);
       again = YES;
       break;
       
     case SSL_ERROR_WANT_ACCEPT:
-      SPDY_LOG(@"SSL_ERROR_WANT_ACCEPT");
+      SPDY_LOG(@"%p SSL_ERROR_WANT_ACCEPT", self);
       again = YES;
       break;
       
     case SSL_ERROR_WANT_X509_LOOKUP:
-      SPDY_LOG(@"SSL_ERROR_WANT_X509_LOOKUP");
+      SPDY_LOG(@"%p SSL_ERROR_WANT_X509_LOOKUP", self);
       again = YES;
       break;
 
     case SSL_ERROR_SYSCALL:
-      SPDY_LOG(@"SSL_ERROR_SYSCALL");
+      SPDY_LOG(@"%p SSL_ERROR_SYSCALL", self);
       break;
 
     case SSL_ERROR_SSL:
-      SPDY_LOG(@"SSL_ERROR_SSL");
+      SPDY_LOG(@"%p SSL_ERROR_SSL", self);
       break;
     }
     if(r < 0 && !again) {
-      //SPDY_LOG(@"calling error callback");
+      //SPDY_LOG(@"%p calling error callback", self);
       self.connectState = kSpdyError;
       if (err == SSL_ERROR_SYSCALL)
 	[self connectionFailed:oldErrno domain:(NSString *)kCFErrorDomainPOSIX];
       else
 	[self connectionFailed:err domain:kOpenSSLErrorDomain];
     } else {
-      //SPDY_LOG(@"NOT calling error callback");
+      //SPDY_LOG(@"%p NOT calling error callback", self);
     }
     return again ? SSL_HANDSHAKE_NEED_TO_RETRY : -2;
   }
@@ -529,11 +531,11 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
 -(void)releaseStreams {
   if(self.readStream != NULL) {
-    SPDY_LOG(@"closing and releasing read stream"); 
+    SPDY_LOG(@"%p closing and releasing read stream", self); 
     CFReadStreamClose(self.readStream);
     CFRelease(self.readStream);
     self.readStream = NULL;
-    SPDY_LOG(@"done with read stream"); 
+    SPDY_LOG(@"%p done with read stream", self); 
   }
   if(self.writeStream != NULL) {
     CFWriteStreamClose(self.writeStream);
@@ -586,28 +588,28 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
  - (NSError *)connect:(NSURL *)h {
-  SPDY_LOG(@"connect:%@", h);
+  SPDY_LOG(@"%p connect:%@", self, h);
   self.host = h;
   return [self connectTo:h];
 }
 
 - (void)addStream:(SpdyStream *)stream {
-  SPDY_LOG(@"addStream:%p", stream);
+  SPDY_LOG(@"%p addStream:%p", self, stream);
   stream.parentSession = self;
   @synchronized(streams) {
     [streams addObject:stream];
   }
   if (self.connectState == kSpdyConnected) {
     if (![self submitRequest:stream]) {
-      SPDY_LOG(@"not able to submit request");
+      SPDY_LOG(@"%p not able to submit request", self);
       return;
     }
     int err = spdylay_session_send(self.session);
     if (err != 0) {
-      SPDY_LOG(@"Error (%d) sending data for %@", err, stream);
+      SPDY_LOG(@"%p Error (%d) sending data for %@", self, err, stream);
     }
   } else {
-    SPDY_LOG(@"Post-poning %@ until a connection has been established, current state %d", stream, self.connectState);
+    SPDY_LOG(@"%p Post-poning %@ until a connection has been established, current state %d", self, stream, self.connectState);
   }
 }
     
@@ -661,7 +663,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 	  sysError = errno;
       }
     }
-    SPDY_LOG(@"SSL Error %d, System error %d, retValue %d, closing connection", sslError, sysError, r);
+    SPDY_LOG(@"%p SSL Error %d, System error %d, retValue %d, closing connection", self, sslError, sysError, r);
     r = SPDYLAY_ERR_CALLBACK_FAILURE;
     [self connectionFailed:ECONNRESET domain:(NSString *)kCFErrorDomainPOSIX];
     //[self invalidateSocket];
@@ -673,7 +675,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len, int flags, void *user_data) {
-  //SPDY_LOG(@"recv_callback");
+  //SPDY_LOG(@"%p recv_callback", self);
   SpdySession *ss = (__bridge SpdySession *)user_data;
   int r = [ss recv_data:data len:len flags:flags];
   return [ss fixUpCallbackValue:r];
@@ -708,8 +710,6 @@ static ssize_t recv_callback(spdylay_session *session, uint8_t *data, size_t len
 }
 
 static ssize_t send_callback(spdylay_session *session, const uint8_t *data, size_t len, int flags, void *user_data) {
-  SPDY_LOG(@"send_callback (flags %d) (%zd bytes): %@", 
-	   flags, len, [[NSData alloc] initWithBytes:data length:len]);
   SPDY_LOG(@"send_callback (flags %d) (%zd bytes): %@", 
 	   flags, len, [SpdySession formatData:data length:len]);
 
@@ -832,39 +832,42 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 
 - (void)removeStream:(SpdyStream *)stream {
   @synchronized(streams) {
-    SPDY_LOG(@"removeStream:%p", stream);
+    SPDY_LOG(@"%p removeStream:%p", self, stream);
     [streams removeObject:stream];
     [pushStreams removeObjectForKey:STREAM_KEY(stream.streamId)];
-    SPDY_LOG(@"after removeStream, we have %lu streams", (unsigned long)streams.count);
+    SPDY_LOG(@"%p after removeStream, we have %lu streams", self, (unsigned long)streams.count);
   }
 }
 
 - (SpdySession *)init:(SSL_CTX *)ssl_context oldSession:(SSL_SESSION *)oldSession {
   self = [super init];
-  ssl_ctx = ssl_context;
-  oldSslSession = oldSession;
+  if(self) {
+    SPDY_LOG(@"%p init", self);
+    ssl_ctx = ssl_context;
+    oldSslSession = oldSession;
     
-  SSL_CTX_set_timeout(ssl_context, 1200);
+    SSL_CTX_set_timeout(ssl_context, 1200);
 
-  callbacks = malloc(sizeof(*callbacks));
-  memset(callbacks, 0, sizeof(*callbacks));
-  callbacks->send_callback = send_callback;
-  callbacks->recv_callback = recv_callback;
-  callbacks->on_stream_close_callback = on_stream_close_callback;
-  callbacks->on_ctrl_recv_callback = on_ctrl_recv_callback;
-  callbacks->before_ctrl_send_callback = before_ctrl_send_callback;
-  callbacks->on_data_chunk_recv_callback = on_data_chunk_recv_callback;
-  callbacks->on_ctrl_recv_parse_error_callback = on_ctrl_recv_parse_error_callback;
-  callbacks->on_unknown_ctrl_recv_callback = on_unknown_ctrl_recv_callback;
-  callbacks->on_invalid_ctrl_recv_callback = on_invalid_ctrl_recv_callback;
+    callbacks = malloc(sizeof(*callbacks));
+    memset(callbacks, 0, sizeof(*callbacks));
+    callbacks->send_callback = send_callback;
+    callbacks->recv_callback = recv_callback;
+    callbacks->on_stream_close_callback = on_stream_close_callback;
+    callbacks->on_ctrl_recv_callback = on_ctrl_recv_callback;
+    callbacks->before_ctrl_send_callback = before_ctrl_send_callback;
+    callbacks->on_data_chunk_recv_callback = on_data_chunk_recv_callback;
+    callbacks->on_ctrl_recv_parse_error_callback = on_ctrl_recv_parse_error_callback;
+    callbacks->on_unknown_ctrl_recv_callback = on_unknown_ctrl_recv_callback;
+    callbacks->on_invalid_ctrl_recv_callback = on_invalid_ctrl_recv_callback;
 
-  session = NULL;
-  self.spdyNegotiated = NO;
-  self.spdyVersion = -1;
-  self.connectState = kSpdyNotConnected;
+    session = NULL;
+    self.spdyNegotiated = NO;
+    self.spdyVersion = -1;
+    self.connectState = kSpdyNotConnected;
     
-  streams = [[NSMutableSet alloc] init];
-  pushStreams = [[NSMutableDictionary alloc] init];
+    streams = [[NSMutableSet alloc] init];
+    pushStreams = [[NSMutableDictionary alloc] init];
+  }
   return self;
 }
  
@@ -880,7 +883,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   if(ret == 0)
     spdylay_session_send(session);
 
-  SPDY_LOG(@"sendPing w/ session %p returning %d", session, ret);
+  SPDY_LOG(@"%p sendPing w/ session %p returning %d", self, session, ret);
   return ret;
 }
 
@@ -953,21 +956,21 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   self.lastCallbackTime = [NSDate date];
 
   if (self.connectState == kSpdyConnecting) {
-    SPDY_LOG(@"Connected");
+    SPDY_LOG(@"%p Connected", self);
     self.connectState = kSpdySslHandshake;
     [self maybeEnableVoip];
     if (![self sslConnect]) {
-      SPDY_LOG(@"ssl connect failed");
+      SPDY_LOG(@"%p ssl connect failed", self);
       return NO;
     }
   }
   if (self.connectState == kSpdySslHandshake) {
-    //SPDY_LOG(@"doing ssl handshake");
+    //SPDY_LOG(@"doing ssl handshake", self);
     if(![self sslHandshakeWrapper]) {
-      //SPDY_LOG(@"ssl handshake failed");
+      //SPDY_LOG(@"ssl handshake failed", self);
       return NO;
     } else {
-      SPDY_LOG(@"ssl handshake succeeded");
+      SPDY_LOG(@"%p ssl handshake succeeded", self);
     }
   }
   return YES;
@@ -977,7 +980,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   if([self sessionConnect]) {
     spdylay_session *laySession = [self session];
     if(laySession == NULL) {
-      SPDY_LOG(@"spdylay session is null!!");
+      SPDY_LOG(@"%p spdylay session is null!!", self);
     } else {
       spdylay_session_recv(laySession);
     }
@@ -988,7 +991,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   if([self sessionConnect]) {
     spdylay_session *laySession = [self session];
     if(laySession == NULL) {
-      SPDY_LOG(@"spdylay session is null!!");
+      SPDY_LOG(@"%p spdylay session is null!!", self);
     } else {
       size_t outbound_queue_size = 
 	spdylay_session_get_outbound_queue_size(laySession);
@@ -996,7 +999,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
       if(outbound_queue_size > 0) {
 	int err = spdylay_session_send(laySession);
 	if (err != 0) {
-	  SPDY_LOG(@"Error writing data in write callback for session %@", session);
+	  SPDY_LOG(@"%p Error writing data in write callback for session %@", self, session);
 	}
       } else if(write_source != NULL) {
 	// disable write interest when outbound queue is empty (otherwise we loop)
