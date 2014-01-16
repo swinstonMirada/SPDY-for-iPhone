@@ -66,6 +66,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
   SpdyNetworkStatus newStatus = [SPDY networkStatusForReachabilityFlags:newState];
 
   SpdyNetworkStatus oldStatus = networkStatus;
+  [self setNetworkStatus:newStatus];
 
   SPDY_LOG(@"reachabilityChanged: old %@ new %@", [SPDY networkStatusString:oldStatus], [SPDY networkStatusString:newStatus]);
 
@@ -114,7 +115,6 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
   } else {
     SPDY_LOG(@"ignoring reachability state change: (%d => %d)", oldStatus, newStatus);
   }
-  [self setNetworkStatus:newStatus];
       
   // XXX ignored here is the case where we were on wwan, and are now on wifi,
   // but WWAN is no longer available.  In this case, we really should switch 
@@ -613,11 +613,13 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     SPDY_LOG(@"tried to send a ping while we were connecting, not doing it");
   } else if(super.connectState == kSpdyConnectStateConnecting || 
             super.connectState == kSpdyConnectStateSslHandshake) {
-    SPDY_LOG(@"tried to send a ping with connectState %d, not gonna do it", super.connectState);
-  } else {
-    SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_is_invalid %d or super.connectState %d != %d", stream_is_invalid, super.connectState, kSpdyConnectStateConnected);
+    SPDY_LOG(@"tried to send a ping with connectState %@, not gonna do it", [SPDY connectionStateString:super.connectState]);
+  } else  if(networkStatus != kSpdyNetworkStatusNotReachable) {
+    SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_is_invalid %d or super.connectState %@ != %@", stream_is_invalid, [SPDY connectionStateString:super.connectState], [SPDY connectionStateString:kSpdyConnectStateConnected]);
     [super teardown];
     [self scheduleRecoverableReconnect:@"NOT SENDING PING"];
+  } else {
+    SPDY_LOG(@"not sending ping when the network is not reachable");
   }
 }
 
