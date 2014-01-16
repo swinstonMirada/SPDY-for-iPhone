@@ -462,6 +462,28 @@ static int select_next_proto_cb(SSL *ssl,
     [SpdyUrlConnection unregister];
 }
 
+
++(NSString*)connectionStateString:(SpdyConnectState) state {
+    switch(state) {
+    case kSpdyNotConnected:
+      return @"NotConnected";
+    case kSpdyConnecting:
+      return @"Connecting";
+    case kSpdySslHandshake:
+      return @"SslHandshake";
+    case kSpdyConnected:
+      return @"Connected";
+    case kSpdyError:
+      return @"Error";
+    case kSpdyGoAwaySubmitted:
+      return @"Sent GoAway";
+    case kSpdyGoAwayReceived:
+      return @"Got GoAway";
+    default:
+      return @"Unknown";
+    }
+}
+
 +(NSString*)radioAccessString:(SpdyRadioAccessTechnology)status {
   switch(status) {
   case SpdyRadioAccessTechnologyNone:
@@ -507,7 +529,7 @@ static int select_next_proto_cb(SSL *ssl,
   }
 }
 
-+(NSString*)connStatusString:(SpdyNetworkStatus)status {
++(NSString*)networkStatusString:(SpdyNetworkStatus)status {
   NSString * label = @"Unknown";
 
   switch(status) {
