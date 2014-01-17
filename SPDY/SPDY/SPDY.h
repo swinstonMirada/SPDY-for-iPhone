@@ -69,6 +69,10 @@ typedef void (^SpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
 typedef void (^SpdyErrorCallback)(NSError*);
 typedef void (^SpdyVoidCallback)();
 typedef void (^SpdyIntCallback)(int);
+typedef void (^SpdyNetworkStatusCallback)(SpdyNetworkStatus);
+typedef void (^SpdyConnectStateCallback)(SpdyConnectState);
+typedef void (^SpdyRadioAccessTechnologyCallback)(SpdyRadioAccessTechnology);
+typedef void (^SpdyReachabilityCallback)(SCNetworkReachabilityFlags);
 typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
 
 // Returns a CFReadStream.  If requestBody is non-NULL the request method in requestHeaders must
