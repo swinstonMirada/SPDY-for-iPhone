@@ -1,4 +1,4 @@
-#import "SpdyPersistentUrl.h"
+#import "SpdyPersistentRequest.h"
 #import "SpdyRequest+Private.h"
 #import <SystemConfiguration/SystemConfiguration.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
@@ -9,7 +9,7 @@
 
 static NSDictionary * radioAccessMap = nil;
 
-@implementation SpdyPersistentUrl {
+@implementation SpdyPersistentRequest {
   SpdyTimer * pingTimer;
   SpdyTimer * retryTimer;
   BOOL stream_is_invalid;
@@ -125,13 +125,13 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 {
 #pragma unused (target, flags)
   NSCAssert(info != NULL, @"info was NULL in ReachabilityCallback");
-  NSCAssert([(__bridge NSObject*) info isKindOfClass: [SpdyPersistentUrl class]], @"info was wrong class in ReachabilityCallback");
+  NSCAssert([(__bridge NSObject*) info isKindOfClass: [SpdyPersistentRequest class]], @"info was wrong class in ReachabilityCallback");
 
   //We're on the main RunLoop, so an NSAutoreleasePool is not necessary, but is added defensively
   // in case someone uses the Reachablity object in a different thread.
   @autoreleasepool {
 	
-    SpdyPersistentUrl* self = (__bridge SpdyPersistentUrl*) info;
+    SpdyPersistentRequest* self = (__bridge SpdyPersistentRequest*) info;
     [self reachabilityChanged:flags];
     // Post a notification to notify the client that the network reachability changed.
     //[[NSNotificationCenter defaultCenter] postNotificationName: kReachabilityChangedNotification object: noteObject];
@@ -661,7 +661,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 #define DONT_CALL_ME(var,callbackType)                                  \
 -(void)var:(callbackType)callback {                                     \
   [NSException raise:@"InvalidOperation"                                \
-               format:@"cannot call %s on a SpdyPersistentUrl", #var];  \
+               format:@"cannot call %s on a SpdyPersistentRequest", #var];  \
 }                                                                       \
 
 DONT_CALL_ME(setStreamCloseCallback,SpdyVoidCallback);
@@ -724,7 +724,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
   }
   [self resetState];
   super.voip = YES;
-  SpdyPersistentUrl * __weak weak_self = self;
+  SpdyPersistentRequest * __weak weak_self = self;
   super.errorCallback = ^(NSError * error) {
     SPDY_LOG(@"errorCallback");
 #ifdef CONF_Debug

@@ -22,7 +22,7 @@
  * the fatalErrorCallback is instead invoked.  
  */
 
-@interface SpdyPersistentUrl : SpdyRequest 
+@interface SpdyPersistentRequest : SpdyRequest 
 
 - (id)initWithGETString:(NSString *)url;
 
