@@ -71,9 +71,9 @@
 @property (nonatomic, copy) SpdyVoidCallback connectCallback;
 
 /* these are for debugging */
-@property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
+@property (nonatomic, copy) SpdyNetworkStatusCallback networkStatusCallback;
 
-@property (nonatomic, copy) SpdyIntCallback connectionStateCallback;
+@property (nonatomic, copy) SpdyConnectStateCallback connectionStateCallback;
 
 @property (nonatomic, copy) SpdyIntCallback readCallback;
 

@@ -50,11 +50,9 @@
 /* called on initial connection */
 @property (nonatomic, copy) SpdyVoidCallback connectCallback;
 
-@property (nonatomic, copy) SpdyIntCallback reachabilityCallback;
+@property (nonatomic, copy) SpdyReachabilityCallback reachabilityCallback;
 
-@property (nonatomic, copy) SpdyIntCallback networkStatusCallback;
-
-@property (nonatomic, copy) SpdyIntCallback radioAccessCallback;
+@property (nonatomic, copy) SpdyRadioAccessTechnologyCallback radioAccessCallback;
 
 @property (nonatomic, assign) BOOL dontReconnect;
 
