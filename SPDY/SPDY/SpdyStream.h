@@ -56,7 +56,7 @@
 @property (strong, nonatomic) SpdyCallback *delegate;
 @property (strong, nonatomic) NSInputStream *body;
 @property (assign, nonatomic) NSInteger streamId;
-@property (strong, nonatomic) SpdySession *parentSession;
+@property (weak, nonatomic) SpdySession *parentSession;
 
 // If a stream is closed after the timeout the session should probably be closed.
 @property (assign, nonatomic) NSTimeInterval streamTimeoutInterval;
