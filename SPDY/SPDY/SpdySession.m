@@ -342,13 +342,14 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (void)cancelStream:(SpdyStream *)stream {
-    // Do not remove the stream here as it will be removed on the close callback when spdylay is done with the object.
-    [self _cancelStream:stream];
-    if ([[NSDate date] compare:[self.lastCallbackTime dateByAddingTimeInterval:stream.streamTimeoutInterval]] == NSOrderedDescending)
-        SPDY_LOG(@"%p Stream %@ timed out, timeout set at %fs", self, stream, stream.streamTimeoutInterval);
+  // Do not remove the stream here as it will be removed on the close callback when spdylay is done with the object.
+  [self _cancelStream:stream];
+  if ([[NSDate date] compare:[self.lastCallbackTime dateByAddingTimeInterval:stream.streamTimeoutInterval]] == NSOrderedDescending)
+    SPDY_LOG(@"%p Stream %@ timed out, timeout set at %fs", self, stream, stream.streamTimeoutInterval);
 }
 
 - (NSInteger)resetStreamsAndGoAway {
+  SPDY_LOG(@"%p resetStreamsAndGoAway", self);
   @synchronized(streams) {
     NSInteger cancelledStreams = [streams count];
     for (SpdyStream *stream in streams) {
@@ -356,6 +357,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     }
     self.connectState = kSpdyConnectStateGoAwaySubmitted;
     if (session != nil) {
+      SPDY_LOG(@"%p submitting goaway", self);
       spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
       spdylay_session_send(session);
     }
@@ -587,7 +589,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   return [self sslHandshakeWrapper];
 }
 
- - (NSError *)connect:(NSURL *)h {
+- (NSError *)connect:(NSURL *)h {
   SPDY_LOG(@"%p connect:%@", self, h);
   self.host = h;
   return [self connectTo:h];
@@ -668,7 +670,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       }
     }
     SPDY_LOG(@"%p SSL Error %d, System error %d, retValue %d, closing connection", self, sslError, sysError, r);
-    SPDY_LOG(@"%p on SSL ERROR, we have %lu streams", self, (unsigned long)streams.count);
+    SPDY_LOG(@"%p on SSL ERROR, we have %lu streams and connect state %@", self, (unsigned long)streams.count, [SPDY connectionStateString:self.connectState]);
     r = SPDYLAY_ERR_CALLBACK_FAILURE;
     [self connectionFailed:ECONNRESET domain:(NSString *)kCFErrorDomainPOSIX];
     //[self invalidateSocket];
@@ -876,7 +878,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   return self;
 }
  
- - (int)sendPingWithCallback:(void (^)())callback {
+- (int)sendPingWithCallback:(void (^)())callback {
   pingCallback = callback;
   return [self sendPing];
 }
@@ -892,18 +894,21 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   return ret;
 }
 
- - (void)onPingReceived {
+- (void)onPingReceived {
   if(pingCallback != nil) 
     pingCallback();
 }
 
 - (void)onGoAwayReceived {
+  SPDY_LOG(@"%p onGoAwayReceived", self);
   self.connectState = kSpdyConnectStateGoAwayReceived;
+  [self invalidateSocket];
 }
 
- - (void)dealloc {
-  SPDY_LOG(@"%p dealloc", self);
+- (void)dealloc {
+  SPDY_LOG(@"%p session dealloc", self);
   if (session != NULL) {
+    SPDY_LOG(@"%p submitting goaway", self);
     self.connectState = kSpdyConnectStateGoAwaySubmitted;
     spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
     spdylay_session_del(session);
@@ -917,11 +922,11 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   free(callbacks);
 }
 
- - (NSString *)description {
+- (NSString *)description {
   return [NSString stringWithFormat:@"%@ host: %@, spdyVersion=%d, state=%d, networkStatus: %d", [super description], host, self.spdyVersion, self.connectState, self.networkStatus];
 }
 
- -(void)maybeEnableVoip {
+-(void)maybeEnableVoip {
   if(self.voip) {
     // these streams are only used for wakeup, all acutal i/o 
     // happens via the socket and openssl.
@@ -955,7 +960,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
       [self sendVoipError];
     }
   }
- }
+}
 
 -(BOOL)sessionConnect {
   self.lastCallbackTime = [NSDate date];

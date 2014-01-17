@@ -131,7 +131,7 @@ static int select_next_proto_cb(SSL *ssl,
 -(SSL_SESSION *)resetSession:(SpdySession*)session  withKey:(SpdySessionKey*)key {
   [session resetStreamsAndGoAway];
   SSL_SESSION * oldSslSession = [session getSslSession];
-  SPDY_LOG(@"removing session object for key %@", key);
+  SPDY_LOG(@"removing session object (%p) for key %@", self, key);
   [self.sessions removeObjectForKey:key];
   SPDY_LOG(@"after remove we have %lu sessions", (unsigned long)self.sessions.count);
   return oldSslSession;
@@ -156,7 +156,7 @@ static int select_next_proto_cb(SSL *ssl,
 			 (currentStatus != session.networkStatus &&
 			  !(session.networkStatus == kSpdyNetworkStatusReachableViaWWAN && 
 			    currentStatus == kSpdyNetworkStatusReachableViaWiFi)))) {
-    SPDY_LOG(@"Resetting %@ because invalid: %i or %d != %d", session, [session isInvalid], currentStatus, session.networkStatus);
+    SPDY_LOG(@"Resetting %@ because invalid: %i or %@ != %@", session, [session isInvalid], [SPDY networkStatusString:currentStatus], [SPDY networkStatusString:session.networkStatus]);
     oldSslSession = [self resetSession:session withKey:key];
     oldSpdySession = session;
     session = nil;
