@@ -72,35 +72,45 @@
 
 -(void)send {
   void (^block)() = ^{
-    SpdySession * session = nil;
     if(ns_url_request == nil) {
-      session = [[SPDY sharedSPDY] fetch:urlString delegate:delegate voip:_voip];
+      _session = [[SPDY sharedSPDY] fetch:urlString delegate:delegate voip:_voip];
     } else {
-      session = [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
+      _session = [[SPDY sharedSPDY] fetchFromRequest:ns_url_request delegate:delegate voip:_voip];
     }
-    SPDY_LOG(@"sending w/ self.connectionStateCallback %@ self.readCallback %@ self.writeCallback %@", self.connectionStateCallback, self.readCallback, self.writeCallback);
-    if(self.connectionStateCallback != nil) {
-      session.connectionStateCallback = ^(int arg) {	
-        SPDY_LOG(@"%p _isConnecting = NO;", self);
-        _isConnecting = NO;
-	__spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(arg); });
-      };
-      __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(session.connectState); });
+    SPDY_LOG(@"sending w/ self.connectionStateCallback %@ self.readCallback %@ self.writeCallback %@ and session %p", self.connectionStateCallback, self.readCallback, self.writeCallback, _session);
+    if(_session == nil) {
+      SPDY_LOG(@"session is nil, can't send");
     } else {
-      session.connectionStateCallback = ^(int arg) {	
-        SPDY_LOG(@"%p _isConnecting = NO;", self);
-        _isConnecting = NO;
-      };
-    }
-    if(self.readCallback != nil) {
-      session.readCallback = ^(int arg) {
-	__spdy_dispatchAsyncOnMainThread(^{ self.readCallback(arg); });
-      };
-    }
-    if(self.writeCallback != nil) {
-      session.writeCallback = ^(int arg) {
-	__spdy_dispatchAsyncOnMainThread(^{ self.writeCallback(arg); });
-      };
+      SPDY_LOG(@"connectionStateCallback is %@", self.connectionStateCallback);
+      if(self.connectionStateCallback != nil) {
+        _session.connectionStateCallback = ^(SpdySession * session_, SpdyConnectState arg) {
+          SPDY_LOG(@"%p _isConnecting = NO;", self);
+          _isConnecting = NO;
+          __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(session_, arg); });
+        };
+        __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(_session, _session.connectState); });
+      } else {
+        _session.connectionStateCallback = ^(SpdySession * session, SpdyConnectState arg) {
+          SPDY_LOG(@"%p _isConnecting = NO;", self);
+          _isConnecting = NO;
+        };
+      }
+      if(self.readCallback != nil) {
+        _session.readCallback = ^(int arg) {
+          __spdy_dispatchAsyncOnMainThread(^{ self.readCallback(arg); });
+        };
+      }
+      if(self.writeCallback != nil) {
+        _session.writeCallback = ^(int arg) {
+          __spdy_dispatchAsyncOnMainThread(^{ self.writeCallback(arg); });
+        };
+      }
+      if(self.networkStatusCallback != nil) {
+        _session.networkStatusCallback = ^(SpdyNetworkStatus arg) {
+          __spdy_dispatchAsyncOnMainThread(^{ self.networkStatusCallback(arg); });
+        };
+        _session.networkStatusCallback(_session.networkStatus);
+      }
     }
   };
   SPDY_LOG(@"%p _isConnecting = YES;", self);

@@ -87,6 +87,8 @@
 // connection state to kSpdyConnecting
 @property (nonatomic, readonly) BOOL isConnecting;
 
+@property (nonatomic, weak) SpdySession * session;
+
 // called before a reconnect
 -(void)clearConnectionStatus;
 
