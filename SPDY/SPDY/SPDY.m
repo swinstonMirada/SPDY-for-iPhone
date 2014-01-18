@@ -180,6 +180,9 @@ static int select_next_proto_cb(SSL *ssl,
     SPDY_LOG(@"Adding %@ to sessions (size = %lu)", key, (unsigned long)([self.sessions count] + 1));
     currentStatus = [self.class reachabilityStatusForHost:key.host];
     session.networkStatus = currentStatus;
+    if(session.networkStatusCallback != NULL) 
+      session.networkStatusCallback(currentStatus);
+
     [self.sessions setObject:session forKey:key];
     SPDY_LOG(@"self.sessions has %lu elements", (unsigned long)self.sessions.count);
   } else {
