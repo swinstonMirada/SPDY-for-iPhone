@@ -14,20 +14,11 @@ static NSDictionary * radioAccessMap = nil;
   SpdyTimer * retryTimer;
   BOOL stream_is_invalid;
   SCNetworkReachabilityRef reachabilityRef;
-  SpdyNetworkStatus networkStatus; // XXX not the same as self.networkStatus
+  SCNetworkReachabilityFlags currentReachability;
   SpdyRadioAccessTechnology radioAccessTechnology;
   int num_reconnects;
   NSDictionary * errorDict;
   id radioAccessObserver;
-}
-
--(void)setNetworkStatus:(SpdyNetworkStatus) _networkStatus {
-  networkStatus = _networkStatus;
-  if(super.networkStatusCallback != NULL) {
-    __spdy_dispatchAsyncOnMainThread(^{
-				       super.networkStatusCallback(networkStatus);
-				     });
-  }
 }
 
 static NSString * reachabilityString(SCNetworkReachabilityFlags    flags) {
@@ -55,6 +46,12 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)newState {
 
+  SpdyNetworkStatus newStatus = [SPDY networkStatusForReachabilityFlags:newState];
+
+  SpdyNetworkStatus oldStatus = [SPDY networkStatusForReachabilityFlags:currentReachability];
+
+  currentReachability = newState;
+
   if(self.reachabilityCallback != NULL) {
     __spdy_dispatchAsyncOnMainThread(^{
 				       self.reachabilityCallback(newState);
@@ -62,11 +59,6 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
   }
 
   PrintReachabilityFlags(newState);
-
-  SpdyNetworkStatus newStatus = [SPDY networkStatusForReachabilityFlags:newState];
-
-  SpdyNetworkStatus oldStatus = networkStatus;
-  [self setNetworkStatus:newStatus];
 
   SPDY_LOG(@"reachabilityChanged: old %@ new %@", [SPDY networkStatusString:oldStatus], [SPDY networkStatusString:newStatus]);
 
@@ -153,9 +145,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     reachabilityRef = SCNetworkReachabilityCreateWithName(NULL, host);
 
     SCNetworkReachabilityFlags flags = 0;
-    if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) {
-      [self setNetworkStatus:[SPDY networkStatusForReachabilityFlags:flags]];
-    }
+    if (SCNetworkReachabilityGetFlags(reachabilityRef, &flags)) 
+      currentReachability = flags;
 
     SCNetworkReachabilityContext context = {0, (__bridge void *)(self), NULL, NULL, NULL};
     SPDY_LOG(@"reachabilityRef %p", reachabilityRef);
@@ -416,8 +407,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 -(void)reconnect {
   // here we do reconnect logic
   SpdyConnectState currentConnectionState = super.connectState;
-  SpdyNetworkStatus currentNetworkStatus = networkStatus;
-  SPDY_LOG(@"reconnect: connectState %@ networkStatus %@", [SPDY connectionStateString:currentConnectionState], [SPDY networkStatusString:currentNetworkStatus]);
+  SpdyNetworkStatus currentNetworkStatus = [SPDY networkStatusForReachabilityFlags:currentReachability];
+  SPDY_LOG(@"reconnect: connectState %@ network reachability status %@", [SPDY connectionStateString:currentConnectionState], [SPDY networkStatusString:currentNetworkStatus]);
 
   if(currentNetworkStatus == kSpdyNetworkStatusNotReachable) {
     SPDY_LOG(@"not reachable");
@@ -500,9 +491,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
   [super clearConnectionStatus];
 
-  SPDY_LOG(@"scheduleReconnectWithInitialInterval:%lf factor:%lf num_reconnects %d network status %@", retry_interval, factor, num_reconnects, [SPDY networkStatusString:networkStatus]);
+  SpdyNetworkStatus currentNetworkStatus = [SPDY networkStatusForReachabilityFlags:currentReachability];
 
-  if(networkStatus == kSpdyNetworkStatusNotReachable) {
+  SPDY_LOG(@"scheduleReconnectWithInitialInterval:%lf factor:%lf num_reconnects %d network status %@", retry_interval, factor, num_reconnects, [SPDY networkStatusString:currentNetworkStatus]);
+
+  if(currentNetworkStatus == kSpdyNetworkStatusNotReachable) {
     SPDY_LOG(@"NOT scheduling reconnect because the network is not reachable now");
     return;
   }
@@ -614,7 +607,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   } else if(super.connectState == kSpdyConnectStateConnecting || 
             super.connectState == kSpdyConnectStateSslHandshake) {
     SPDY_LOG(@"tried to send a ping with connectState %@, not gonna do it", [SPDY connectionStateString:super.connectState]);
-  } else  if(networkStatus != kSpdyNetworkStatusNotReachable) {
+  } else if([SPDY networkStatusForReachabilityFlags:currentReachability] != kSpdyNetworkStatusNotReachable) {
     SPDY_LOG(@"resetting connecting and instead of sending a ping because stream_is_invalid %d or super.connectState %@ != %@", stream_is_invalid, [SPDY connectionStateString:super.connectState], [SPDY connectionStateString:kSpdyConnectStateConnected]);
     [super teardown];
     [self scheduleRecoverableReconnect:@"NOT SENDING PING"];
@@ -636,18 +629,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   return -1;
 }
 
--(void)updateNetworkStatus {
-  SCNetworkReachabilityFlags flags = [self reachabilityFlags];
-  SPDY_LOG(@"updateNetworkStatus");
-  PrintReachabilityFlags(flags);
-  if(flags != -1)
-    [self setNetworkStatus:[SPDY networkStatusForReachabilityFlags:flags]];
-}
-
 -(void)streamWasConnected {
   // notice our reachability status, assume that this is how we are connected.
-
-  [self updateNetworkStatus];
 
   SPDY_LOG(@"stream was connected");
 
