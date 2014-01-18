@@ -42,9 +42,6 @@ typedef enum {
   kSpdyNetworkStatusHostNotFound
 } SpdyNetworkStatus;
 
-#define SPDY_NOT_REACHABLE(status)              \
-  (status == kSpdyNetworkStatusNotReachable
-
 typedef enum {
   SpdyRadioAccessTechnologyNone = 0,
   SpdyRadioAccessTechnologyUnknown,
@@ -70,7 +67,7 @@ typedef void (^SpdyErrorCallback)(NSError*);
 typedef void (^SpdyVoidCallback)();
 typedef void (^SpdyIntCallback)(int);
 typedef void (^SpdyNetworkStatusCallback)(SpdyNetworkStatus);
-typedef void (^SpdyConnectStateCallback)(SpdyConnectState);
+typedef void (^SpdyConnectStateCallback)(SpdySession *, SpdyConnectState);
 typedef void (^SpdyRadioAccessTechnologyCallback)(SpdyRadioAccessTechnology);
 typedef void (^SpdyReachabilityCallback)(SCNetworkReachabilityFlags);
 typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
