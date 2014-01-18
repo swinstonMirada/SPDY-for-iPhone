@@ -88,7 +88,7 @@
 }
 
 - (void)onStreamClose {
-  SPDY_LOG(@"onStreamClose");
+  SPDY_LOG(@"onStreamClose headers %@ body %@", self.headers, self.body);
   if(self.headers != NULL && self.body != NULL) {
     SPDY_LOG(@"doing response callback");
     CFHTTPMessageSetBody(self.headers, self.body);
