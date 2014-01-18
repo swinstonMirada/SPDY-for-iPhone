@@ -76,11 +76,7 @@ static const int priority = 1;
 
 
 @implementation SpdySession {
-  struct spdylay_session *session;
     
-  BOOL spdyNegotiated;
-  SpdyConnectState connectState;
-  SpdyNetworkStatus networkStatus;
   void (^pingCallback)();
 
   NSMutableSet *streams;
@@ -99,6 +95,8 @@ static const int priority = 1;
   dispatch_source_t write_source;
 
   BOOL write_source_enabled;
+
+  SpdyConnectState connectState;
 }
 
 -(id)init {
@@ -110,13 +108,6 @@ static const int priority = 1;
   return self;
 }
 
-@synthesize spdyNegotiated;
-@synthesize spdyVersion;
-@synthesize session;
-@synthesize host;
-@synthesize voip;
-@synthesize networkStatus;
-
 -(SpdyConnectState)connectState {
   return connectState;
 }
@@ -125,7 +116,7 @@ static const int priority = 1;
   connectState = state;
   SPDY_LOG(@"%p self.connectionStateCallback is %@", self, self.connectionStateCallback);
   if(self.connectionStateCallback != NULL)
-    self.connectionStateCallback(state);
+    self.connectionStateCallback(self, state);
 }
 
 - (SpdyStream*)pushStreamForId:(int32_t)stream_id {
@@ -133,15 +124,17 @@ static const int priority = 1;
 }
 
 - (void)invalidateSocket {
-  if (socket == nil)
-    return;
 
   SPDY_LOG(@"%p invalidateSocket", self);
 
   self.connectState = kSpdyConnectStateNotConnected;
+  if(self.networkStatusCallback != NULL)
+    self.networkStatusCallback(kSpdyNetworkStatusNotReachable);
 
-  CFSocketInvalidate(socket);
-  CFRelease(socket);
+  if (socket != nil) {
+    CFSocketInvalidate(socket);
+    CFRelease(socket);
+  } 
   [self releaseStreams];
   [self releaseDispatchSources];
   socket = nil;
@@ -356,10 +349,10 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       [self _cancelStream:stream];
     }
     self.connectState = kSpdyConnectStateGoAwaySubmitted;
-    if (session != nil) {
+    if (_session != nil) {
       SPDY_LOG(@"%p submitting goaway", self);
-      spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
-      spdylay_session_send(session);
+      spdylay_submit_goaway(_session, SPDYLAY_GOAWAY_OK);
+      spdylay_session_send(_session);
     }
     return cancelledStreams;
   }
@@ -389,7 +382,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     data_prd.source.ptr = (__bridge void *)(stream.body);
     data_prd.read_callback = read_from_data_callback;
   }
-  if (spdylay_submit_request(session, priority, [stream nameValues], &data_prd, (__bridge void *)(stream)) < 0) {
+  if (spdylay_submit_request(_session, priority, [stream nameValues], &data_prd, (__bridge void *)(stream)) < 0) {
     SPDY_LOG(@"%p Failed to submit request for %@", self, stream);
     [stream connectionError];
     return NO;
@@ -417,7 +410,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     [connectionTimer invalidate];
     connectionTimer = nil;
 
-    spdylay_session_client_new(&session, self.spdyVersion, callbacks, (__bridge void *)(self));
+    spdylay_session_client_new(&_session, self.spdyVersion, callbacks, (__bridge void *)(self));
 
     @synchronized(streams) {
       NSEnumerator *enumerator = [streams objectEnumerator];
@@ -515,7 +508,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 -(void)releaseDispatchSources {
-  if(!write_source_enabled) {
+  if(write_source != NULL && !write_source_enabled) {
     // if we cancel a suspended dispatch source, badness ensues
     dispatch_resume(write_source);
     write_source_enabled = YES;
@@ -607,7 +600,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
       SPDY_LOG(@"%p not able to submit request", self);
       return;
     }
-    int err = spdylay_session_send(self.session);
+    int err = spdylay_session_send(_session);
     if (err != 0) {
       SPDY_LOG(@"%p Error (%d) sending data for %@", self, err, stream);
     }
@@ -867,7 +860,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
     callbacks->on_unknown_ctrl_recv_callback = on_unknown_ctrl_recv_callback;
     callbacks->on_invalid_ctrl_recv_callback = on_invalid_ctrl_recv_callback;
 
-    session = NULL;
+    _session = NULL;
     self.spdyNegotiated = NO;
     self.spdyVersion = -1;
     self.connectState = kSpdyConnectStateNotConnected;
@@ -885,12 +878,12 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 
 - (int)sendPing {
   int ret = -1;
-  if (session != NULL) 
-    ret = spdylay_submit_ping(session);
+  if (_session != NULL) 
+    ret = spdylay_submit_ping(_session);
   if(ret == 0)
-    spdylay_session_send(session);
+    spdylay_session_send(_session);
 
-  SPDY_LOG(@"%p sendPing w/ session %p returning %d", self, session, ret);
+  SPDY_LOG(@"%p sendPing w/ session %p returning %d", self, _session, ret);
   return ret;
 }
 
@@ -907,12 +900,12 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 
 - (void)dealloc {
   SPDY_LOG(@"%p session dealloc", self);
-  if (session != NULL) {
+  if (_session != NULL) {
     SPDY_LOG(@"%p submitting goaway", self);
     self.connectState = kSpdyConnectStateGoAwaySubmitted;
-    spdylay_submit_goaway(session, SPDYLAY_GOAWAY_OK);
-    spdylay_session_del(session);
-    session = NULL;
+    spdylay_submit_goaway(_session, SPDYLAY_GOAWAY_OK);
+    spdylay_session_del(_session);
+    _session = NULL;
   }
   if (ssl != NULL) {
     SSL_shutdown(ssl);
@@ -923,7 +916,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"%@ host: %@, spdyVersion=%d, state=%d, networkStatus: %d", [super description], host, self.spdyVersion, self.connectState, self.networkStatus];
+  return [NSString stringWithFormat:@"%@ host: %@, spdyVersion=%d, state=%d, networkStatus: %d", [super description], _host, self.spdyVersion, self.connectState, self.networkStatus];
 }
 
 -(void)maybeEnableVoip {
@@ -1009,7 +1002,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
       if(outbound_queue_size > 0) {
 	int err = spdylay_session_send(laySession);
 	if (err != 0) {
-	  SPDY_LOG(@"%p Error writing data in write callback for session %@", self, session);
+	  SPDY_LOG(@"%p Error writing data in write callback for session %@", self, _session);
 	}
       } else if(write_source != NULL) {
 	// disable write interest when outbound queue is empty (otherwise we loop)

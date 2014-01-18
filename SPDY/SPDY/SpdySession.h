@@ -39,7 +39,8 @@ struct spdylay_session;
 @property (assign) SpdyNetworkStatus networkStatus;
 
 // these are intended for debugging
-@property (nonatomic,copy) SpdyIntCallback connectionStateCallback;
+@property (nonatomic,copy) SpdyConnectStateCallback connectionStateCallback;
+@property (nonatomic,copy) SpdyNetworkStatusCallback networkStatusCallback;
 @property (nonatomic,copy) SpdyIntCallback writeCallback;
 @property (nonatomic,copy) SpdyIntCallback readCallback;
 
