@@ -67,7 +67,7 @@ typedef void (^SpdyErrorCallback)(NSError*);
 typedef void (^SpdyVoidCallback)();
 typedef void (^SpdyIntCallback)(int);
 typedef void (^SpdyNetworkStatusCallback)(SpdyNetworkStatus);
-typedef void (^SpdyConnectStateCallback)(SpdySession *, SpdyConnectState);
+typedef void (^SpdyConnectStateCallback)(NSString *, SpdyConnectState);
 typedef void (^SpdyRadioAccessTechnologyCallback)(SpdyRadioAccessTechnology);
 typedef void (^SpdyReachabilityCallback)(SCNetworkReachabilityFlags);
 typedef void (^SpdyTimeIntervalCallback)(NSTimeInterval);
@@ -193,3 +193,6 @@ enum SpdyErrors {
 #define SPDY_DEBUG_LOG(fmt, ...) { }
 
 #endif
+
+#define SPDY_SESSION_STATE_KEY(session) [[NSString alloc] initWithFormat:@"%p", session]
+

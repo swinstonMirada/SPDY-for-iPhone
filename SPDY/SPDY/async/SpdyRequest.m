@@ -83,14 +83,14 @@
     } else {
       SPDY_LOG(@"connectionStateCallback is %@", self.connectionStateCallback);
       if(self.connectionStateCallback != nil) {
-        _session.connectionStateCallback = ^(SpdySession * session_, SpdyConnectState arg) {
+        _session.connectionStateCallback = ^(NSString * session_, SpdyConnectState arg) {
           SPDY_LOG(@"%p _isConnecting = NO;", self);
           _isConnecting = NO;
           __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(session_, arg); });
         };
-        __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(_session, _session.connectState); });
+        __spdy_dispatchAsyncOnMainThread(^{ self.connectionStateCallback(SPDY_SESSION_STATE_KEY(_session), _session.connectState); });
       } else {
-        _session.connectionStateCallback = ^(SpdySession * session, SpdyConnectState arg) {
+        _session.connectionStateCallback = ^(NSString * session, SpdyConnectState arg) {
           SPDY_LOG(@"%p _isConnecting = NO;", self);
           _isConnecting = NO;
         };

@@ -116,7 +116,7 @@ static const int priority = 1;
   connectState = state;
   SPDY_LOG(@"%p self.connectionStateCallback is %@", self, self.connectionStateCallback);
   if(self.connectionStateCallback != NULL)
-    self.connectionStateCallback(self, state);
+    self.connectionStateCallback(SPDY_SESSION_STATE_KEY(self), state);
 }
 
 - (SpdyStream*)pushStreamForId:(int32_t)stream_id {
