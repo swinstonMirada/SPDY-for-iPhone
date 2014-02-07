@@ -489,6 +489,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 				   andBlock:(void(^)())block {
   // schedule reconnect in the future
 
+  if([retryTimer isValid]) {
+    SPDY_LOG(@"not scheduling retry when we already have one scheduled for %lf seconds from now", [retryTimer.fireDate timeIntervalSinceNow]);
+    return;
+  }
+
   [super clearConnectionStatus];
 
   SpdyNetworkStatus currentNetworkStatus = [SPDY networkStatusForReachabilityFlags:currentReachability];
