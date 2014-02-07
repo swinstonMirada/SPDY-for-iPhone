@@ -59,6 +59,10 @@
 		84D46C1A1668155F00226B4B /* SpdyCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C161668155F00226B4B /* SpdyCallback.m */; };
 		84D46C1F1668157700226B4B /* SpdyPushCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C1C1668157700226B4B /* SpdyPushCallback.h */; };
 		84D46C201668157700226B4B /* SpdyPushCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C1E1668157700226B4B /* SpdyPushCallback.m */; };
+		84E6F68718A589FF0094BDDD /* SpdyDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 84E6F68018A589FF0094BDDD /* SpdyDnsResolver.h */; };
+		84E6F68818A589FF0094BDDD /* SpdyDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 84E6F68218A589FF0094BDDD /* SpdyDnsResolver.m */; };
+		84E6F68918A589FF0094BDDD /* SpdyDnsResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */; };
+		84E6F68A18A589FF0094BDDD /* SpdyDnsResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +132,10 @@
 		84D46C161668155F00226B4B /* SpdyCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyCallback.m; sourceTree = "<group>"; };
 		84D46C1C1668157700226B4B /* SpdyPushCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyPushCallback.h; sourceTree = "<group>"; };
 		84D46C1E1668157700226B4B /* SpdyPushCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyPushCallback.m; sourceTree = "<group>"; };
+		84E6F68018A589FF0094BDDD /* SpdyDnsResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyDnsResolver.h; sourceTree = "<group>"; };
+		84E6F68218A589FF0094BDDD /* SpdyDnsResolver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyDnsResolver.m; sourceTree = "<group>"; };
+		84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyDnsResult.h; sourceTree = "<group>"; };
+		84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyDnsResult.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -195,6 +203,10 @@
 		3870AF5714E47F8E009D8118 /* SPDY */ = {
 			isa = PBXGroup;
 			children = (
+				84E6F68018A589FF0094BDDD /* SpdyDnsResolver.h */,
+				84E6F68218A589FF0094BDDD /* SpdyDnsResolver.m */,
+				84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */,
+				84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */,
 				849F148E167A8545008ED1EF /* async */,
 				84D46C1C1668157700226B4B /* SpdyPushCallback.h */,
 				84D46C1E1668157700226B4B /* SpdyPushCallback.m */,
@@ -291,6 +303,7 @@
 				380A21A714F2FCBC00262B13 /* SpdySessionTests.h in Headers */,
 				3889D68F14FEE41200DDED3F /* SpdyInputStream.h in Headers */,
 				38D935B8152A417E00383797 /* SpdyUrlConnection.h in Headers */,
+				84E6F68918A589FF0094BDDD /* SpdyDnsResult.h in Headers */,
 				03DA36AF1536446D00FB44AD /* SpdySessionKey.h in Headers */,
 				84D46C011667EAEA00226B4B /* SpdyHTTPResponse.h in Headers */,
 				84D46C171668155F00226B4B /* SpdyBufferedCallback.h in Headers */,
@@ -300,6 +313,7 @@
 				849F149B167A8545008ED1EF /* SpdyRequest+Private.h in Headers */,
 				849F149D167A8545008ED1EF /* SpdyRequest.h in Headers */,
 				849F149F167A8545008ED1EF /* SpdyRequestCallback.h in Headers */,
+				84E6F68718A589FF0094BDDD /* SpdyDnsResolver.h in Headers */,
 				849F14A1167A8545008ED1EF /* SpdyTimer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -403,7 +417,9 @@
 			files = (
 				3870AF5C14E47F8E009D8118 /* SPDY.m in Sources */,
 				3800CAE314E48CAE00B85319 /* SpdySession.m in Sources */,
+				84E6F68A18A589FF0094BDDD /* SpdyDnsResult.m in Sources */,
 				3800CAE514E48CAE00B85319 /* SpdyStream.m in Sources */,
+				84E6F68818A589FF0094BDDD /* SpdyDnsResolver.m in Sources */,
 				3889D69014FEE41200DDED3F /* SpdyInputStream.m in Sources */,
 				38D935B9152A417E00383797 /* SpdyUrlConnection.m in Sources */,
 				03DA36B01536446D00FB44AD /* SpdySessionKey.m in Sources */,
@@ -529,9 +545,9 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-                                        "$(SRCROOT)/../build/include",
-                                        "$(OPENSSL_INCLUDE)",
-                                );
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+				);
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -564,9 +580,9 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-                                        "$(SRCROOT)/../build/include",
-                                        "$(OPENSSL_INCLUDE)",
-                                );
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+				);
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -595,9 +611,9 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-                                        "$(SRCROOT)/../build/include",
-                                        "$(OPENSSL_INCLUDE)",
-                                );
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+				);
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -623,9 +639,9 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = (
-                                        "$(SRCROOT)/../build/include",
-                                        "$(OPENSSL_INCLUDE)",
-                                );
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+				);
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
