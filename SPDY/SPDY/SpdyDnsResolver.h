@@ -8,6 +8,7 @@
 
 @interface SpdyDnsResolver : NSObject
 
++(SpdyDnsResult*)lookupURL:(NSURL*)url;
 +(SpdyDnsResult*)lookupHost:(NSString*)host;
 +(SpdyDnsResult*)lookupHost:(NSString*)host withPort:(NSUInteger)port;
 

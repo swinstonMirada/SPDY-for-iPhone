@@ -1,6 +1,9 @@
 #import "SpdyDnsResolver.h"
 #import "SPDY.h"
 
+#define HTTPS_SCHEME @"https"
+#define HTTPS_PORT 443
+
 @implementation SpdyDnsResolver
 
 +(SpdyDnsResult *)lookup:(const char*)host port:(const char*)service {
@@ -24,6 +27,33 @@
   } else {
     return [[SpdyDnsResult alloc] initWithAddrinfo:res];
   }
+}
+
++(SpdyDnsResult *)lookupURL:(NSURL*)url {
+  NSUInteger port = HTTPS_PORT;
+  if (url.port != nil) {
+    port = [url.port unsignedIntValue];
+  } else {
+    NSString * scheme = [url scheme];
+    if([scheme isEqualToString:HTTPS_SCHEME ]) {
+      port = HTTPS_PORT;
+      /* 
+	 in theory, bare http could be supported.
+	 in practice, we require tls / ssl / https.
+      */	 
+    } else {
+      NSDictionary * dict = [NSDictionary 
+			      dictionaryWithObjectsAndKeys:
+				[[NSString alloc] 
+				  initWithFormat:@"Scheme %@ not supported", scheme], 
+			      @"reason", nil];
+      return [[SpdyDnsResult alloc] 
+               initWithError:[NSError errorWithDomain:kSpdyErrorDomain 
+                                      code:kSpdyHttpSchemeNotSupported 
+                                      userInfo:dict]];
+    }
+  }
+  return [self lookupHost:url.host withPort:port];
 }
 
 +(SpdyDnsResult *)lookupHost:(NSString*)host {
