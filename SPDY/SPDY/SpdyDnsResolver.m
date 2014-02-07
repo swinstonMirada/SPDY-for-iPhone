@@ -4,7 +4,22 @@
 #define HTTPS_SCHEME @"https"
 #define HTTPS_PORT 443
 
+#define CACHE_KEY(host,service)                                         \
+    [[NSString alloc] initWithFormat:@"%s%s", host, service == nil ? "" : service]
+
 @implementation SpdyDnsResolver
+
+static NSMutableDictionary * cache = NULL;
+
++(void)addToCache:(SpdyDnsResult*)result forHost:(const char*)host andPort:(const char*)port {
+  if(cache == NULL) 
+    cache = [[NSMutableDictionary alloc] init];
+  cache[CACHE_KEY(host,port)] = result;
+}
+
++(SpdyDnsResult*)getFromCacheForHost:(const char*)host andPort:(const char*)port {
+  return cache[CACHE_KEY(host,port)];
+}
 
 +(SpdyDnsResult *)lookup:(const char*)host port:(const char*)service {
   struct addrinfo hints;                        
@@ -22,10 +37,21 @@
     } else {
       error = [NSError errorWithDomain:@"kCFStreamErrorDomainNetDB" code:err userInfo:nil];
     }
-    SPDY_LOG(@"%p Error getting IP address for %s (%@)", self, host, error);
-    return [[SpdyDnsResult alloc] initWithError:error];
+    SPDY_LOG(@"Error getting IP address for %s (%@)", host, error);
+
+    SpdyDnsResult * cached = [self getFromCacheForHost:host andPort:service];
+    if(cached != nil && cached.addrinfo != NULL) {
+      SPDY_LOG(@"got cached result %@, using that instead of returning error", cached);
+      return cached;
+    } else {
+      SPDY_LOG(@"upon DNS failure, we have no cached result, so we are passing back the error");
+      return [[SpdyDnsResult alloc] initWithError:error];
+    }
   } else {
-    return [[SpdyDnsResult alloc] initWithAddrinfo:res];
+    SPDY_LOG(@"%p got IP address for %s", self, host);
+    SpdyDnsResult * ret = [[SpdyDnsResult alloc] initWithAddrinfo:res];
+    [self addToCache:ret forHost:host andPort:service];
+    return ret;
   }
 }
 
