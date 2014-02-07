@@ -7,6 +7,10 @@
 #import <netdb.h>
 #import "SpdyTimer.h"
 
+#define DEFAULT_INITIAL_RETRY_INTERVAL 0.2
+#define DEFAULT_MAX_RETRY_INTERVAL 300
+#define DEFAULT_RETRY_EXPONENT 0.2
+
 static NSDictionary * radioAccessMap = nil;
 
 @implementation SpdyPersistentRequest {
@@ -467,8 +471,10 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)scheduleRecoverableReconnect:(NSString*)tag {
-  [self scheduleReconnectWithInitialInterval:0.2
-        factor:1.6 andBlock:^{ 
+  [self scheduleReconnectWithInitialInterval:self.initialRetryInterval
+        factor:self.retryExponent
+        maximum:self.maxRetryInterval
+        andBlock:^{ 
     SPDY_LOG(@"%@ retry", tag);
     [self recoverableReconnect];
   }];
@@ -486,6 +492,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)scheduleReconnectWithInitialInterval:(NSTimeInterval)retry_interval
 				     factor:(double)factor
+                                    maximum:(NSTimeInterval)maximum
 				   andBlock:(void(^)())block {
   // schedule reconnect in the future
 
@@ -507,6 +514,12 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
   // exponential backoff
   for(int i = 0 ; i <= num_reconnects ; i++) retry_interval *= factor;
+
+  if(retry_interval > maximum) {
+    SPDY_LOG(@"clamping retry interval to the maximum value of %lf seconds", retry_interval);
+    retry_interval = maximum;
+  }
+    
 
   SPDY_LOG(@"will retry in %lf seconds", retry_interval);
 
@@ -531,17 +544,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     switch(error_type) {
 
     case HARD_FAILURE:
-      // No retry is attempted
-      // call fatalErrorCallback block
-      // teardown the session (socket)
-      //[self dieOnError:error];
-
       {
 	SPDY_LOG(@"error type is HARD_FAILURE");
 	[super teardown];
         [self scheduleRecoverableReconnect:@"HARD FAILURE"];
       }
-
       break;
 
       
@@ -735,6 +742,11 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
     SPDY_LOG(@"connectCallback");
     [weak_self streamWasConnected];
   };
+
+  self.initialRetryInterval = DEFAULT_INITIAL_RETRY_INTERVAL;
+  self.maxRetryInterval = DEFAULT_MAX_RETRY_INTERVAL;
+  self.retryExponent = DEFAULT_RETRY_EXPONENT;
+
   [self startReachabilityNotifier];
   [self startRadioAccessNotifier];
 }
@@ -750,7 +762,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 - (id)initWithGETString:(NSString *)url {
   self = [super initWithGETString:url];
   if(self) {
-    [self setup];
+    [self setup];    
   }
   return self;
 }

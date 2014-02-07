@@ -62,4 +62,8 @@
 
 -(SCNetworkReachabilityFlags)reachabilityFlags;
 
+@property (nonatomic, assign) NSTimeInterval initialRetryInterval;
+@property (nonatomic, assign) NSTimeInterval maxRetryInterval;
+@property (nonatomic, assign) double retryExponent;
+
 @end
