@@ -29,15 +29,14 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <netdb.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 
 
 #import "SPDY.h"
 #import "SpdyStream.h"
 #import "SpdyCallback.h"
+#import "SpdyDnsResult.h"
+#import "SpdyDnsResolver.h"
 #import "SpdyRequest+Private.h"
 #include "openssl/ssl.h"
 #include "openssl/err.h"
@@ -51,9 +50,6 @@ static const int priority = 1;
 
 #define SSL_HANDSHAKE_SUCCESS 0
 #define SSL_HANDSHAKE_NEED_TO_RETRY 1
-
-#define HTTPS_SCHEME @"https"
-#define HTTPS_PORT "443"
 
 @property (retain, nonatomic) NSDate *lastCallbackTime;
 
@@ -184,54 +180,22 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 }
 
 - (NSError *)connectTo:(NSURL *)url {
-    
-  char service[10];
-  NSNumber *port = [url port];
-  if (port != nil) {
-    snprintf(service, sizeof(service), "%u", [port intValue]);
-  } else {
-    NSString * scheme = [url scheme];
-    //SPDY_LOG(@"%p got scheme %@", self, scheme);
-    if([scheme isEqualToString:HTTPS_SCHEME ]) {
-      snprintf(service, sizeof(service), HTTPS_PORT);
-      /* 
-	 in theory, bare http could be supported.
-	 in practice, we require tls / ssl / https.
-      */	 
-    } else {
-      self.connectState = kSpdyConnectStateError;
-      NSDictionary * dict = [NSDictionary 
-			      dictionaryWithObjectsAndKeys:
-				[[NSString alloc] 
-				  initWithFormat:@"Scheme %@ not supported", scheme], 
-			      @"reason", nil];
-      return [NSError errorWithDomain:kSpdyErrorDomain 
-		      code:kSpdyHttpSchemeNotSupported 
-		      userInfo:dict];
-    }
-  }
-    
-  struct addrinfo hints;
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_INET;
-  hints.ai_socktype = SOCK_STREAM;
-    
-  struct addrinfo *res;
-  SPDY_LOG(@"%p Looking up hostname for %@", self, [url host]);
-  int err = getaddrinfo([[url host] UTF8String], service, &hints, &res);
-  if (err != 0) {
-    NSError *error;
-    if (err == EAI_SYSTEM) {
-      error = [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil];
-    } else {
-      error = [NSError errorWithDomain:@"kCFStreamErrorDomainNetDB" code:err userInfo:nil];
-    }
-    SPDY_LOG(@"%p Error getting IP address for %@ (%@)", self, url, error);
+
+  SpdyDnsResult * dnsResult = [SpdyDnsResolver lookupURL:url];
+
+  if(dnsResult.error != nil) {
+    SPDY_LOG(@"%p Error getting IP address for %@ (%@)", self, url, dnsResult.error);
     self.connectState = kSpdyConnectStateError;
-    return error;
+    return dnsResult.error;
   }
 
-  struct addrinfo* rp = res;
+  if(dnsResult.addrinfo == nil) {
+    SPDY_LOG(@"we got a dns result without an addrinfo or an error!!");
+    self.connectState = kSpdyConnectStateError;
+    return [NSError errorWithDomain:kSpdyErrorDomain code:kSpdyDnsError userInfo:nil];
+  }
+
+  struct addrinfo* rp = dnsResult.addrinfo;
   if (rp != NULL) {
     CFSocketContext ctx = {0, (__bridge void *)(self), NULL, NULL, NULL};
     CFDataRef address = CFDataCreate(NULL, (const uint8_t*)rp->ai_addr, rp->ai_addrlen);
@@ -273,7 +237,6 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 
     CFRelease(address);
     self.connectState = kSpdyConnectStateConnecting;
-    freeaddrinfo(res);
 
     SPDY_LOG(@"%p starting connectionTimer", self);
     [connectionTimer invalidate];

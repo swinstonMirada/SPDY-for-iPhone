@@ -92,6 +92,7 @@ enum SpdyErrors {
     kSpdyHttpSchemeNotSupported = 5,
     kSpdyStreamClosedWithNoRepsonseHeaders = 6,
     kSpdyVoipRequestedButFailed = 7,
+    kSpdyDnsError = 8,
     kSpdyConnectTimeout = 9,
 };
 
