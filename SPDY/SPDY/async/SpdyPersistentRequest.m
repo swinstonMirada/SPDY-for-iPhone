@@ -249,9 +249,6 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 #define INTERNAL_FAILURE    4
 #define UNHANDLED_FAILURE   5
 
-#define MAX_RECOVERABLE_RECONNECTS 50
-#define MAX_TRANSIENT_RECONNECTS 10
-
 -(NSDictionary*)errorDict {
   // here we build an NSDictionary which maps from NSError objects
   // to one of the failure types above
@@ -409,6 +406,14 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)reconnect {
+
+  if(_dontReconnect) { 
+    SPDY_LOG(@"NOT reconnecting because dontReconnect is set");
+    return;
+  }
+  SPDY_LOG(@"reconnecting on failure for the %dth time", num_reconnects);
+  num_reconnects++;
+
   // here we do reconnect logic
   SpdyConnectState currentConnectionState = super.connectState;
   SpdyNetworkStatus currentNetworkStatus = [SPDY networkStatusForReachabilityFlags:currentReachability];
@@ -456,20 +461,6 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   [super teardown];
 }
 
--(void)reconnectWithMax:(int)max {
-  if(_dontReconnect) { 
-    SPDY_LOG(@"NOT reconnecting because dontReconnect is set");
-  } else {
-    if(num_reconnects < max) {
-      num_reconnects++;
-      SPDY_LOG(@"reconnecting on failure for the %dth time", num_reconnects);
-      [self reconnect];
-    } else {
-      SPDY_LOG(@"NOT reconnecting on failure for the %dth time", num_reconnects);
-    }
-  }
-}
-
 -(void)scheduleRecoverableReconnect:(NSString*)tag {
   [self scheduleReconnectWithInitialInterval:self.initialRetryInterval
         factor:self.retryExponent
@@ -482,12 +473,12 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 -(void)transientReconnect {
   SPDY_LOG(@"transientReconnect");
-  [self reconnectWithMax:MAX_TRANSIENT_RECONNECTS];
+  [self reconnect];
 }
 
 -(void)recoverableReconnect {
   SPDY_LOG(@"recoverableReconnect");
-  [self reconnectWithMax:MAX_RECOVERABLE_RECONNECTS];
+  [self reconnect];
 }
 
 -(void)scheduleReconnectWithInitialInterval:(NSTimeInterval)retry_interval
@@ -518,8 +509,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   if(retry_interval > maximum) {
     SPDY_LOG(@"clamping retry interval to the maximum value of %lf seconds", retry_interval);
     retry_interval = maximum;
-  }
-    
+  }    
 
   SPDY_LOG(@"will retry in %lf seconds", retry_interval);
 
@@ -566,7 +556,6 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 	[super teardown];
         [self scheduleRecoverableReconnect:@"UNHANDLED FAILURE"];
       }
-      //[self dieOnError:error];
       break;
 
     case INTERNAL_FAILURE:
@@ -629,8 +618,22 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 -(void)keepalive {
-  SPDY_LOG(@"keepalive");
-  [self sendPing];
+  SPDY_LOG(@"keepalive with connect state %@", [SPDY connectionStateString:super.connectState]);
+  if(super.connectState == kSpdyConnectStateConnected) {
+    SPDY_LOG(@"we are connected, sending keepalive ping");
+    [self sendPing];
+  } else if([retryTimer isValid]) {
+    SPDY_LOG(@"not connected, not sending keepalive ping and not scheduling a retry when we have a one already scheduled for %lf seconds from now", [retryTimer.fireDate timeIntervalSinceNow]);
+    return;
+  } else {
+    SPDY_LOG(@"got keepalive with connect state %@ and we are not scheduled to retry", [SPDY connectionStateString:super.connectState]);
+    SpdyNetworkStatus currentNetworkStatus = [SPDY networkStatusForReachabilityFlags:currentReachability];
+    if(currentNetworkStatus == kSpdyNetworkStatusNotReachable) {
+      SPDY_LOG(@"we are not reachable on keepalive, doing nothing");
+    } else {
+      SPDY_LOG(@"on keepalive, we are reachable, but not connected, and there is no retry scheduled.");
+    }
+  }
 }
 
 -(SCNetworkReachabilityFlags)reachabilityFlags {
