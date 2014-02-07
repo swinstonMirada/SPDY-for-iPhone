@@ -6,6 +6,7 @@
   void (^block)();
   BOOL valid;
   NSTimeInterval interval;
+  NSDate * fireDate;
 }
 -(id)initWithInterval:(NSTimeInterval)_interval andBlock:(void(^)())_block {
   self = [super init];
@@ -27,10 +28,18 @@
 	valid = NO;
       }
     };
+    // this is for reference
+    fireDate = [[NSDate alloc] initWithTimeIntervalSinceNow:interval];
     dispatch_after(when, __spdy_dispatch_queue(), execution_block);
   }
 }
 -(void)invalidate {
   valid = NO;
+}
+-(BOOL)isValid {
+  return valid;
+}
+-(NSDate*)fireDate {
+  return fireDate;
 }
 @end
