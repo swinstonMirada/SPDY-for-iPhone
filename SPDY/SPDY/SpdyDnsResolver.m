@@ -21,7 +21,37 @@ static NSMutableDictionary * cache = NULL;
   return cache[CACHE_KEY(host,port)];
 }
 
+#define DATA_FROM_URL(url)                                              \
+  [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:url]]
+
+#define STRING_FROM_URL(url)                            \
+  [[NSString alloc] initWithData:DATA_FROM_URL(url)     \
+                    encoding:NSUTF8StringEncoding ]
+
+#define CHECK_URL(url)                                                  \
+  SPDY_LOG(@"content for url %@:\n%@", url, STRING_FROM_URL(url));      \
+
++(void)checkConnectivity {
+  SPDY_LOG(@"checking connectivity..");
+  CHECK_URL(@"http://ota.locationlabs.com");
+  CHECK_URL(@"http://www.yahoo.com/mobile");
+}
+
 +(SpdyDnsResult *)lookup:(const char*)host port:(const char*)service {
+
+#ifdef CONF_Debug
+  /* this is for testing
+  dispatch_async(dispatch_get_main_queue(), ^{[self checkConnectivity];});
+  {
+    SpdyDnsResult * cached = [self getFromCacheForHost:host andPort:service];
+    if(cached != nil && cached.addrinfo != NULL) {
+      SPDY_LOG(@"got cached result %@, using that", cached);
+      return cached;
+    }
+  }
+  */
+#endif
+
   struct addrinfo hints;                        
   memset(&hints, 0, sizeof(struct addrinfo));   
   hints.ai_family = AF_INET;                    
@@ -38,6 +68,10 @@ static NSMutableDictionary * cache = NULL;
       error = [NSError errorWithDomain:@"kCFStreamErrorDomainNetDB" code:err userInfo:nil];
     }
     SPDY_LOG(@"Error getting IP address for %s (%@)", host, error);
+
+#ifdef CONF_Debug
+    dispatch_async(dispatch_get_main_queue(), ^{[self checkConnectivity];});
+#endif
 
     SpdyDnsResult * cached = [self getFromCacheForHost:host andPort:service];
     if(cached != nil && cached.addrinfo != NULL) {
