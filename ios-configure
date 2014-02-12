@@ -92,8 +92,14 @@ case $target in
         host=arm-apple-darwin10
         ;;
     
-    simulator )
+    simulator-i386 )
         arch=i686
+        platform=iPhoneSimulator
+        host=i686-apple-darwin9
+        ;;
+
+    simulator-x86_64 )
+        arch=x86_64
         platform=iPhoneSimulator
         host=i686-apple-darwin9
         ;;
