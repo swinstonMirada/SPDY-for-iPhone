@@ -3,29 +3,30 @@ PKG_CONFIG_PATH=$(BUILD)/lib/pkgconfig
 
 all: SPDY
 
+define build_ios_spdylay
+	@echo "Building spdylay for sdk $(1) arch $(2)"
+	cd spdylay && ../ios-configure -p "$(BUILD)/$(1)-$(2)" -k $(PKG_CONFIG_PATH) $(1)-$(2) --with-xml-prefix=/unkonwn
+	cd spdylay/lib && make install
+endef
+
 spdylay/configure: spdylay/configure.ac build/lib/libz.a
 	cd spdylay && autoreconf -i && automake && autoconf
 	touch spdylay/configure
 
 build/iphoneos-armv7/lib/libspdylay.a: spdylay/configure ios-configure
-	cd spdylay && ../ios-configure -p "$(BUILD)/iphoneos-armv7" -k $(PKG_CONFIG_PATH) iphone-armv7 --with-xml-prefix=/unkonwn
-	cd spdylay/lib && make install
+	$(call build_ios_spdylay,iphoneos,armv7)
 
 build/iphoneos-armv7s/lib/libspdylay.a: spdylay/configure ios-configure
-	cd spdylay && ../ios-configure -p "$(BUILD)/iphoneos-armv7s" -k $(PKG_CONFIG_PATH) iphone-armv7s  --with-xml-prefix=/unkonwn
-	cd spdylay/lib && make install
+	$(call build_ios_spdylay,iphoneos,armv7s)
 
 build/iphoneos-arm64/lib/libspdylay.a: spdylay/configure ios-configure
-	cd spdylay && ../ios-configure -p "$(BUILD)/iphoneos-arm64" -k $(PKG_CONFIG_PATH) iphone-arm64  --with-xml-prefix=/unkonwn
-	cd spdylay/lib && make install
+	$(call build_ios_spdylay,iphoneos,arm64)
 
 build/iphonesimulator-i386/lib/libspdylay.a: spdylay/configure ios-configure
-	cd spdylay && ../ios-configure -p "$(BUILD)/iphonesimulator-i386" -k $(PKG_CONFIG_PATH) simulator-i386 --with-xml-prefix=/unkonwn
-	cd spdylay/lib && make install
+	$(call build_ios_spdylay,iphonesimulator,i386)
 
 build/iphonesimulator-x86_64/lib/libspdylay.a: spdylay/configure ios-configure
-	cd spdylay && ../ios-configure -p "$(BUILD)/iphonesimulator-x86_64" -k $(PKG_CONFIG_PATH) simulator-x86_64 --with-xml-prefix=/unkonwn
-	cd spdylay/lib && make install
+	$(call build_ios_spdylay,iphonesimulator,x86_64)
 
 #build/native/lib/libspdylay.a: spdylay/configure
 #	cd spdylay && ./configure --prefix="$(BUILD)/native"
