@@ -53,8 +53,11 @@ build/iphonesimulator-i386/lib/libz.a: zlib/build-zlib.sh
 build/iphonesimulator-x86_64/lib/libz.a: zlib/build-zlib.sh
 	$(call build_ios_libz,iphonesimulator,x86_64)
 
-#build/native/lib/libz.a: zlib/build-native-zlib.sh
-#	cd zlib && ROOTDIR=$(BUILD)/native ./build-native-zlib.sh
+build/macosx-i386/lib/libz.a: zlib/build-native-zlib.sh
+	cd zlib && ROOTDIR=$(BUILD)/macosx-i386 ./build-native-zlib.sh i386
+
+build/macosx-x86_64/lib/libz.a: zlib/build-native-zlib.sh
+	cd zlib && ROOTDIR=$(BUILD)/macosx-x86_64 ./build-native-zlib.sh x86_64
 
 build/iphoneos-armv7/lib/libz.a: zlib/build-zlib.sh
 	$(call build_ios_libz,iphoneos,armv7)
@@ -71,7 +74,13 @@ build/iphoneos-lib/libz.a: build/iphonesimulator-i386/lib/libz.a build/iphonesim
 	lipo -create $^ -output $@
 	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/iphoneos-armv7/lib/pkgconfig/zlib.pc > $(PKG_CONFIG_PATH)/zlib.pc
 
-zlib: build/iphoneos-lib/libz.a
+
+build/macosx-lib/libz.a: build/macosx-i386/lib/libz.a build/macosx-x86_64/lib/libz.a
+	-mkdir -p build/macosx-lib
+	lipo -create $^ -output $@
+
+
+zlib: build/iphoneos-lib/libz.a build/macosx-lib/libz.a
 
 
 build/lib/libSPDY.a: build/iphoneos-lib/libspdylay.a

@@ -39,7 +39,7 @@ tar zxvf "zlib-${ZLIB_VERSION}.tar.gz"
 
 # Build
 pushd "zlib-${ZLIB_VERSION}"
-./configure --prefix=${ROOTDIR}
+./configure --prefix=${ROOTDIR} --archs="-arch $1"
 make
 make install
 popd
