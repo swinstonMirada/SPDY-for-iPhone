@@ -40,6 +40,47 @@
 		38D935B8152A417E00383797 /* SpdyUrlConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = 38D935B6152A417E00383797 /* SpdyUrlConnection.h */; };
 		38D935B9152A417E00383797 /* SpdyUrlConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D935B7152A417E00383797 /* SpdyUrlConnection.m */; };
 		38FFF69414E9A303001A974E /* SPDY.h in Headers */ = {isa = PBXBuildFile; fileRef = 3870AF5A14E47F8E009D8118 /* SPDY.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		8412343118AD788B009B9BCE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8412343018AD788B009B9BCE /* Cocoa.framework */; };
+		8412343B18AD788B009B9BCE /* SPDY_MacOSX.m in Sources */ = {isa = PBXBuildFile; fileRef = 8412343A18AD788B009B9BCE /* SPDY_MacOSX.m */; };
+		8412344218AD788C009B9BCE /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8412344118AD788B009B9BCE /* XCTest.framework */; };
+		8412344318AD788C009B9BCE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8412343018AD788B009B9BCE /* Cocoa.framework */; };
+		8412344618AD788C009B9BCE /* libSPDY-MacOSX.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8412342F18AD788B009B9BCE /* libSPDY-MacOSX.a */; };
+		8412344C18AD788C009B9BCE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8412344A18AD788C009B9BCE /* InfoPlist.strings */; };
+		8412344E18AD788C009B9BCE /* SPDY_MacOSXTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8412344D18AD788C009B9BCE /* SPDY_MacOSXTests.m */; };
+		8412346C18AD78AE009B9BCE /* SpdyDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 84E6F68218A589FF0094BDDD /* SpdyDnsResolver.m */; };
+		8412346D18AD78AE009B9BCE /* SpdyDnsResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */; };
+		8412346E18AD78AE009B9BCE /* SpdyDnsResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */; };
+		8412346F18AD78AE009B9BCE /* SpdyPushCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C1C1668157700226B4B /* SpdyPushCallback.h */; };
+		8412347018AD78AE009B9BCE /* SpdyPushCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C1E1668157700226B4B /* SpdyPushCallback.m */; };
+		8412347118AD78AE009B9BCE /* SpdyBufferedCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C111668155F00226B4B /* SpdyBufferedCallback.h */; };
+		8412347218AD78AE009B9BCE /* SpdyBufferedCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C131668155F00226B4B /* SpdyBufferedCallback.m */; };
+		8412347318AD78AE009B9BCE /* SpdyCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46C151668155F00226B4B /* SpdyCallback.h */; };
+		8412347418AD78AE009B9BCE /* SpdyCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C161668155F00226B4B /* SpdyCallback.m */; };
+		8412347518AD78AE009B9BCE /* SpdyHTTPResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = 84D46BFE1667EAEA00226B4B /* SpdyHTTPResponse.h */; };
+		8412347618AD78AE009B9BCE /* SpdyHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 84D46C001667EAEA00226B4B /* SpdyHTTPResponse.m */; };
+		8412347718AD78AE009B9BCE /* SPDY.h in Headers */ = {isa = PBXBuildFile; fileRef = 3870AF5A14E47F8E009D8118 /* SPDY.h */; };
+		8412347818AD78AE009B9BCE /* SPDY.m in Sources */ = {isa = PBXBuildFile; fileRef = 3870AF5B14E47F8E009D8118 /* SPDY.m */; };
+		8412347918AD78AE009B9BCE /* SpdyInputStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 3889D68D14FEE41200DDED3F /* SpdyInputStream.h */; };
+		8412347A18AD78AE009B9BCE /* SpdyInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 3889D68E14FEE41200DDED3F /* SpdyInputStream.m */; };
+		8412347B18AD78AE009B9BCE /* SpdySession.h in Headers */ = {isa = PBXBuildFile; fileRef = 3800CADE14E48CAE00B85319 /* SpdySession.h */; };
+		8412347C18AD78AE009B9BCE /* SpdySession.m in Sources */ = {isa = PBXBuildFile; fileRef = 3800CADF14E48CAE00B85319 /* SpdySession.m */; };
+		8412347D18AD78AE009B9BCE /* SpdyStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 3800CAE014E48CAE00B85319 /* SpdyStream.h */; };
+		8412347E18AD78AE009B9BCE /* SpdyStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 3800CAE114E48CAE00B85319 /* SpdyStream.m */; };
+		8412347F18AD78AE009B9BCE /* SpdyUrlConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = 38D935B6152A417E00383797 /* SpdyUrlConnection.h */; };
+		8412348018AD78AE009B9BCE /* SpdyUrlConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D935B7152A417E00383797 /* SpdyUrlConnection.m */; };
+		8412348118AD78AE009B9BCE /* SpdySessionKey.h in Headers */ = {isa = PBXBuildFile; fileRef = 03DA36AD1536446D00FB44AD /* SpdySessionKey.h */; };
+		8412348218AD78AE009B9BCE /* SpdySessionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 03DA36AE1536446D00FB44AD /* SpdySessionKey.m */; };
+		8412348318AD78B4009B9BCE /* SpdyDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 84E6F68018A589FF0094BDDD /* SpdyDnsResolver.h */; };
+		8412348418AD78BF009B9BCE /* SpdyPersistentRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F148F167A8545008ED1EF /* SpdyPersistentRequest.h */; };
+		8412348518AD78BF009B9BCE /* SpdyPersistentRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1490167A8545008ED1EF /* SpdyPersistentRequest.m */; };
+		8412348618AD78BF009B9BCE /* SpdyRequest+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F1491167A8545008ED1EF /* SpdyRequest+Private.h */; };
+		8412348718AD78BF009B9BCE /* SpdyRequest+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1492167A8545008ED1EF /* SpdyRequest+Private.m */; };
+		8412348818AD78BF009B9BCE /* SpdyRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F1493167A8545008ED1EF /* SpdyRequest.h */; };
+		8412348918AD78BF009B9BCE /* SpdyRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1494167A8545008ED1EF /* SpdyRequest.m */; };
+		8412348A18AD78BF009B9BCE /* SpdyRequestCallback.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F1495167A8545008ED1EF /* SpdyRequestCallback.h */; };
+		8412348B18AD78BF009B9BCE /* SpdyRequestCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1496167A8545008ED1EF /* SpdyRequestCallback.m */; };
+		8412348C18AD78BF009B9BCE /* SpdyTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F1497167A8545008ED1EF /* SpdyTimer.h */; };
+		8412348D18AD78BF009B9BCE /* SpdyTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1498167A8545008ED1EF /* SpdyTimer.m */; };
 		849F1499167A8545008ED1EF /* SpdyPersistentRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F148F167A8545008ED1EF /* SpdyPersistentRequest.h */; };
 		849F149A167A8545008ED1EF /* SpdyPersistentRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 849F1490167A8545008ED1EF /* SpdyPersistentRequest.m */; };
 		849F149B167A8545008ED1EF /* SpdyRequest+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 849F1491167A8545008ED1EF /* SpdyRequest+Private.h */; };
@@ -71,6 +112,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 3870AF5114E47F8E009D8118;
 			remoteInfo = SPDY;
+		};
+		8412344418AD788C009B9BCE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3870AF4914E47F8E009D8118 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8412342E18AD788B009B9BCE;
+			remoteInfo = "SPDY-MacOSX";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -112,6 +160,19 @@
 		38CE176D152D270400C7F65D /* SpdyUrlConnectionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyUrlConnectionTest.m; sourceTree = "<group>"; };
 		38D935B6152A417E00383797 /* SpdyUrlConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyUrlConnection.h; sourceTree = "<group>"; };
 		38D935B7152A417E00383797 /* SpdyUrlConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyUrlConnection.m; sourceTree = "<group>"; };
+		8412342F18AD788B009B9BCE /* libSPDY-MacOSX.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libSPDY-MacOSX.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8412343018AD788B009B9BCE /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		8412343318AD788B009B9BCE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		8412343418AD788B009B9BCE /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		8412343518AD788B009B9BCE /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		8412343818AD788B009B9BCE /* SPDY-MacOSX-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SPDY-MacOSX-Prefix.pch"; sourceTree = "<group>"; };
+		8412343918AD788B009B9BCE /* SPDY_MacOSX.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SPDY_MacOSX.h; sourceTree = "<group>"; };
+		8412343A18AD788B009B9BCE /* SPDY_MacOSX.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SPDY_MacOSX.m; sourceTree = "<group>"; };
+		8412344018AD788B009B9BCE /* SPDY-MacOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SPDY-MacOSXTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8412344118AD788B009B9BCE /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		8412344918AD788C009B9BCE /* SPDY-MacOSXTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SPDY-MacOSXTests-Info.plist"; sourceTree = "<group>"; };
+		8412344B18AD788C009B9BCE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		8412344D18AD788C009B9BCE /* SPDY_MacOSXTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SPDY_MacOSXTests.m; sourceTree = "<group>"; };
 		849F148F167A8545008ED1EF /* SpdyPersistentRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyPersistentRequest.h; sourceTree = "<group>"; };
 		849F1490167A8545008ED1EF /* SpdyPersistentRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyPersistentRequest.m; sourceTree = "<group>"; };
 		849F1491167A8545008ED1EF /* SpdyRequest+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SpdyRequest+Private.h"; sourceTree = "<group>"; };
@@ -161,6 +222,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8412342C18AD788B009B9BCE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8412343118AD788B009B9BCE /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8412343D18AD788B009B9BCE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8412344618AD788C009B9BCE /* libSPDY-MacOSX.a in Frameworks */,
+				8412344318AD788C009B9BCE /* Cocoa.framework in Frameworks */,
+				8412344218AD788C009B9BCE /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -169,6 +248,8 @@
 			children = (
 				3870AF5714E47F8E009D8118 /* SPDY */,
 				3870AF6B14E47F8E009D8118 /* SPDYTests */,
+				8412343618AD788B009B9BCE /* SPDY-MacOSX */,
+				8412344718AD788C009B9BCE /* SPDY-MacOSXTests */,
 				3870AF5414E47F8E009D8118 /* Frameworks */,
 				3870AF5314E47F8E009D8118 /* Products */,
 			);
@@ -179,6 +260,8 @@
 			children = (
 				3870AF5214E47F8E009D8118 /* libSPDY.a */,
 				3870AF6214E47F8E009D8118 /* SPDYTests.octest */,
+				8412342F18AD788B009B9BCE /* libSPDY-MacOSX.a */,
+				8412344018AD788B009B9BCE /* SPDY-MacOSXTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -192,6 +275,9 @@
 				380A213214EC360900262B13 /* CFNetwork.framework */,
 				3870AF5514E47F8E009D8118 /* Foundation.framework */,
 				3870AF6314E47F8E009D8118 /* SenTestingKit.framework */,
+				8412343018AD788B009B9BCE /* Cocoa.framework */,
+				8412344118AD788B009B9BCE /* XCTest.framework */,
+				8412343218AD788B009B9BCE /* Other Frameworks */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -199,11 +285,11 @@
 		3870AF5714E47F8E009D8118 /* SPDY */ = {
 			isa = PBXGroup;
 			children = (
+				849F148E167A8545008ED1EF /* async */,
 				84E6F68018A589FF0094BDDD /* SpdyDnsResolver.h */,
 				84E6F68218A589FF0094BDDD /* SpdyDnsResolver.m */,
 				84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */,
 				84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */,
-				849F148E167A8545008ED1EF /* async */,
 				84D46C1C1668157700226B4B /* SpdyPushCallback.h */,
 				84D46C1E1668157700226B4B /* SpdyPushCallback.m */,
 				84D46C111668155F00226B4B /* SpdyBufferedCallback.h */,
@@ -268,6 +354,52 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		8412343218AD788B009B9BCE /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8412343318AD788B009B9BCE /* Foundation.framework */,
+				8412343418AD788B009B9BCE /* CoreData.framework */,
+				8412343518AD788B009B9BCE /* AppKit.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		8412343618AD788B009B9BCE /* SPDY-MacOSX */ = {
+			isa = PBXGroup;
+			children = (
+				8412343918AD788B009B9BCE /* SPDY_MacOSX.h */,
+				8412343A18AD788B009B9BCE /* SPDY_MacOSX.m */,
+				8412343718AD788B009B9BCE /* Supporting Files */,
+			);
+			path = "SPDY-MacOSX";
+			sourceTree = "<group>";
+		};
+		8412343718AD788B009B9BCE /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				8412343818AD788B009B9BCE /* SPDY-MacOSX-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		8412344718AD788C009B9BCE /* SPDY-MacOSXTests */ = {
+			isa = PBXGroup;
+			children = (
+				8412344D18AD788C009B9BCE /* SPDY_MacOSXTests.m */,
+				8412344818AD788C009B9BCE /* Supporting Files */,
+			);
+			path = "SPDY-MacOSXTests";
+			sourceTree = "<group>";
+		};
+		8412344818AD788C009B9BCE /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				8412344918AD788C009B9BCE /* SPDY-MacOSXTests-Info.plist */,
+				8412344A18AD788C009B9BCE /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		849F148E167A8545008ED1EF /* async */ = {
 			isa = PBXGroup;
 			children = (
@@ -314,6 +446,30 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8412342D18AD788B009B9BCE /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8412348118AD78AE009B9BCE /* SpdySessionKey.h in Headers */,
+				8412348A18AD78BF009B9BCE /* SpdyRequestCallback.h in Headers */,
+				8412347D18AD78AE009B9BCE /* SpdyStream.h in Headers */,
+				8412348C18AD78BF009B9BCE /* SpdyTimer.h in Headers */,
+				8412347118AD78AE009B9BCE /* SpdyBufferedCallback.h in Headers */,
+				8412347318AD78AE009B9BCE /* SpdyCallback.h in Headers */,
+				8412347718AD78AE009B9BCE /* SPDY.h in Headers */,
+				8412348418AD78BF009B9BCE /* SpdyPersistentRequest.h in Headers */,
+				8412346D18AD78AE009B9BCE /* SpdyDnsResult.h in Headers */,
+				8412347918AD78AE009B9BCE /* SpdyInputStream.h in Headers */,
+				8412348618AD78BF009B9BCE /* SpdyRequest+Private.h in Headers */,
+				8412347518AD78AE009B9BCE /* SpdyHTTPResponse.h in Headers */,
+				8412346F18AD78AE009B9BCE /* SpdyPushCallback.h in Headers */,
+				8412347F18AD78AE009B9BCE /* SpdyUrlConnection.h in Headers */,
+				8412348818AD78BF009B9BCE /* SpdyRequest.h in Headers */,
+				8412348318AD78B4009B9BCE /* SpdyDnsResolver.h in Headers */,
+				8412347B18AD78AE009B9BCE /* SpdySession.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -353,6 +509,41 @@
 			productReference = 3870AF6214E47F8E009D8118 /* SPDYTests.octest */;
 			productType = "com.apple.product-type.bundle";
 		};
+		8412342E18AD788B009B9BCE /* SPDY-MacOSX */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8412344F18AD788C009B9BCE /* Build configuration list for PBXNativeTarget "SPDY-MacOSX" */;
+			buildPhases = (
+				8412342B18AD788B009B9BCE /* Sources */,
+				8412342C18AD788B009B9BCE /* Frameworks */,
+				8412342D18AD788B009B9BCE /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "SPDY-MacOSX";
+			productName = "SPDY-MacOSX";
+			productReference = 8412342F18AD788B009B9BCE /* libSPDY-MacOSX.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		8412343F18AD788B009B9BCE /* SPDY-MacOSXTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8412345218AD788C009B9BCE /* Build configuration list for PBXNativeTarget "SPDY-MacOSXTests" */;
+			buildPhases = (
+				8412343C18AD788B009B9BCE /* Sources */,
+				8412343D18AD788B009B9BCE /* Frameworks */,
+				8412343E18AD788B009B9BCE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8412344518AD788C009B9BCE /* PBXTargetDependency */,
+			);
+			name = "SPDY-MacOSXTests";
+			productName = "SPDY-MacOSXTests";
+			productReference = 8412344018AD788B009B9BCE /* SPDY-MacOSXTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -375,6 +566,8 @@
 			targets = (
 				3870AF5114E47F8E009D8118 /* SPDY */,
 				3870AF6114E47F8E009D8118 /* SPDYTests */,
+				8412342E18AD788B009B9BCE /* SPDY-MacOSX */,
+				8412343F18AD788B009B9BCE /* SPDY-MacOSXTests */,
 			);
 		};
 /* End PBXProject section */
@@ -385,6 +578,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				3870AF7014E47F8E009D8118 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8412343E18AD788B009B9BCE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8412344C18AD788C009B9BCE /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,6 +647,39 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8412342B18AD788B009B9BCE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8412347C18AD78AE009B9BCE /* SpdySession.m in Sources */,
+				8412348D18AD78BF009B9BCE /* SpdyTimer.m in Sources */,
+				8412348918AD78BF009B9BCE /* SpdyRequest.m in Sources */,
+				8412347E18AD78AE009B9BCE /* SpdyStream.m in Sources */,
+				8412346E18AD78AE009B9BCE /* SpdyDnsResult.m in Sources */,
+				8412347818AD78AE009B9BCE /* SPDY.m in Sources */,
+				8412347A18AD78AE009B9BCE /* SpdyInputStream.m in Sources */,
+				8412348018AD78AE009B9BCE /* SpdyUrlConnection.m in Sources */,
+				8412348718AD78BF009B9BCE /* SpdyRequest+Private.m in Sources */,
+				8412347218AD78AE009B9BCE /* SpdyBufferedCallback.m in Sources */,
+				8412347418AD78AE009B9BCE /* SpdyCallback.m in Sources */,
+				8412343B18AD788B009B9BCE /* SPDY_MacOSX.m in Sources */,
+				8412347018AD78AE009B9BCE /* SpdyPushCallback.m in Sources */,
+				8412348218AD78AE009B9BCE /* SpdySessionKey.m in Sources */,
+				8412347618AD78AE009B9BCE /* SpdyHTTPResponse.m in Sources */,
+				8412348B18AD78BF009B9BCE /* SpdyRequestCallback.m in Sources */,
+				8412348518AD78BF009B9BCE /* SpdyPersistentRequest.m in Sources */,
+				8412346C18AD78AE009B9BCE /* SpdyDnsResolver.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8412343C18AD788B009B9BCE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8412344E18AD788C009B9BCE /* SPDY_MacOSXTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -454,6 +688,11 @@
 			target = 3870AF5114E47F8E009D8118 /* SPDY */;
 			targetProxy = 3870AF6814E47F8E009D8118 /* PBXContainerItemProxy */;
 		};
+		8412344518AD788C009B9BCE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8412342E18AD788B009B9BCE /* SPDY-MacOSX */;
+			targetProxy = 8412344418AD788C009B9BCE /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -461,6 +700,14 @@
 			isa = PBXVariantGroup;
 			children = (
 				3870AF6F14E47F8E009D8118 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		8412344A18AD788C009B9BCE /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				8412344B18AD788C009B9BCE /* en */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -549,7 +796,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SPDYLAY_LIB)",
-					"\"$(SRCROOT)/../build/iphoneos-lib\"",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
@@ -586,7 +833,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SPDYLAY_LIB)",
-					"\"$(SRCROOT)/../build/iphoneos-lib\"",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
@@ -619,7 +866,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SPDYLAY_LIB)",
-					"\"$(SRCROOT)/../build/iphoneos-lib\"",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -649,11 +896,205 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SPDYLAY_LIB)",
-					"\"$(SRCROOT)/../build/iphoneos-lib\"",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+		8412345018AD788C009B9BCE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+				);
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SPDY-MacOSX/SPDY-MacOSX-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SPDYLAY_LIB)",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
+				);
+			};
+			name = Debug;
+		};
+		8412345118AD788C009B9BCE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+				);
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SPDY-MacOSX/SPDY-MacOSX-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SPDYLAY_LIB)",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
+				);
+			};
+			name = Release;
+		};
+		8412345318AD788C009B9BCE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SPDY-MacOSX/SPDY-MacOSX-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				INFOPLIST_FILE = "SPDY-MacOSXTests/SPDY-MacOSXTests-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = xctest;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SPDYLAY_LIB)",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
+				);
+			};
+			name = Debug;
+		};
+		8412345418AD788C009B9BCE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SPDY-MacOSX/SPDY-MacOSX-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				INFOPLIST_FILE = "SPDY-MacOSXTests/SPDY-MacOSXTests-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = xctest;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../build/include",
+					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SPDYLAY_LIB)",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
+					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
+				);
 			};
 			name = Release;
 		};
@@ -686,6 +1127,22 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		8412344F18AD788C009B9BCE /* Build configuration list for PBXNativeTarget "SPDY-MacOSX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8412345018AD788C009B9BCE /* Debug */,
+				8412345118AD788C009B9BCE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		8412345218AD788C009B9BCE /* Build configuration list for PBXNativeTarget "SPDY-MacOSXTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8412345318AD788C009B9BCE /* Debug */,
+				8412345418AD788C009B9BCE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

@@ -91,6 +91,7 @@ static int select_next_proto_cb(SSL *ssl,
 @synthesize sessions = _sessions;
 @synthesize ssl_ctx =  _ssl_ctx;
 
+#if TARGET_OS_IPHONE
 // This logic was stripped from Apple's Reachability.m sample application.
 + (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags {
   // Host not reachable.
@@ -114,6 +115,16 @@ static int select_next_proto_cb(SSL *ssl,
     
   return kSpdyNetworkStatusNotReachable;
 }
+#else
+// this is for macosx
++ (SpdyNetworkStatus)networkStatusForReachabilityFlags:(SCNetworkReachabilityFlags)flags {
+  // Host not reachable.
+  if ((flags & kSCNetworkReachabilityFlagsReachable) == 0)
+    return kSpdyNetworkStatusNotReachable;
+  else
+    return kSpdyNetworkStatusReachable;
+}
+#endif
 
 + (SpdyNetworkStatus)reachabilityStatusForHost:(NSString *)host {	
   SpdyNetworkStatus status = kSpdyNetworkStatusNotReachable;
@@ -153,9 +164,14 @@ static int select_next_proto_cb(SSL *ssl,
   SSL_SESSION *oldSslSession =  NULL;
   SpdySession *oldSpdySession = nil;
   if (session != nil && ([session isInvalid] || 
-			 (currentStatus != session.networkStatus &&
+			 (currentStatus != session.networkStatus
+#if TARGET_OS_IPHONE
+ &&
 			  !(session.networkStatus == kSpdyNetworkStatusReachableViaWWAN && 
-			    currentStatus == kSpdyNetworkStatusReachableViaWiFi)))) {
+			    currentStatus == kSpdyNetworkStatusReachableViaWiFi)
+#endif
+                          ))) {
+
     SPDY_LOG(@"Resetting %@ because invalid: %i or %@ != %@", session, [session isInvalid], [SPDY networkStatusString:currentStatus], [SPDY networkStatusString:session.networkStatus]);
     oldSslSession = [self resetSession:session withKey:key];
     oldSpdySession = session;
@@ -542,10 +558,15 @@ static int select_next_proto_cb(SSL *ssl,
   switch(status) {
   case kSpdyNetworkStatusNotReachable:
     return @"Not";
+#if TARGET_OS_IPHONE
   case kSpdyNetworkStatusReachableViaWWAN:
     return @"WWAN";
   case kSpdyNetworkStatusReachableViaWiFi:  
     return @"WIFI";
+#else
+  case kSpdyNetworkStatusReachable:  
+    return @"Reachable";
+#endif
   case kSpdyNetworkStatusHostNotFound:
     return @"NO HOST";
   case kSpdyNetworkStatusStreamNotFound:

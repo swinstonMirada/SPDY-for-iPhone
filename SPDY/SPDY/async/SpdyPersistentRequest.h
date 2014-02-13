@@ -52,16 +52,18 @@
 
 @property (nonatomic, copy) SpdyReachabilityCallback reachabilityCallback;
 
+#if TARGET_OS_IPHONE
 @property (nonatomic, copy) SpdyRadioAccessTechnologyCallback radioAccessCallback;
 
-@property (nonatomic, assign) BOOL dontReconnect;
-
 @property (nonatomic, readonly) SpdyRadioAccessTechnology radioAccessTechnology;
+
+#endif
 
 +(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags;
 
 -(SCNetworkReachabilityFlags)reachabilityFlags;
 
+@property (nonatomic, assign) BOOL dontReconnect;
 @property (nonatomic, assign) NSTimeInterval initialRetryInterval;
 @property (nonatomic, assign) NSTimeInterval maxRetryInterval;
 @property (nonatomic, assign) double retryExponent;

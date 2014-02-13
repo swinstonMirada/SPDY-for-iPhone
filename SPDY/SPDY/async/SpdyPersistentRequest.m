@@ -1,8 +1,9 @@
 #import "SpdyPersistentRequest.h"
 #import "SpdyRequest+Private.h"
 #import <SystemConfiguration/SystemConfiguration.h>
+#if TARGET_OS_IPHONE
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
-#import <UIKit/UIKit.h>
+#endif
 #import <errno.h>
 #import <netdb.h>
 #import "SpdyTimer.h"
@@ -23,8 +24,11 @@ static NSDictionary * radioAccessMap = nil;
   int num_reconnects;
   NSDictionary * errorDict;
   id radioAccessObserver;
+
+  //NSTimer * keepaliveTimer;
 }
 
+#if TARGET_OS_IPHONE
 static NSString * reachabilityString(SCNetworkReachabilityFlags    flags) {
   return
     [NSString stringWithFormat:@"%c%c %c%c%c%c%c%c%c\n",
@@ -39,6 +43,21 @@ static NSString * reachabilityString(SCNetworkReachabilityFlags    flags) {
 	      (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'
      ];
 }
+#else
+static NSString * reachabilityString(SCNetworkReachabilityFlags    flags) {
+  return
+    [NSString stringWithFormat:@"%c %c%c%c%c%c%c%c\n",
+	      (flags & kSCNetworkReachabilityFlagsReachable)            ? 'R' : '-',
+	      (flags & kSCNetworkReachabilityFlagsTransientConnection)  ? 't' : '-',
+	      (flags & kSCNetworkReachabilityFlagsConnectionRequired)   ? 'c' : '-',
+	      (flags & kSCNetworkReachabilityFlagsConnectionOnTraffic)  ? 'C' : '-',
+	      (flags & kSCNetworkReachabilityFlagsInterventionRequired) ? 'i' : '-',
+	      (flags & kSCNetworkReachabilityFlagsConnectionOnDemand)   ? 'D' : '-',
+	      (flags & kSCNetworkReachabilityFlagsIsLocalAddress)       ? 'l' : '-',
+	      (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'
+     ];
+}
+#endif
 
 +(NSString*)reachabilityString:(SCNetworkReachabilityFlags)flags {
   return reachabilityString(flags);
@@ -88,6 +107,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
       [super teardown];
       [self scheduleRecoverableReconnect:@"NOW REACHABLE"];
     }
+#if TARGET_OS_IPHONE
   } else if(oldStatus == kSpdyNetworkStatusReachableViaWiFi && 
 	    newStatus == kSpdyNetworkStatusReachableViaWWAN) {
 
@@ -108,6 +128,7 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags) {
     // XXX make sure that 3g is still valid here (send ping??)
     SPDY_LOG(@"sending ping to validate 3g connection");
     [self sendPing];
+#endif
   } else {
     SPDY_LOG(@"ignoring reachability state change: (%d => %d)", oldStatus, newStatus);
   }
@@ -174,6 +195,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
   }
 }
 
+#if TARGET_OS_IPHONE
 -(SpdyRadioAccessTechnology)radioAccessTechnology {
   return [self radioAccessTechnology:[[CTTelephonyNetworkInfo alloc] init].currentRadioAccessTechnology];
 }
@@ -242,6 +264,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     [[NSNotificationCenter defaultCenter] removeObserver:radioAccessObserver];
   radioAccessObserver = nil;
 }
+#endif
 
 #define RECOVERABLE_FAILURE 1
 #define TRANSIENT_FAILURE   2
@@ -696,7 +719,9 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 -(void)dealloc {
   [self clearKeepAlive];
   [self stopReachabilityNotifier];
+#if TARGET_OS_IPHONE
   [self stopRadioAccessNotifier];
+#endif
 }
 
 -(void)resetState {
@@ -705,6 +730,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 }
 
 -(void)setup {
+#if TARGET_OS_IPHONE
   if(radioAccessMap == nil) {
     radioAccessMap = @{
       CTRadioAccessTechnologyGPRS : @(SpdyRadioAccessTechnologyGPRS),
@@ -720,6 +746,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
       CTRadioAccessTechnologyLTE : @(SpdyRadioAccessTechnologyLTE)
     };
   }
+#endif
   [self resetState];
   super.voip = YES;
   SpdyPersistentRequest * __weak weak_self = self;
@@ -751,7 +778,9 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
   self.retryExponent = DEFAULT_RETRY_EXPONENT;
 
   [self startReachabilityNotifier];
+#if TARGET_OS_IPHONE
   [self startRadioAccessNotifier];
+#endif
 }
 
 - (id)initWithRequest:(NSURLRequest *)request {
@@ -771,12 +800,27 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 }
 
 -(void)startKeepAliveWithTimeout:(NSTimeInterval)interval {
+
+  /*
+  [SPDY sharedSPDY].needToStartBackgroundTaskBlock();
+
+  keepaliveTimer = [NSTimer scheduledTimerWithTimeInterval:540
+                            target:self
+                            selector:@selector(keepalive) 
+                            userInfo:nil
+                            repeats:YES];
+  */
   [[UIApplication sharedApplication] setKeepAliveTimeout:interval handler:^{
     [self keepalive];
   }];
 }
 
 -(void)clearKeepAlive {
+  /*
+  [keepaliveTimer invalidate];
+  keepaliveTimer = nil;
+  [SPDY sharedSPDY].finishedWithBackgroundTaskBlock();
+  */
   [[UIApplication sharedApplication] clearKeepAliveTimeout];
 }
 

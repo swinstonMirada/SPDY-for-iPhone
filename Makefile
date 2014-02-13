@@ -2,10 +2,9 @@ BUILD:=$(shell pwd)/build
 
 all: SPDY
 
-build/lib/libSPDY.a:
-	cd SPDY && make
-
-SPDY: build/lib/libSPDY.a
+SPDY: 
+	cd SPDY && make install-macosx
+	cd SPDY && make install
 
 clean:
 	-rm -rf build

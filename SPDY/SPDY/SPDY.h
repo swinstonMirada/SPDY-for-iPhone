@@ -36,8 +36,12 @@ typedef enum {
 
 typedef enum {
   kSpdyNetworkStatusNotReachable = 0,
+#if TARGET_OS_IPHONE
   kSpdyNetworkStatusReachableViaWWAN,
   kSpdyNetworkStatusReachableViaWiFi,
+#else
+  kSpdyNetworkStatusReachable,  /* no wifi or wwan reachability info on macosx  */
+#endif
   kSpdyNetworkStatusStreamNotFound,
   kSpdyNetworkStatusHostNotFound
 } SpdyNetworkStatus;
