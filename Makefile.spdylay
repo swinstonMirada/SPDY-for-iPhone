@@ -10,7 +10,7 @@ define build_macosx_spdylay
 	cd spdylay && make install
 endef
 
-spdylay/configure: spdylay/configure.ac zlib
+spdylay/configure: spdylay/configure.ac
 	cd spdylay && autoreconf -i && automake && autoconf
 	touch spdylay/configure
 
