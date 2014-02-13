@@ -63,15 +63,19 @@
 }
 
 - (void)onPushResponse:(CFHTTPMessageRef)response withStreamId:(int32_t)streamId {
+  CFRetain(response);
   __spdy_dispatchAsyncOnMainThread(^{
 				     [spdy_url doSpdyPushCallbackWithMessage:response
 					       andStreamId:streamId];
+                                     CFRelease(response);
 				   });
 }
 
 - (void)onResponse:(CFHTTPMessageRef)response {
+  CFRetain(response);
   __spdy_dispatchAsyncOnMainThread(^{
 				     [spdy_url doSuccessCallbackWithMessage:response];
+                                     CFRelease(response);
 				   });
 }
 
