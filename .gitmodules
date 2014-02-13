@@ -1,3 +1,0 @@
-[submodule "spdylay"]
-	path = spdylay
-	url = git://github.com/locationlabs/spdylay.git
