@@ -16,7 +16,6 @@
 		3800CAE314E48CAE00B85319 /* SpdySession.m in Sources */ = {isa = PBXBuildFile; fileRef = 3800CADF14E48CAE00B85319 /* SpdySession.m */; };
 		3800CAE414E48CAE00B85319 /* SpdyStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 3800CAE014E48CAE00B85319 /* SpdyStream.h */; };
 		3800CAE514E48CAE00B85319 /* SpdyStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 3800CAE114E48CAE00B85319 /* SpdyStream.m */; };
-		3800CAE714E491F800B85319 /* libspdylay.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3800CAE614E491F800B85319 /* libspdylay.a */; };
 		380A212814EC30F200262B13 /* SpdyStreamTests.h in Headers */ = {isa = PBXBuildFile; fileRef = 380A212614EC30F200262B13 /* SpdyStreamTests.h */; };
 		380A212A14EC312300262B13 /* SpdyStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 380A212714EC30F200262B13 /* SpdyStreamTests.m */; };
 		380A212D14EC348B00262B13 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3800CADC14E48BC800B85319 /* MobileCoreServices.framework */; };
@@ -85,7 +84,6 @@
 		3800CADF14E48CAE00B85319 /* SpdySession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdySession.m; sourceTree = "<group>"; };
 		3800CAE014E48CAE00B85319 /* SpdyStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyStream.h; sourceTree = "<group>"; };
 		3800CAE114E48CAE00B85319 /* SpdyStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyStream.m; sourceTree = "<group>"; };
-		3800CAE614E491F800B85319 /* libspdylay.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspdylay.a; path = ../build/iphoneos-lib/libspdylay.a; sourceTree = "<group>"; };
 		380A212614EC30F200262B13 /* SpdyStreamTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyStreamTests.h; sourceTree = "<group>"; };
 		380A212714EC30F200262B13 /* SpdyStreamTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyStreamTests.m; sourceTree = "<group>"; };
 		380A212B14EC345500262B13 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -143,7 +141,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3800CAE714E491F800B85319 /* libspdylay.a in Frameworks */,
 				3800CADD14E48BC800B85319 /* MobileCoreServices.framework in Frameworks */,
 				38D64AEE152244FB00EF9CB6 /* SystemConfiguration.framework in Frameworks */,
 				38D64AED152244F300EF9CB6 /* CFNetwork.framework in Frameworks */,
@@ -170,7 +167,6 @@
 		3870AF4714E47F8E009D8118 = {
 			isa = PBXGroup;
 			children = (
-				3800CAE614E491F800B85319 /* libspdylay.a */,
 				3870AF5714E47F8E009D8118 /* SPDY */,
 				3870AF6B14E47F8E009D8118 /* SPDYTests */,
 				3870AF5414E47F8E009D8118 /* Frameworks */,
