@@ -1,5 +1,6 @@
 BUILD:=$(shell pwd)/build
-PKG_CONFIG_PATH=$(BUILD)/lib/pkgconfig
+IPHONEOS_PKG_CONFIG_PATH=$(BUILD)/iphoneos-lib/pkgconfig
+MACOSX_PKG_CONFIG_PATH=$(BUILD)/macosx-lib/pkgconfig
 
 all: SPDY
 

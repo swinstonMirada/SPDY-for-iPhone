@@ -30,15 +30,17 @@ build/iphoneos-arm64/lib/libz.a: zlib/build-zlib.sh
 	$(call build_ios_libz,iphoneos,arm64)
 
 build/iphoneos-lib/libz.a: build/iphonesimulator-i386/lib/libz.a build/iphonesimulator-x86_64/lib/libz.a build/iphoneos-armv7/lib/libz.a build/iphoneos-armv7s/lib/libz.a build/iphoneos-arm64/lib/libz.a
-	-mkdir -p $(PKG_CONFIG_PATH)
+	-mkdir -p $(IPHONEOS_PKG_CONFIG_PATH)
 	-mkdir -p build/iphoneos-lib
 	lipo -create $^ -output $@
-	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/iphoneos-armv7/lib/pkgconfig/zlib.pc > $(PKG_CONFIG_PATH)/zlib.pc
+	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/iphoneos-armv7/lib/pkgconfig/zlib.pc > $(IPHONEOS_PKG_CONFIG_PATH)/zlib.pc
 
 
 build/macosx-lib/libz.a: build/macosx-i386/lib/libz.a build/macosx-x86_64/lib/libz.a
+	-mkdir -p $(MACOSX_PKG_CONFIG_PATH)
 	-mkdir -p build/macosx-lib
 	lipo -create $^ -output $@
+	sed -e 's,prefix=\(.*\)/i386,prefix=\1,g' build/macosx-i386/lib/pkgconfig/zlib.pc > $(IPHONEOS_PKG_CONFIG_PATH)/zlib.pc
 
 
 zlib: build/iphoneos-lib/libz.a build/macosx-lib/libz.a

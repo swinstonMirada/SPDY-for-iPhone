@@ -1,6 +1,6 @@
 define build_ios_spdylay
 	@echo "Building spdylay for sdk $(1) arch $(2)"
-	cd spdylay && ../ios-configure -p "$(BUILD)/$(1)-$(2)" -k $(PKG_CONFIG_PATH) $(1)-$(2) --with-xml-prefix=/unkonwn
+	cd spdylay && ../ios-configure -p "$(BUILD)/$(1)-$(2)" -k $(IPHONEOS_PKG_CONFIG_PATH) $(1)-$(2) --with-xml-prefix=/unkonwn
 	cd spdylay/lib && make install
 endef
 
