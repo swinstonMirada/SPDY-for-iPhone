@@ -1,0 +1,54 @@
+define build_ios_spdylay
+	@echo "Building spdylay for sdk $(1) arch $(2)"
+	cd spdylay && ../ios-configure -p "$(BUILD)/$(1)-$(2)" -k $(PKG_CONFIG_PATH) $(1)-$(2) --with-xml-prefix=/unkonwn
+	cd spdylay/lib && make install
+endef
+
+define build_macosx_spdylay
+	@echo "Building spdylay for sdk macosx arch $(1)"
+	export CC="gcc -arch $(1)" && cd spdylay && ./configure --prefix="$(BUILD)/macosx-$(1)"
+	cd spdylay && make install
+endef
+
+spdylay/configure: spdylay/configure.ac zlib
+	cd spdylay && autoreconf -i && automake && autoconf
+	touch spdylay/configure
+
+build/iphoneos-armv7/lib/libspdylay.a: spdylay/configure ios-configure
+	$(call build_ios_spdylay,iphoneos,armv7)
+
+build/iphoneos-armv7s/lib/libspdylay.a: spdylay/configure ios-configure
+	$(call build_ios_spdylay,iphoneos,armv7s)
+
+build/iphoneos-arm64/lib/libspdylay.a: spdylay/configure ios-configure
+	$(call build_ios_spdylay,iphoneos,arm64)
+
+build/iphonesimulator-i386/lib/libspdylay.a: spdylay/configure ios-configure
+	$(call build_ios_spdylay,iphonesimulator,i386)
+
+build/iphonesimulator-x86_64/lib/libspdylay.a: spdylay/configure ios-configure
+	$(call build_ios_spdylay,iphonesimulator,x86_64)
+
+build/macosx-i386/lib/libspdylay.a: spdylay/configure
+	$(call build_macosx_spdylay,i386)
+
+build/macosx-x86_64/lib/libspdylay.a: spdylay/configure
+	$(call build_macosx_spdylay,x86_64)
+
+build/iphoneos-lib/libspdylay.a: build/iphoneos-armv7s/lib/libspdylay.a build/iphoneos-armv7/lib/libspdylay.a build/iphoneos-arm64/lib/libspdylay.a build/iphonesimulator-i386/lib/libspdylay.a build/iphonesimulator-x86_64/lib/libspdylay.a
+	mkdir -p build/iphoneos-lib
+	lipo -create $^ -output $@
+	mkdir -p $(BUILD)/include
+	cp -r build/iphoneos-armv7/include/* $(BUILD)/include
+
+build/macosx-lib/libspdylay.a: build/macosx-i386/lib/libspdylay.a build/macosx-x86_64/lib/libspdylay.a
+	mkdir -p build/macosx-lib
+	lipo -create $^ -output $@
+
+#spdylay: build/iphoneos-lib/libspdylay.a build/macosx-lib/libspdylay.a
+spdylay: build/iphoneos-lib/libspdylay.a
+
+update-spdylay:
+	cd spdylay && git pull
+	-rm build/lib/libspdylay.* build/{armv7s,armv7,arm64,i386,x86_64}/lib/libspdylay.*
+

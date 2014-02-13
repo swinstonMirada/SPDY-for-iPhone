@@ -1,0 +1,44 @@
+define build_ios_libz
+	@echo "Building libz for sdk $(1) arch $(2)"
+	cd zlib && PLATFORM=$(1) ARCH=$(2) ROOTDIR=$(BUILD)/$(1)-$(2) ./build-zlib.sh
+endef
+
+define build_macosx_libz
+	@echo "Building libz for sdk macosx arch $(1)"
+	cd zlib && ROOTDIR=$(BUILD)/macosx-$(1) ./build-native-zlib.sh $(1)
+endef
+
+build/iphonesimulator-i386/lib/libz.a: zlib/build-zlib.sh
+	$(call build_ios_libz,iphonesimulator,i386)
+
+build/iphonesimulator-x86_64/lib/libz.a: zlib/build-zlib.sh
+	$(call build_ios_libz,iphonesimulator,x86_64)
+
+build/macosx-i386/lib/libz.a: zlib/build-native-zlib.sh
+	$(call build_macosx_libz,i386)
+
+build/macosx-x86_64/lib/libz.a: zlib/build-native-zlib.sh
+	$(call build_macosx_libz,x86_64)
+
+build/iphoneos-armv7/lib/libz.a: zlib/build-zlib.sh
+	$(call build_ios_libz,iphoneos,armv7)
+
+build/iphoneos-armv7s/lib/libz.a: zlib/build-zlib.sh
+	$(call build_ios_libz,iphoneos,armv7s)
+
+build/iphoneos-arm64/lib/libz.a: zlib/build-zlib.sh
+	$(call build_ios_libz,iphoneos,arm64)
+
+build/iphoneos-lib/libz.a: build/iphonesimulator-i386/lib/libz.a build/iphonesimulator-x86_64/lib/libz.a build/iphoneos-armv7/lib/libz.a build/iphoneos-armv7s/lib/libz.a build/iphoneos-arm64/lib/libz.a
+	-mkdir -p $(PKG_CONFIG_PATH)
+	-mkdir -p build/iphoneos-lib
+	lipo -create $^ -output $@
+	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/iphoneos-armv7/lib/pkgconfig/zlib.pc > $(PKG_CONFIG_PATH)/zlib.pc
+
+
+build/macosx-lib/libz.a: build/macosx-i386/lib/libz.a build/macosx-x86_64/lib/libz.a
+	-mkdir -p build/macosx-lib
+	lipo -create $^ -output $@
+
+
+zlib: build/iphoneos-lib/libz.a build/macosx-lib/libz.a
