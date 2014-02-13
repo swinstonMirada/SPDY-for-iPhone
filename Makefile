@@ -6,9 +6,7 @@ MACOSX_PKG_CONFIG_PATH=$(ZLIB_BUILD)/macosx-lib/pkgconfig
 
 all: SPDY
 
-include Makefile.spdylay
-
-build/lib/libSPDY.a: spdylay
+build/lib/libSPDY.a:
 	cd SPDY && make
 
 SPDY: build/lib/libSPDY.a
@@ -19,9 +17,9 @@ clean:
 check: SPDY
 	cd SPDY && make check
 
-local: build/$(PLATFORM_NAME)-$(CURRENT_ARCH)/lib/libspdylay.a
+local:
 	mkdir -p $(BUILD)/include
 	cp -a build/$(PLATFORM_NAME)-$(CURRENT_ARCH)/include/* $(BUILD)/include	
 	cd SPDY && make local
 
-.PHONY: all check spdylay SPDY clean update-spdylay local
+.PHONY: all check SPDY clean local

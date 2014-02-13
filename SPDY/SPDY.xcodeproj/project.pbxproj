@@ -547,10 +547,12 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../build/include",
 					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
 				);
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
@@ -582,10 +584,12 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../build/include",
 					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
 				);
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
@@ -613,10 +617,12 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../build/include",
 					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
 				);
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
@@ -641,10 +647,12 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../build/include",
 					"$(OPENSSL_INCLUDE)",
+					"$(SPDYLAY_INCLUDE)",
 				);
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
