@@ -1,9 +1,5 @@
 BUILD:=$(shell pwd)/build
 
-ZLIB_BUILD ?= $(BUILD)
-IPHONEOS_PKG_CONFIG_PATH=$(ZLIB_BUILD)/iphoneos-lib/pkgconfig
-MACOSX_PKG_CONFIG_PATH=$(ZLIB_BUILD)/macosx-lib/pkgconfig
-
 all: SPDY
 
 build/lib/libSPDY.a:
