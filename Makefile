@@ -19,9 +19,9 @@ clean:
 check: SPDY
 	cd SPDY && make check
 
-local: build/$(CURRENT_ARCH)/lib/libspdylay.a
+local: build/$(PLATFORM_NAME)-$(CURRENT_ARCH)/lib/libspdylay.a
 	mkdir -p $(BUILD)/include
-	cp -a build/$(CURRENT_ARCH)/include/* $(BUILD)/include	
+	cp -a build/$(PLATFORM_NAME)-$(CURRENT_ARCH)/include/* $(BUILD)/include	
 	cd SPDY && make local
 
 .PHONY: all check spdylay zlib SPDY clean update-spdylay local
