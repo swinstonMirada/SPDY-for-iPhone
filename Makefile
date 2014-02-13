@@ -15,7 +15,6 @@ check: SPDY
 
 local:
 	mkdir -p $(BUILD)/include
-	cp -a build/$(PLATFORM_NAME)-$(CURRENT_ARCH)/include/* $(BUILD)/include	
 	cd SPDY && make local
 
 .PHONY: all check SPDY clean local
