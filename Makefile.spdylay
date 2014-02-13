@@ -6,7 +6,7 @@ endef
 
 define build_macosx_spdylay
 	@echo "Building spdylay for sdk macosx arch $(1)"
-	export CC="gcc -arch $(1)" && cd spdylay && ./configure --prefix="$(BUILD)/macosx-$(1)"
+	export PKG_CONFIG_PATH="$(MACOSX_PKG_CONFIG_PATH)" && export PKG_CONFIG_LIBDIR="$(PKG_CONFIG_PATH)" && export CC="gcc -arch $(1)" && cd spdylay && ./configure --prefix="$(BUILD)/macosx-$(1)"
 	cd spdylay && make install
 endef
 
@@ -45,8 +45,7 @@ build/macosx-lib/libspdylay.a: build/macosx-i386/lib/libspdylay.a build/macosx-x
 	mkdir -p build/macosx-lib
 	lipo -create $^ -output $@
 
-#spdylay: build/iphoneos-lib/libspdylay.a build/macosx-lib/libspdylay.a
-spdylay: build/iphoneos-lib/libspdylay.a
+spdylay: build/iphoneos-lib/libspdylay.a build/macosx-lib/libspdylay.a
 
 update-spdylay:
 	cd spdylay && git pull
