@@ -85,7 +85,7 @@
 		3800CADF14E48CAE00B85319 /* SpdySession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdySession.m; sourceTree = "<group>"; };
 		3800CAE014E48CAE00B85319 /* SpdyStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyStream.h; sourceTree = "<group>"; };
 		3800CAE114E48CAE00B85319 /* SpdyStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyStream.m; sourceTree = "<group>"; };
-		3800CAE614E491F800B85319 /* libspdylay.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspdylay.a; path = ../build/lib/libspdylay.a; sourceTree = "<group>"; };
+		3800CAE614E491F800B85319 /* libspdylay.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspdylay.a; path = ../build/iphoneos-lib/libspdylay.a; sourceTree = "<group>"; };
 		380A212614EC30F200262B13 /* SpdyStreamTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyStreamTests.h; sourceTree = "<group>"; };
 		380A212714EC30F200262B13 /* SpdyStreamTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyStreamTests.m; sourceTree = "<group>"; };
 		380A212B14EC345500262B13 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -551,7 +551,7 @@
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
@@ -586,7 +586,7 @@
 				INSTALL_PATH = /lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
@@ -617,7 +617,7 @@
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -645,7 +645,7 @@
 				INFOPLIST_FILE = "SPDYTests/SPDYTests-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../build/lib\"",
+					"\"$(SRCROOT)/../build/iphoneos-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";

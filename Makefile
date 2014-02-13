@@ -9,7 +9,7 @@ define build_ios_spdylay
 	cd spdylay/lib && make install
 endef
 
-spdylay/configure: spdylay/configure.ac build/lib/libz.a
+spdylay/configure: spdylay/configure.ac build/iphoneos-lib/libz.a
 	cd spdylay && autoreconf -i && automake && autoconf
 	touch spdylay/configure
 
@@ -33,12 +33,13 @@ build/iphonesimulator-x86_64/lib/libspdylay.a: spdylay/configure ios-configure
 #	cd spdylay && make install
 
 
-build/lib/libspdylay.a: build/iphoneos-armv7s/lib/libspdylay.a build/iphoneos-armv7/lib/libspdylay.a build/iphoneos-arm64/lib/libspdylay.a build/iphonesimulator-i386/lib/libspdylay.a build/iphonesimulator-x86_64/lib/libspdylay.a
+build/iphoneos-lib/libspdylay.a: build/iphoneos-armv7s/lib/libspdylay.a build/iphoneos-armv7/lib/libspdylay.a build/iphoneos-arm64/lib/libspdylay.a build/iphonesimulator-i386/lib/libspdylay.a build/iphonesimulator-x86_64/lib/libspdylay.a
+	mkdir -p build/iphoneos-lib
 	lipo -create $^ -output $@
 	mkdir -p $(BUILD)/include
 	cp -r build/iphoneos-armv7/include/* $(BUILD)/include
 
-spdylay: build/lib/libspdylay.a
+spdylay: build/iphoneos-lib/libspdylay.a
 
 
 define build_ios_libz
@@ -64,22 +65,23 @@ build/iphoneos-armv7s/lib/libz.a: zlib/build-zlib.sh
 build/iphoneos-arm64/lib/libz.a: zlib/build-zlib.sh
 	$(call build_ios_libz,iphoneos,arm64)
 
-build/lib/libz.a: build/iphonesimulator-i386/lib/libz.a build/iphonesimulator-x86_64/lib/libz.a build/iphoneos-armv7/lib/libz.a build/iphoneos-armv7s/lib/libz.a build/iphoneos-arm64/lib/libz.a
-	-mkdir -p build/lib/pkgconfig
+build/iphoneos-lib/libz.a: build/iphonesimulator-i386/lib/libz.a build/iphonesimulator-x86_64/lib/libz.a build/iphoneos-armv7/lib/libz.a build/iphoneos-armv7s/lib/libz.a build/iphoneos-arm64/lib/libz.a
+	-mkdir -p $(PKG_CONFIG_PATH)
+	-mkdir -p build/iphoneos-lib
 	lipo -create $^ -output $@
-	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/iphoneos-armv7/lib/pkgconfig/zlib.pc > build/lib/pkgconfig/zlib.pc
+	sed -e 's,prefix=\(.*\)/armv7,prefix=\1,g' build/iphoneos-armv7/lib/pkgconfig/zlib.pc > $(PKG_CONFIG_PATH)/zlib.pc
 
-zlib: build/lib/libz.a
+zlib: build/iphoneos-lib/libz.a
 
 
-build/lib/libSPDY.a: build/lib/libspdylay.a
+build/lib/libSPDY.a: build/iphoneos-lib/libspdylay.a
 	cd SPDY && make
 
 SPDY: build/lib/libSPDY.a
 
 
 clean:
-	-rm -r build
+	-rm -rf build
 
 update-spdylay:
 	cd spdylay && git pull
