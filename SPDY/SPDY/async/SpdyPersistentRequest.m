@@ -3,6 +3,7 @@
 #import <SystemConfiguration/SystemConfiguration.h>
 #if TARGET_OS_IPHONE
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
+#import <UIKit/UIKit.h>
 #endif
 #import <errno.h>
 #import <netdb.h>
@@ -25,7 +26,10 @@ static NSDictionary * radioAccessMap = nil;
   NSDictionary * errorDict;
   id radioAccessObserver;
 
-  //NSTimer * keepaliveTimer;
+#if TARGET_OS_IPHONE
+#else
+  NSTimer * keepaliveTimer;
+#endifp
 }
 
 #if TARGET_OS_IPHONE
@@ -800,28 +804,29 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 }
 
 -(void)startKeepAliveWithTimeout:(NSTimeInterval)interval {
+#if TARGET_OS_IPHONE
+  [[UIApplication sharedApplication] setKeepAliveTimeout:interval handler:^{
+    [self keepalive];
+  }];
+#else
+  //  [SPDY sharedSPDY].needToStartBackgroundTaskBlock();
 
-  /*
-  [SPDY sharedSPDY].needToStartBackgroundTaskBlock();
-
-  keepaliveTimer = [NSTimer scheduledTimerWithTimeInterval:540
+  keepaliveTimer = [NSTimer scheduledTimerWithTimeInterval:interval
                             target:self
                             selector:@selector(keepalive) 
                             userInfo:nil
                             repeats:YES];
-  */
-  [[UIApplication sharedApplication] setKeepAliveTimeout:interval handler:^{
-    [self keepalive];
-  }];
+#endif
 }
 
 -(void)clearKeepAlive {
-  /*
+#if TARGET_OS_IPHONE
+  [[UIApplication sharedApplication] clearKeepAliveTimeout];
+#else
   [keepaliveTimer invalidate];
   keepaliveTimer = nil;
-  [SPDY sharedSPDY].finishedWithBackgroundTaskBlock();
-  */
-  [[UIApplication sharedApplication] clearKeepAliveTimeout];
+  //  [SPDY sharedSPDY].finishedWithBackgroundTaskBlock();
+#endif
 }
 
 @end
