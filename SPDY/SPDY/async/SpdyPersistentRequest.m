@@ -29,7 +29,7 @@ static NSDictionary * radioAccessMap = nil;
 #if TARGET_OS_IPHONE
 #else
   NSTimer * keepaliveTimer;
-#endifp
+#endif
 }
 
 #if TARGET_OS_IPHONE
