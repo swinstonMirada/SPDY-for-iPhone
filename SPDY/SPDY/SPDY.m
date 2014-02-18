@@ -156,8 +156,13 @@ static int select_next_proto_cb(SSL *ssl,
 
 - (SpdySession *)getSession:(NSURL *)url withError:(NSError **)error voip:(BOOL)voip create:(BOOL)create {
 
+  SPDY_LOG(@"getSession:%@ withError: voip:%d create:%d", url, voip, create);
   assert(error != NULL);
   SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
+  SPDY_LOG(@"we have %lu sessions", (unsigned long)self.sessions.count);
+  for(SpdySessionKey *sessionKey in self.sessions) {
+    SPDY_LOG(@"\tsession key %@", sessionKey);
+  }
   SpdySession *session = [self.sessions objectForKey:key];
   SPDY_LOG(@"Looking up %@, found %p", key, session);
   SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
@@ -207,7 +212,7 @@ static int select_next_proto_cb(SSL *ssl,
   return session;
 }
 
-- (int)pingWithCallback:(void (^)())callback {
+- (int)pingWithCallback:(void (^)(BOOL success))callback {
   int ret = 0;
   SPDY_LOG(@"pingWithCallback w/ %lu sessions", (unsigned long)self.sessions.count);
   for(SpdySessionKey *sessionKey in self.sessions) {
@@ -218,34 +223,35 @@ static int select_next_proto_cb(SSL *ssl,
       [session sendPingWithCallback:callback];
     }
   }
+  if(ret == 0) callback(NO);
   return ret;
 }
 
-- (void)pingRequest:(NSURLRequest*)request callback:(void (^)())callback {
+- (void)pingRequest:(NSURLRequest*)request callback:(void (^)(BOOL success))callback {
   NSURL *url = [request URL];
   NSError *error;
   SpdySession *session = [self getSession:(NSURL *)url withError:&error voip:NO create:YES];
   if (session == nil) {
-    // XXX log error
     SPDY_LOG(@"could not ping: no session");
+    callback(NO);
     return;
   }
   [session sendPingWithCallback:callback];
 }
 
-- (void)pingUrlString:(NSString*)url callback:(void (^)())callback {
+- (void)pingUrlString:(NSString*)url callback:(void (^)(BOOL success))callback {
   NSURL *u = [NSURL URLWithString:url];
   if (u == nil || u.host == nil) {
     //NSError *error = [NSError errorWithDomain:(NSString *)kCFErrorDomainCFNetwork code:kCFHostErrorHostNotFound userInfo:nil];
-    // XXX log error
     SPDY_LOG(@"could not ping: bad host");
+    callback(NO);
     return;
   }
   NSError *error = nil;
   SpdySession *session = [self getSession:u withError:&error voip:NO create:YES];
   if (session == nil) {
-    // XXX log error
     SPDY_LOG(@"could not ping: no session");
+    callback(NO);
     return;
   }
   [session sendPingWithCallback:callback];

@@ -73,7 +73,7 @@ static const int priority = 1;
 
 @implementation SpdySession {
     
-  void (^pingCallback)();
+  void (^pingCallback)(BOOL success);
 
   NSMutableSet *streams;
   NSMutableDictionary *pushStreams;
@@ -834,7 +834,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
   return self;
 }
  
-- (int)sendPingWithCallback:(void (^)())callback {
+- (int)sendPingWithCallback:(void (^)(BOOL success))callback {
   pingCallback = callback;
   return [self sendPing];
 }
@@ -852,7 +852,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 
 - (void)onPingReceived {
   if(pingCallback != nil) 
-    pingCallback();
+    pingCallback(YES);
 }
 
 - (void)onGoAwayReceived {

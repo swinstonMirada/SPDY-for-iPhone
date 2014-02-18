@@ -691,7 +691,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 DONT_CALL_ME(setStreamCloseCallback,SpdyVoidCallback);
 DONT_CALL_ME(setConnectCallback,SpdyVoidCallback);
-DONT_CALL_ME(setPingCallback,SpdyVoidCallback);
+DONT_CALL_ME(setPingCallback,SpdyBoolCallback);
 DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 
 -(void)streamWasClosed {
@@ -765,8 +765,11 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 #endif
     [weak_self reconnect:error];
   };
-  super.pingCallback = ^ {
-    [weak_self gotPing];
+  super.pingCallback = ^(BOOL success) {
+    if(success)
+      [weak_self gotPing];
+    else
+      [weak_self noPingReceived];
   };
   super.streamCloseCallback = ^ {
     SPDY_LOG(@"streamCloseCallback");
@@ -804,6 +807,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 }
 
 -(void)startKeepAliveWithTimeout:(NSTimeInterval)interval {
+  SPDY_LOG(@"startKeepAliveWithTimeout:%lf", interval);
 #if TARGET_OS_IPHONE
   [[UIApplication sharedApplication] setKeepAliveTimeout:interval handler:^{
     [self keepalive];

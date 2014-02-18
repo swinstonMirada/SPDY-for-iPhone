@@ -57,8 +57,8 @@
 
 - (void)sendPing {
   // make sure the ping callback happens on the main thread
-  SpdyVoidCallback glue = ^ {	
-    __spdy_dispatchAsyncOnMainThread(self.pingCallback);
+  SpdyBoolCallback glue = ^(BOOL success) {	
+    __spdy_dispatchAsyncOnMainThread(^{self.pingCallback(success);});
   };
   void (^block)() = ^{
     if(ns_url_request == nil) {

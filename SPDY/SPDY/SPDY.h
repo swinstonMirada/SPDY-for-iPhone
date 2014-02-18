@@ -70,6 +70,7 @@ typedef void (^SpdySuccessCallback)(SpdyHTTPResponse*,NSData*);
 typedef void (^SpdyErrorCallback)(NSError*);
 typedef void (^SpdyVoidCallback)();
 typedef void (^SpdyIntCallback)(int);
+typedef void (^SpdyBoolCallback)(BOOL);
 typedef void (^SpdyNetworkStatusCallback)(SpdyNetworkStatus);
 typedef void (^SpdyConnectStateCallback)(NSString *, SpdyConnectState);
 typedef void (^SpdyRadioAccessTechnologyCallback)(SpdyRadioAccessTechnology);
@@ -137,9 +138,9 @@ enum SpdyErrors {
 - (BOOL)isSpdyRegisteredForUrl:(NSURL *)url;
 - (void)unregisterForNSURLConnection;
 
-- (int)pingWithCallback:(void (^)())callback;
-- (void)pingUrlString:(NSString*)url callback:(void (^)())callback;
-- (void)pingRequest:(NSURLRequest*)request callback:(void (^)())callback;
+- (int)pingWithCallback:(void (^)(BOOL success))callback;
+- (void)pingUrlString:(NSString*)url callback:(void (^)(BOOL success))callback;
+- (void)pingRequest:(NSURLRequest*)request callback:(void (^)(BOOL success))callback;
 - (void)teardown:(NSString*)url;
 - (void)teardownForRequest:(NSURLRequest*)url;
 

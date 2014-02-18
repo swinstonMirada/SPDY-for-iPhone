@@ -62,7 +62,7 @@
 @property (nonatomic, copy) SpdyErrorCallback pushErrorCallback;
 
 /* called when a ping response is received */
-@property (nonatomic, copy) SpdyVoidCallback pingCallback;
+@property (nonatomic, copy) SpdyBoolCallback pingCallback;
 
 /* called when the stream is closed */
 @property (nonatomic, copy) SpdyVoidCallback streamCloseCallback;
