@@ -18,7 +18,8 @@
 // limitations under the License.
 
 #import "SpdyStream.h"
-
+#import "SpdyCallback.h"
+#import "SpdyPushCallback.h"
 #import "SpdySession.h"
 
 static NSSet *headersNotToCopy = nil;
@@ -32,8 +33,8 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 - (int)serializeHeadersDict:(NSDictionary *)headers fromIndex:(int)index;
 - (CFHTTPMessageRef)newResponseMessage:(const char **)nameValuePairs;
 
-@property (retain) NSMutableData *stringArena;
-@property (retain) NSURL *url;
+@property (strong) NSMutableData *stringArena;
+@property (strong) NSURL *url;
 
 @end
 
@@ -61,6 +62,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     if (self == nil) {
         return nil;
     }
+    SPDY_LOG(@"%p init", self);
     streamClosed = NO;
     self.body = nil;
     self.streamId = -1;
@@ -71,16 +73,12 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)dealloc {
-    self.body = nil;
-    self.stringArena = nil;
-    self.parentSession = nil;
-    [arenas release];
+    SPDY_LOG(@"%p dealloc", self);
     free(nameValues);
-    [super dealloc];
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@: %@, streamId=%ld", [super description], self.url, (long)self.streamId];
+  return [NSString stringWithFormat:@"%@: %@, streamId=%ld", [super description], self.url, (long)self.streamId];
 }
 
 - (CFHTTPMessageRef)newResponseMessage:(const char **)nameValuePairs {
@@ -144,6 +142,8 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)closeStream {
+    SPDY_LOG(@"%p closeStream", self);
+
     if (streamClosed != YES) {
         streamClosed = YES;
         [delegate onStreamClose];
@@ -151,11 +151,13 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)cancelStream {
+    SPDY_LOG(@"%p cancelStream", self);
     streamClosed = YES;
     [delegate onError:[NSError errorWithDomain:kSpdyErrorDomain code:kSpdyRequestCancelled userInfo:nil]];
 }
 
 - (void)close {
+    SPDY_LOG(@"%p close", self);
     [self.parentSession cancelStream:self];
 }
 
@@ -164,6 +166,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (void)connectionError {
+    SPDY_LOG(@"connectionError")
     [delegate onError:[NSError errorWithDomain:kSpdyErrorDomain code:kSpdyConnectionFailed userInfo:nil]];
 }
 
@@ -203,8 +206,8 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 
     self.nameValues = malloc((count * 2 + 6*2 + 1) * sizeof(const char *));
     
-    int index = [self serializeUrl:(NSURL *)url withMethod:(NSString *)method withVersion:(NSString *)version];
-    index = [self serializeHeadersDict:(NSDictionary *)d fromIndex:index];
+    int index = [self serializeUrl:(__bridge NSURL *)url withMethod:(__bridge NSString *)method withVersion:(__bridge NSString *)version];
+    index = [self serializeHeadersDict:(__bridge NSDictionary *)d fromIndex:index];
     self.nameValues[index] = NULL;
 
     CFRelease(url);
@@ -224,12 +227,22 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     nv[4] = ":path";
     const char* pathPlus = [self copyString:[url resourceSpecifier]];
     const char* host = [self copyString:[url host]];
-    int portLength = [url port] ? (int)[[[url port] stringValue] length] + 1 : 0;
-    nv[5] = pathPlus + strlen(host) + 2 + portLength;
+    unsigned long portLength = [url port] ? [[[url port] stringValue] length] + 1 : 0;
+    const char * path = pathPlus + strlen(host) + 2 + portLength;
+    if(strlen(path) == 0) path = "/"; // don't send an empty path
+    nv[5] = path;
+    SPDY_LOG(@"PATH IS '%s'", nv[5]);
     nv[6] = ":host";
     nv[7] = host;
     nv[8] = ":version";
     nv[9] = [self copyString:version];
+
+
+    SPDY_LOG(@"Name value pairs for SYN_STREAM:");
+    for(int i = 0 ; i < 5 ; i++) {
+      SPDY_LOG(@"\t%s => %s", nv[i*2], nv[i*2+1]);
+    }
+
     return 10;
 }
 
@@ -257,16 +270,16 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 
 #pragma mark Creation methods.
 
-+ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(RequestCallback *)delegate body:(NSInputStream *)body {
++ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(SpdyCallback *)delegate body:(NSInputStream *)body {
     SpdyStream *stream = [[SpdyStream alloc] init];
     CFURLRef u = CFHTTPMessageCopyRequestURL(msg);
-    stream.url = (NSURL *)u;
+    stream.url = (__bridge NSURL *)u;
     if (body != nil) {
         stream.body = body;
     } else {
         CFDataRef bodyData = CFHTTPMessageCopyBody(msg);
         if (bodyData != NULL) {
-            stream.body = [NSInputStream inputStreamWithData:(NSData *)bodyData];
+            stream.body = [NSInputStream inputStreamWithData:(__bridge NSData *)bodyData];
             CFRelease(bodyData);
         }
     }
@@ -277,7 +290,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     return stream;
 }
 
-+ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(RequestCallback *)delegate {
++ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(SpdyCallback *)delegate {
     SpdyStream *stream = [[SpdyStream alloc] init];
     stream.nameValues = malloc(sizeof(const char *) * (6*2 + 1));
     stream.delegate = delegate;
@@ -290,12 +303,12 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     return stream;
 }
 
-+ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate {
++ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate {
     SpdyStream *stream = [[SpdyStream alloc] init];
     NSDictionary *headers = [request allHTTPHeaderFields];
     stream.delegate = delegate;
     stream.stringArena = [stream createArena:2048];
-    int maxElements = (int)[headers count]*2 + 6*2 + 1;
+    unsigned long maxElements = [headers count]*2 + 6*2 + 1;
     stream.nameValues = malloc(sizeof(const char *) * maxElements);
     int nameValueIndex = [stream serializeUrl:[request URL] withMethod:[request HTTPMethod] withVersion:@"HTTP/1.1"];
     nameValueIndex = [stream serializeHeadersDict:headers fromIndex:nameValueIndex];
@@ -311,4 +324,25 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     return stream;
 }
 
++ (SpdyStream *)newFromAssociatedStream:(SpdyStream *)associatedStream streamId:(int32_t)streamId nameValues:(char**)nv {
+  SpdyStream *stream = [[SpdyStream alloc] init];
+
+  if([associatedStream.delegate isKindOfClass:[SpdyBufferedCallback class]]) {
+    stream.delegate = [[SpdyPushCallback alloc] initWithParentCallback:(SpdyBufferedCallback*)associatedStream.delegate andStreamId:streamId];
+  } else {
+    SPDY_LOG(@"ignoring push stream because the delegate of the associated stream is not a SpdyBufferedCallback (it is %@)", [stream.delegate class]);
+  }
+
+  stream.streamId = streamId;
+  stream.stringArena = [stream createArena:2048]; // XXX ??? not sure about this
+
+  int maxElements = 0;
+  while(nv[2*maxElements] != NULL) maxElements++;
+  
+  stream.nameValues = malloc(sizeof(const char *) * maxElements * 2 + 1);
+  for(int i = 0 ; i < maxElements*2 ; i++) 
+    stream.nameValues[i] = nv[i];
+
+  return stream;
+}
 @end

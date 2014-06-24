@@ -1,34 +1,33 @@
 
-CONFIGURATION=Release
+CONFIGURATION ?= Release
+CURRENT_ARCH ?= armv7
+SDK_NAME ?= iphoneos7.0
+PLATFORM_NAME ?= iphoneos
+
 LATEST_SDK=$(shell xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//g' | tail -n 1)
 
 
-install: armv7s armv7 i386
-	mkdir -p ../install/include/SPDY ../install/lib
-	lipo -create build/lib/armv7s/libSPDY.a build/lib/armv7/libSPDY.a build/lib/i386/libSPDY.a -output ../install/lib/libSPDY.a
-	cp build/include/SPDY/*.h ../install/include/SPDY/
+install:
+	mkdir -p $(BUILD)/install/include $(BUILD)/install/iphoneos-lib
+	xcodebuild SYMROOT=$(BUILD) DSTROOT=$(BUILD) -configuration $(CONFIGURATION) install
+	cp $(BUILD)/UninstalledProducts/libSPDY.a $(BUILD)/install/iphoneos-lib/libSPDY.a
+
+install-macosx:
+	mkdir -p $(BUILD)/install/include $(BUILD)/install/macosx-lib
+	xcodebuild SYMROOT=$(BUILD) DSTROOT=$(BUILD) -configuration $(CONFIGURATION) -target SPDY-MacOSX install
+	cp $(BUILD)/usr/local/lib/libSPDY-MacOSX.a $(BUILD)/install/macosx-lib/libSPDY.a
 
 check-%:
-	xcodebuild -configuration Debug -sdk iphonesimulator`echo $@ | sed -e 's/check-//'` clean
-	xcodebuild -configuration Debug -sdk iphonesimulator`echo $@ | sed -e 's/check-//'` -target SPDYTests | tee /tmp/test-logs
+	xcodebuild -configuration $(CONFIGURATION) -sdk iphonesimulator`echo $@ | sed -e 's/check-//'` clean 
+	xcodebuild -configuration $(CONFIGURATION) -sdk iphonesimulator`echo $@ | sed -e 's/check-//'` -target SPDYTests | tee /tmp/test-logs
 
 check: check-$(LATEST_SDK)
 
-
-i386:
-	mkdir -p build/lib/i386
-	xcodebuild clean
-	xcodebuild -sdk iphonesimulator -arch i386 -configuration Debug install
-	cp build/UninstalledProducts/libSPDY.a build/lib/i386/libSPDY.a
-
-armv7s:
-	mkdir -p build/lib/armv7s
-	xcodebuild clean
-	xcodebuild -configuration $(CONFIGURATION) -arch armv7s -sdk iphoneos install
-	cp build/UninstalledProducts/libSPDY.a build/lib/armv7s/libSPDY.a
-
-armv7:
-	mkdir -p build/lib/armv7
-	xcodebuild clean
-	xcodebuild -configuration $(CONFIGURATION) -arch armv7 -sdk iphoneos install
-	cp build/UninstalledProducts/libSPDY.a build/lib/armv7/libSPDY.a
+local:
+	mkdir -p $(BUILD)/install/include $(BUILD)/install/$(PLATFORM_NAME)-lib
+	xcodebuild  -arch $(CURRENT_ARCH) -sdk $(SDK_NAME) -configuration $(CONFIGURATION) install SYMROOT=$(BUILD) DSTROOT=$(BUILD) 
+	mkdir -p $(BUILD)/install-$(CURRENT_ARCH)/$(PLATFORM_NAME)-lib
+	mkdir -p $(BUILD)/install-$(CURRENT_ARCH)/include
+	pwd
+	cp $(BUILD)/UninstalledProducts/libSPDY.a $(BUILD)/install-$(CURRENT_ARCH)/$(PLATFORM_NAME)-lib/libSPDY.a
+	cp -a $(BUILD)/include/* $(BUILD)/install-$(CURRENT_ARCH)/include

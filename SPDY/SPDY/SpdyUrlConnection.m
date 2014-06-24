@@ -1,6 +1,6 @@
 //
 //  SpdyUrlConnection.m
-//  NOTE: iOS makes a copy of the return value of responseWithURL:withResponse:withRequestBytes, so the original type is
+//  NOTE: iOS makes a copy of the return value of responseWithURL:andMessage:withRequestBytes, so the original type is
 //  lost.
 //
 //  Created by Jim Morrison on 4/2/12.
@@ -19,6 +19,8 @@
 // limitations under the License.
 
 #import "SpdyUrlConnection.h"
+#import "SpdyHTTPResponse.h"
+#import "SpdyCallback.h"
 #import "SPDY.h"
 #include "zlib.h"
 
@@ -29,44 +31,15 @@ static NSMutableDictionary *disabledHosts;
 // The delegate is called each time on a url to determine if a request should use spdy.
 static id <SpdyUrlConnectionCallback> globalCallback;
 
-@implementation SpdyUrlResponse
-@synthesize statusCode = _statusCode;
-@synthesize allHeaderFields = _allHeaderFields;
-@synthesize requestBytes = _requestBytes;
-
-// In iOS 4.3 and below CFHTTPMessage uppercases the first letter of each word in the http header key.  In iOS 5 and up the headers
-// from CFHTTPMessage are case insenstive.  Thus all header objectForKeys must use Word-Word casing.
-+ (NSHTTPURLResponse *)responseWithURL:(NSURL *)url withResponse:(CFHTTPMessageRef)headers withRequestBytes:(NSInteger)requestBytesSent {
-    NSMutableDictionary *headersDict = [[[NSMakeCollectable(CFHTTPMessageCopyAllHeaderFields(headers)) autorelease] mutableCopy] autorelease];
-    [headersDict setObject:@"YES" forKey:@"protocol-was: spdy"];
-    NSNumberFormatter *f = [[[NSNumberFormatter alloc] init] autorelease];
-    NSString *contentType = [headersDict objectForKey:@"Content-Type"];
-    NSString *contentLength = [headersDict objectForKey:@"Content-Length"];
-    NSNumber *length = [f numberFromString:contentLength];
-    NSInteger statusCode = CFHTTPMessageGetResponseStatusCode(headers);
-    NSString *version = [NSMakeCollectable(CFHTTPMessageCopyVersion(headers)) autorelease];
-    if ([[NSHTTPURLResponse class] instancesRespondToSelector:@selector(initWithURL:statusCode:HTTPVersion:headerFields:)]) {
-        return [[[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode  HTTPVersion:version headerFields:headersDict] autorelease];
-    }
-    
-    SpdyUrlResponse *response = [[[SpdyUrlResponse alloc] initWithURL:url MIMEType:contentType expectedContentLength:[length intValue] textEncodingName:nil] autorelease];
-    response.statusCode = statusCode;
-    response.allHeaderFields = headersDict;
-    response.requestBytes = requestBytesSent;
-    return response;
-}
-
-@end
-
-@interface SpdyUrlCallback : RequestCallback
+@interface SpdyUrlConnectionRequestCallback : SpdyCallback
 - (id)initWithConnection:(SpdyUrlConnection *)protocol;
-@property (retain) SpdyUrlConnection *protocol;
+@property (strong) SpdyUrlConnection *protocol;
 @property (assign) NSInteger requestBytesSent;
 @property (nonatomic, assign) BOOL needUnzip;
 @property (nonatomic, assign) z_stream zlibContext;
 @end
 
-@implementation SpdyUrlCallback
+@implementation SpdyUrlConnectionRequestCallback
 @synthesize protocol = _protocol;
 @synthesize requestBytesSent = _requestBytesSent;
 @synthesize needUnzip = _needUnzip;
@@ -83,7 +56,6 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 - (void)dealloc {
     if (self.needUnzip)
         inflateEnd(&_zlibContext);
-    [super dealloc];
 }
 
 - (void)onConnect:(id<SpdyRequestIdentifier>)spdyId {
@@ -110,14 +82,14 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 }
 
 - (void)onRequestBytesSent:(NSInteger)bytesSend {
-    SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onRequestBytesSent: %d", self.protocol, (int32_t)bytesSend);
+  SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onRequestBytesSent: %ld", self.protocol, (long)bytesSend);
     // The updated byte count should be sent, but the URLProtocolClient doesn't have a method to do that.
     //[[self.protocol client] URLProtocol:self.protocol didSendBodyData:bytesSend];
     self.requestBytesSent += bytesSend;
 }
 
 - (void)onResponseHeaders:(CFHTTPMessageRef)headers {
-    NSHTTPURLResponse *response = [SpdyUrlResponse responseWithURL:[self.protocol.spdyIdentifier url] withResponse:headers withRequestBytes:self.requestBytesSent];
+    NSHTTPURLResponse *response = [SpdyHTTPResponse responseWithURL:[self.protocol.spdyIdentifier url] andMessage:headers withRequestBytes:self.requestBytesSent];
     if ([[response.allHeaderFields objectForKey:@"Content-Encoding"] hasPrefix:@"gzip"]) {
         self.needUnzip = YES;
         memset(&_zlibContext, 0, sizeof(_zlibContext));
@@ -138,9 +110,11 @@ static id <SpdyUrlConnectionCallback> globalCallback;
             NSMutableData *inflateData = [NSMutableData dataWithCapacity:4096];
             _zlibContext.next_out = [inflateData mutableBytes];
             _zlibContext.avail_out = 4096;
-            int inflateStatus = inflate(&_zlibContext, Z_SYNC_FLUSH);
             NSInteger inflatedBytes = self.zlibContext.total_out - bytesHad;
-            SPDY_LOG(@"Unzip status: %d, inflated %d bytes", inflateStatus, (int32_t)inflatedBytes);
+#ifdef CONF_Debug	    
+            int inflateStatus = inflate(&_zlibContext, Z_SYNC_FLUSH);
+            SPDY_LOG(@"Unzip status: %d, inflated %ld bytes", inflateStatus, (long)inflatedBytes);
+#endif
             NSData *data = [NSData dataWithBytes:[inflateData bytes] length:inflatedBytes];
             [[self.protocol client] URLProtocol:self.protocol didLoadData:data];
         }
@@ -176,7 +150,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 + (void)registerSpdyWithCallback:(id <SpdyUrlConnectionCallback>)callback {
     enabledHosts = [[NSMutableDictionary alloc] init];
     disabledHosts = [[NSMutableDictionary alloc] init];
-    globalCallback = [callback retain];
+    globalCallback = callback;
     [NSURLProtocol registerClass:[SpdyUrlConnection class]];    
 }
 
@@ -186,11 +160,8 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 + (void)unregister {
     [NSURLProtocol unregisterClass:[SpdyUrlConnection class]];
-    [enabledHosts release];
     enabledHosts = nil;
-    [disabledHosts release];
     disabledHosts = nil;
-    [globalCallback release];
     globalCallback = nil;
 }
 
@@ -253,14 +224,10 @@ static id <SpdyUrlConnectionCallback> globalCallback;
     return request;
 }
 
-- (void)dealloc {
-    [_spdyIdentifier release];
-    [super dealloc];
-}
 
 - (void)startLoading {
     SPDY_DEBUG_LOG(@"Start loading SpdyURLConnection: %@ with URL: %@", self, [[self request] URL])
-    SpdyUrlCallback *delegate = [[[SpdyUrlCallback alloc] initWithConnection:self] autorelease];
+    SpdyUrlConnectionRequestCallback *delegate = [[SpdyUrlConnectionRequestCallback alloc] initWithConnection:self];
     [[SPDY sharedSPDY] fetchFromRequest:[self request] delegate:delegate];
 }
 

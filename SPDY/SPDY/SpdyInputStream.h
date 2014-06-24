@@ -25,7 +25,7 @@
 @interface SpdyInputStream : NSInputStream<NSStreamDelegate>
 - (SpdyInputStream *)init:(NSInputStream *)parent;
 
-@property (retain) NSError *error;
-@property (retain) id<SpdyRequestIdentifier> requestId;
+@property (strong) NSError *error;
+@property (strong) id<SpdyRequestIdentifier> requestId;
 
 @end

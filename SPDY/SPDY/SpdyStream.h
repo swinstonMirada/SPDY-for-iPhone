@@ -21,14 +21,14 @@
 #import <Foundation/Foundation.h>
 #import "SPDY.h"
 
-@class RequestCallback;
+@class SpdyCallback;
 @class SpdySession;
 
 @interface SpdyStream : NSObject<SpdyRequestIdentifier> {
     const char **nameValues;
 
     BOOL streamClosed;
-    RequestCallback *delegate;
+    SpdyCallback *delegate;
 }
 
 // To be used by the SPDY session.
@@ -44,17 +44,19 @@
 - (void)notSpdyError;
 - (void)connectionError;
 
-+ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
-+ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(RequestCallback *)delegate;
-+ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
++ (SpdyStream *)newFromCFHTTPMessage:(CFHTTPMessageRef)msg delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
++ (SpdyStream *)newFromNSURL:(NSURL *)url delegate:(SpdyCallback *)delegate;
++ (SpdyStream *)newFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
++ (SpdyStream *)newFromAssociatedStream:(SpdyStream *)associatedStream streamId:(int32_t)streamId nameValues:(char**)nv;
 
 + (void)staticInit;
 
 @property const char **nameValues;
-@property (retain, nonatomic) RequestCallback *delegate;
-@property (retain, nonatomic) NSInputStream *body;
+
+@property (strong, nonatomic) SpdyCallback *delegate;
+@property (strong, nonatomic) NSInputStream *body;
 @property (assign, nonatomic) NSInteger streamId;
-@property (retain, nonatomic) SpdySession *parentSession;
+@property (weak, nonatomic) SpdySession *parentSession;
 
 // If a stream is closed after the timeout the session should probably be closed.
 @property (assign, nonatomic) NSTimeInterval streamTimeoutInterval;

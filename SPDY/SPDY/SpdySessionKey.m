@@ -20,8 +20,8 @@
 #import "SpdySessionKey.h"
 
 @interface SpdySessionKey ()
-@property (nonatomic, retain) NSString *host;
-@property (nonatomic, retain) NSNumber *port;
+@property (nonatomic, strong) NSString *host;
+@property (nonatomic, strong) NSNumber *port;
 @end
 
 @implementation SpdySessionKey
@@ -35,14 +35,9 @@
     return self;
 }
 
-- (void)dealloc {
-    [_host release];
-    [_port release];
-    [super dealloc];
-}
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@ %@:%@ (%lu)", [super description], self.host, self.port, (unsigned long)[self hash]];
+  return [NSString stringWithFormat:@"%@ %@:%@ (%lu)", [super description], self.host, self.port, (unsigned long)[self hash]];
 }
 
 - (NSUInteger)hash {
@@ -71,8 +66,8 @@
 
 - (id)copyWithZone:(NSZone *)zone {
     SpdySessionKey *other = [[SpdySessionKey allocWithZone:zone] init];
-    other.host = [[self.host copyWithZone:zone] autorelease];
-    other.port = [[self.port copyWithZone:zone] autorelease];
+    other.host = [self.host copyWithZone:zone];
+    other.port = [self.port copyWithZone:zone];
     return other;
 }
 

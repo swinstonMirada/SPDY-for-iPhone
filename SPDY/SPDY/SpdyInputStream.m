@@ -40,7 +40,7 @@
     if (self) {
         self.requestId = nil;
         _error = nil;
-        parentStream = [parent retain];
+        parentStream = parent;
         [parentStream setDelegate:self];
         properties = [[NSMutableDictionary alloc]initWithCapacity:4];
     }
@@ -49,12 +49,7 @@
 }
 
 - (void)dealloc {
-    [parentStream release];
     [properties removeAllObjects];
-    [properties release];
-    self.requestId = nil;
-    [_error release];
-    [super dealloc];
 }
 
 - (void)open {
@@ -95,7 +90,7 @@
     }
     // propertyForKey is called from CFReadStreamCopyProperty, but CopyProperty doesn't call
     // CFRetain, so we need to call retain here.
-    return [[properties objectForKey:key] retain];
+    return [properties objectForKey:key];
 }
 
 - (BOOL)setProperty:(id)property forKey:(NSString *)key {
@@ -121,11 +116,8 @@
 }
 
 - (void)setError:(NSError *)e {
-    if (_error != nil) {
-        [_error autorelease];
-    }
     if (e != nil) {
-        _error = [e retain];
+        _error = e;
         CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopCommonModes, ^{[self stream:parentStream handleEvent:NSStreamEventErrorOccurred];});
     } else {
         _error = nil;
@@ -188,7 +180,7 @@
     switch (eventCode) {
         case NSStreamEventOpenCompleted:
             if (requestedEvents & kCFStreamEventOpenCompleted) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventOpenCompleted,
 							   copiedContext.info);
             }
@@ -196,7 +188,7 @@
             
         case NSStreamEventHasBytesAvailable:
             if (requestedEvents & kCFStreamEventHasBytesAvailable) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventHasBytesAvailable,
                                copiedContext.info);
             }
@@ -204,7 +196,7 @@
             
         case NSStreamEventErrorOccurred:
             if (requestedEvents & kCFStreamEventErrorOccurred) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventErrorOccurred,
                                copiedContext.info);
             }
@@ -212,7 +204,7 @@
             
         case NSStreamEventEndEncountered:
             if (requestedEvents & kCFStreamEventEndEncountered) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventEndEncountered,
                                copiedContext.info);
             }

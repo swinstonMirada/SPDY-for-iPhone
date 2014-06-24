@@ -18,50 +18,43 @@
 // limitations under the License.
 
 #import <Foundation/Foundation.h>
-#include "openssl/ssl.h"
+#import "openssl/ssl.h"
+#import "SpdyRequest.h"
+#import "SpdyTimer.h"
+#import "SPDY.h"
 
-@class RequestCallback;
+@class SpdyCallback;
 @class SpdyStream;
 
 struct spdylay_session;
 
-enum ConnectState {
-    NOT_CONNECTED,
-    CONNECTING,
-    SSL_HANDSHAKE,
-    CONNECTED,
-    ERROR,
-};
-
-typedef enum {
-    kSpdyNotReachable = 0,
-    kSpdyReachableViaWWAN,
-    kSpdyReachableViaWiFi	
-} SpdyNetworkStatus;
-
-@interface SpdySession : NSObject {
-    struct spdylay_session *session;
-    
-    BOOL spdyNegotiated;
-    enum ConnectState connectState;
-    SpdyNetworkStatus networkStatus;
-}
+@interface SpdySession : NSObject 
 
 @property (assign) BOOL spdyNegotiated;
 @property (assign) uint16_t spdyVersion;
 @property (assign) struct spdylay_session *session;
-@property (retain) NSURL *host;
-@property (assign) enum ConnectState connectState;
+@property (strong) NSURL *host;
+@property (assign) BOOL voip;
+@property (assign) SpdyConnectState connectState;
 @property (assign) SpdyNetworkStatus networkStatus;
+
+// these are intended for debugging
+@property (nonatomic,copy) SpdyConnectStateCallback connectionStateCallback;
+@property (nonatomic,copy) SpdyNetworkStatusCallback networkStatusCallback;
+@property (nonatomic,copy) SpdyIntCallback writeCallback;
+@property (nonatomic,copy) SpdyIntCallback readCallback;
 
 - (SpdySession *)init:(SSL_CTX *)ssl_ctx oldSession:(SSL_SESSION *)oldSession;
 
 // Returns nil if the session is able to start a connection to host.
 - (NSError *)connect:(NSURL *)host;
-- (void)fetch:(NSURL *)path delegate:(RequestCallback *)delegate;
-- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(RequestCallback *)delegate body:(NSInputStream *)body;
-- (void)fetchFromRequest:(NSURLRequest *)request delegate:(RequestCallback *)delegate;
-- (void)addToLoop;
+- (void)fetch:(NSURL *)path delegate:(SpdyCallback *)delegate;
+- (void)fetchFromMessage:(CFHTTPMessageRef)request delegate:(SpdyCallback *)delegate body:(NSInputStream *)body;
+- (void)fetchFromRequest:(NSURLRequest *)request delegate:(SpdyCallback *)delegate;
+- (int)sendPing;
+- (int)sendPingWithCallback:(void (^)(BOOL success))callback;
+- (void)onPingReceived;
+- (void)onGoAwayReceived;
 
 - (NSInteger)resetStreamsAndGoAway;
 - (SSL_SESSION *)getSslSession;
