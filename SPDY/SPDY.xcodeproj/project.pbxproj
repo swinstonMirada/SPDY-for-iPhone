@@ -16,9 +16,6 @@
 		3800CAE314E48CAE00B85319 /* SpdySession.m in Sources */ = {isa = PBXBuildFile; fileRef = 3800CADF14E48CAE00B85319 /* SpdySession.m */; };
 		3800CAE414E48CAE00B85319 /* SpdyStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 3800CAE014E48CAE00B85319 /* SpdyStream.h */; };
 		3800CAE514E48CAE00B85319 /* SpdyStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 3800CAE114E48CAE00B85319 /* SpdyStream.m */; };
-		3800CAE714E491F800B85319 /* libspdylay.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3800CAE614E491F800B85319 /* libspdylay.a */; };
-		3800CAF214E499D400B85319 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3800CAF114E499D400B85319 /* libssl.a */; };
-		3800CAF414E499E200B85319 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3800CAF314E499E200B85319 /* libcrypto.a */; };
 		380A212814EC30F200262B13 /* SpdyStreamTests.h in Headers */ = {isa = PBXBuildFile; fileRef = 380A212614EC30F200262B13 /* SpdyStreamTests.h */; };
 		380A212A14EC312300262B13 /* SpdyStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 380A212714EC30F200262B13 /* SpdyStreamTests.m */; };
 		380A212D14EC348B00262B13 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3800CADC14E48BC800B85319 /* MobileCoreServices.framework */; };
@@ -38,12 +35,45 @@
 		3889D6A1150022DC00DDED3F /* SpdyInputStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3889D6A0150022DC00DDED3F /* SpdyInputStreamTests.m */; };
 		388C2EA21517CBB400DEDB34 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 388C2E9F1517CB7000DEDB34 /* SystemConfiguration.framework */; };
 		38CE176E152D270400C7F65D /* SpdyUrlConnectionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 38CE176D152D270400C7F65D /* SpdyUrlConnectionTest.m */; };
-		38D64ACD15223B2F00EF9CB6 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 380A212E14EC34C200262B13 /* libz.a */; };
 		38D64AED152244F300EF9CB6 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 380A213214EC360900262B13 /* CFNetwork.framework */; };
 		38D64AEE152244FB00EF9CB6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 388C2E9F1517CB7000DEDB34 /* SystemConfiguration.framework */; };
 		38D935B8152A417E00383797 /* SpdyUrlConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = 38D935B6152A417E00383797 /* SpdyUrlConnection.h */; };
 		38D935B9152A417E00383797 /* SpdyUrlConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 38D935B7152A417E00383797 /* SpdyUrlConnection.m */; };
 		38FFF69414E9A303001A974E /* SPDY.h in Headers */ = {isa = PBXBuildFile; fileRef = 3870AF5A14E47F8E009D8118 /* SPDY.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9AA3A73619529D8800B5B600 /* spdylay.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A70F19529D8800B5B600 /* spdylay.h */; };
+		9AA3A73719529D8800B5B600 /* spdylayver.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A71019529D8800B5B600 /* spdylayver.h */; };
+		9AA3A73919529D8800B5B600 /* spdylay_buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A71719529D8800B5B600 /* spdylay_buffer.c */; };
+		9AA3A73A19529D8800B5B600 /* spdylay_buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A71819529D8800B5B600 /* spdylay_buffer.h */; };
+		9AA3A73B19529D8800B5B600 /* spdylay_client_cert_vector.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A71919529D8800B5B600 /* spdylay_client_cert_vector.c */; };
+		9AA3A73C19529D8800B5B600 /* spdylay_client_cert_vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A71A19529D8800B5B600 /* spdylay_client_cert_vector.h */; };
+		9AA3A73D19529D8800B5B600 /* spdylay_frame.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A71B19529D8800B5B600 /* spdylay_frame.c */; };
+		9AA3A73E19529D8800B5B600 /* spdylay_frame.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A71C19529D8800B5B600 /* spdylay_frame.h */; };
+		9AA3A73F19529D8800B5B600 /* spdylay_gzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A71D19529D8800B5B600 /* spdylay_gzip.c */; };
+		9AA3A74019529D8800B5B600 /* spdylay_gzip.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A71E19529D8800B5B600 /* spdylay_gzip.h */; };
+		9AA3A74119529D8800B5B600 /* spdylay_helper.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A71F19529D8800B5B600 /* spdylay_helper.c */; };
+		9AA3A74219529D8800B5B600 /* spdylay_helper.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72019529D8800B5B600 /* spdylay_helper.h */; };
+		9AA3A74319529D8800B5B600 /* spdylay_int.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72119529D8800B5B600 /* spdylay_int.h */; };
+		9AA3A74419529D8800B5B600 /* spdylay_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72219529D8800B5B600 /* spdylay_map.c */; };
+		9AA3A74519529D8800B5B600 /* spdylay_map.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72319529D8800B5B600 /* spdylay_map.h */; };
+		9AA3A74619529D8800B5B600 /* spdylay_net.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72419529D8800B5B600 /* spdylay_net.h */; };
+		9AA3A74719529D8800B5B600 /* spdylay_npn.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72519529D8800B5B600 /* spdylay_npn.c */; };
+		9AA3A74819529D8800B5B600 /* spdylay_npn.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72619529D8800B5B600 /* spdylay_npn.h */; };
+		9AA3A74919529D8800B5B600 /* spdylay_outbound_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72719529D8800B5B600 /* spdylay_outbound_item.c */; };
+		9AA3A74A19529D8800B5B600 /* spdylay_outbound_item.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72819529D8800B5B600 /* spdylay_outbound_item.h */; };
+		9AA3A74B19529D8800B5B600 /* spdylay_pq.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72919529D8800B5B600 /* spdylay_pq.c */; };
+		9AA3A74C19529D8800B5B600 /* spdylay_pq.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72A19529D8800B5B600 /* spdylay_pq.h */; };
+		9AA3A74D19529D8800B5B600 /* spdylay_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72B19529D8800B5B600 /* spdylay_queue.c */; };
+		9AA3A74E19529D8800B5B600 /* spdylay_queue.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72C19529D8800B5B600 /* spdylay_queue.h */; };
+		9AA3A74F19529D8800B5B600 /* spdylay_session.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72D19529D8800B5B600 /* spdylay_session.c */; };
+		9AA3A75019529D8800B5B600 /* spdylay_session.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A72E19529D8800B5B600 /* spdylay_session.h */; };
+		9AA3A75119529D8800B5B600 /* spdylay_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A72F19529D8800B5B600 /* spdylay_stream.c */; };
+		9AA3A75219529D8800B5B600 /* spdylay_stream.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A73019529D8800B5B600 /* spdylay_stream.h */; };
+		9AA3A75319529D8800B5B600 /* spdylay_submit.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A73119529D8800B5B600 /* spdylay_submit.c */; };
+		9AA3A75419529D8800B5B600 /* spdylay_submit.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A73219529D8800B5B600 /* spdylay_submit.h */; };
+		9AA3A75519529D8800B5B600 /* spdylay_zlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3A73319529D8800B5B600 /* spdylay_zlib.c */; };
+		9AA3A75619529D8800B5B600 /* spdylay_zlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA3A73419529D8800B5B600 /* spdylay_zlib.h */; };
+		9AA3B2AA195373BE00B5B600 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA3B2A8195373BE00B5B600 /* libcrypto.a */; };
+		9AA3B2AB195373BE00B5B600 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA3B2A9195373BE00B5B600 /* libssl.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,15 +96,9 @@
 		3800CADF14E48CAE00B85319 /* SpdySession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdySession.m; sourceTree = "<group>"; };
 		3800CAE014E48CAE00B85319 /* SpdyStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyStream.h; sourceTree = "<group>"; };
 		3800CAE114E48CAE00B85319 /* SpdyStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyStream.m; sourceTree = "<group>"; };
-		3800CAE614E491F800B85319 /* libspdylay.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspdylay.a; path = ../build/lib/libspdylay.a; sourceTree = "<group>"; };
-		3800CAE814E4920E00B85319 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "../OpenSSL-for-iPhone/libcrypto.a"; sourceTree = "<group>"; };
-		3800CAE914E4920E00B85319 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "../OpenSSL-for-iPhone/libssl.a"; sourceTree = "<group>"; };
-		3800CAF114E499D400B85319 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../build/lib/libssl.a; sourceTree = "<group>"; };
-		3800CAF314E499E200B85319 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../build/lib/libcrypto.a; sourceTree = "<group>"; };
 		380A212614EC30F200262B13 /* SpdyStreamTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyStreamTests.h; sourceTree = "<group>"; };
 		380A212714EC30F200262B13 /* SpdyStreamTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyStreamTests.m; sourceTree = "<group>"; };
 		380A212B14EC345500262B13 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
-		380A212E14EC34C200262B13 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../build/lib/libz.a; sourceTree = "<group>"; };
 		380A213214EC360900262B13 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks/CFNetwork.framework; sourceTree = DEVELOPER_DIR; };
 		380A21A514F2FCBC00262B13 /* SpdySessionTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdySessionTests.h; sourceTree = "<group>"; };
 		380A21A614F2FCBC00262B13 /* SpdySessionTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdySessionTests.m; sourceTree = "<group>"; };
@@ -100,6 +124,40 @@
 		38CE176D152D270400C7F65D /* SpdyUrlConnectionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyUrlConnectionTest.m; sourceTree = "<group>"; };
 		38D935B6152A417E00383797 /* SpdyUrlConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyUrlConnection.h; sourceTree = "<group>"; };
 		38D935B7152A417E00383797 /* SpdyUrlConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyUrlConnection.m; sourceTree = "<group>"; };
+		9AA3A70F19529D8800B5B600 /* spdylay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay.h; sourceTree = "<group>"; };
+		9AA3A71019529D8800B5B600 /* spdylayver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylayver.h; sourceTree = "<group>"; };
+		9AA3A71719529D8800B5B600 /* spdylay_buffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_buffer.c; sourceTree = "<group>"; };
+		9AA3A71819529D8800B5B600 /* spdylay_buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_buffer.h; sourceTree = "<group>"; };
+		9AA3A71919529D8800B5B600 /* spdylay_client_cert_vector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_client_cert_vector.c; sourceTree = "<group>"; };
+		9AA3A71A19529D8800B5B600 /* spdylay_client_cert_vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_client_cert_vector.h; sourceTree = "<group>"; };
+		9AA3A71B19529D8800B5B600 /* spdylay_frame.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_frame.c; sourceTree = "<group>"; };
+		9AA3A71C19529D8800B5B600 /* spdylay_frame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_frame.h; sourceTree = "<group>"; };
+		9AA3A71D19529D8800B5B600 /* spdylay_gzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_gzip.c; sourceTree = "<group>"; };
+		9AA3A71E19529D8800B5B600 /* spdylay_gzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_gzip.h; sourceTree = "<group>"; };
+		9AA3A71F19529D8800B5B600 /* spdylay_helper.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_helper.c; sourceTree = "<group>"; };
+		9AA3A72019529D8800B5B600 /* spdylay_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_helper.h; sourceTree = "<group>"; };
+		9AA3A72119529D8800B5B600 /* spdylay_int.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_int.h; sourceTree = "<group>"; };
+		9AA3A72219529D8800B5B600 /* spdylay_map.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_map.c; sourceTree = "<group>"; };
+		9AA3A72319529D8800B5B600 /* spdylay_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_map.h; sourceTree = "<group>"; };
+		9AA3A72419529D8800B5B600 /* spdylay_net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_net.h; sourceTree = "<group>"; };
+		9AA3A72519529D8800B5B600 /* spdylay_npn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_npn.c; sourceTree = "<group>"; };
+		9AA3A72619529D8800B5B600 /* spdylay_npn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_npn.h; sourceTree = "<group>"; };
+		9AA3A72719529D8800B5B600 /* spdylay_outbound_item.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_outbound_item.c; sourceTree = "<group>"; };
+		9AA3A72819529D8800B5B600 /* spdylay_outbound_item.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_outbound_item.h; sourceTree = "<group>"; };
+		9AA3A72919529D8800B5B600 /* spdylay_pq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_pq.c; sourceTree = "<group>"; };
+		9AA3A72A19529D8800B5B600 /* spdylay_pq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_pq.h; sourceTree = "<group>"; };
+		9AA3A72B19529D8800B5B600 /* spdylay_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_queue.c; sourceTree = "<group>"; };
+		9AA3A72C19529D8800B5B600 /* spdylay_queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_queue.h; sourceTree = "<group>"; };
+		9AA3A72D19529D8800B5B600 /* spdylay_session.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_session.c; sourceTree = "<group>"; };
+		9AA3A72E19529D8800B5B600 /* spdylay_session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_session.h; sourceTree = "<group>"; };
+		9AA3A72F19529D8800B5B600 /* spdylay_stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_stream.c; sourceTree = "<group>"; };
+		9AA3A73019529D8800B5B600 /* spdylay_stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_stream.h; sourceTree = "<group>"; };
+		9AA3A73119529D8800B5B600 /* spdylay_submit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_submit.c; sourceTree = "<group>"; };
+		9AA3A73219529D8800B5B600 /* spdylay_submit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_submit.h; sourceTree = "<group>"; };
+		9AA3A73319529D8800B5B600 /* spdylay_zlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spdylay_zlib.c; sourceTree = "<group>"; };
+		9AA3A73419529D8800B5B600 /* spdylay_zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spdylay_zlib.h; sourceTree = "<group>"; };
+		9AA3B2A8195373BE00B5B600 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "../OpenSSL-for-iPhone/lib/libcrypto.a"; sourceTree = "<group>"; };
+		9AA3B2A9195373BE00B5B600 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "../OpenSSL-for-iPhone/lib/libssl.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,11 +165,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				38D64ACD15223B2F00EF9CB6 /* libz.a in Frameworks */,
-				3800CAF414E499E200B85319 /* libcrypto.a in Frameworks */,
-				3800CAF214E499D400B85319 /* libssl.a in Frameworks */,
-				3800CAE714E491F800B85319 /* libspdylay.a in Frameworks */,
 				3800CADD14E48BC800B85319 /* MobileCoreServices.framework in Frameworks */,
+				9AA3B2AA195373BE00B5B600 /* libcrypto.a in Frameworks */,
+				9AA3B2AB195373BE00B5B600 /* libssl.a in Frameworks */,
 				38D64AEE152244FB00EF9CB6 /* SystemConfiguration.framework in Frameworks */,
 				38D64AED152244F300EF9CB6 /* CFNetwork.framework in Frameworks */,
 				3870AF5614E47F8E009D8118 /* Foundation.framework in Frameworks */,
@@ -137,12 +193,9 @@
 		3870AF4714E47F8E009D8118 = {
 			isa = PBXGroup;
 			children = (
-				380A212E14EC34C200262B13 /* libz.a */,
-				3800CAF314E499E200B85319 /* libcrypto.a */,
-				3800CAF114E499D400B85319 /* libssl.a */,
-				3800CAE814E4920E00B85319 /* libcrypto.a */,
-				3800CAE914E4920E00B85319 /* libssl.a */,
-				3800CAE614E491F800B85319 /* libspdylay.a */,
+				9AA3B2A8195373BE00B5B600 /* libcrypto.a */,
+				9AA3B2A9195373BE00B5B600 /* libssl.a */,
+				9AA3A6FA19529D8800B5B600 /* lib */,
 				3870AF5714E47F8E009D8118 /* SPDY */,
 				3870AF6B14E47F8E009D8118 /* SPDYTests */,
 				3870AF5414E47F8E009D8118 /* Frameworks */,
@@ -231,6 +284,62 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		9AA3A6FA19529D8800B5B600 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				9AA3A70A19529D8800B5B600 /* includes */,
+				9AA3A71719529D8800B5B600 /* spdylay_buffer.c */,
+				9AA3A71819529D8800B5B600 /* spdylay_buffer.h */,
+				9AA3A71919529D8800B5B600 /* spdylay_client_cert_vector.c */,
+				9AA3A71A19529D8800B5B600 /* spdylay_client_cert_vector.h */,
+				9AA3A71B19529D8800B5B600 /* spdylay_frame.c */,
+				9AA3A71C19529D8800B5B600 /* spdylay_frame.h */,
+				9AA3A71D19529D8800B5B600 /* spdylay_gzip.c */,
+				9AA3A71E19529D8800B5B600 /* spdylay_gzip.h */,
+				9AA3A71F19529D8800B5B600 /* spdylay_helper.c */,
+				9AA3A72019529D8800B5B600 /* spdylay_helper.h */,
+				9AA3A72119529D8800B5B600 /* spdylay_int.h */,
+				9AA3A72219529D8800B5B600 /* spdylay_map.c */,
+				9AA3A72319529D8800B5B600 /* spdylay_map.h */,
+				9AA3A72419529D8800B5B600 /* spdylay_net.h */,
+				9AA3A72519529D8800B5B600 /* spdylay_npn.c */,
+				9AA3A72619529D8800B5B600 /* spdylay_npn.h */,
+				9AA3A72719529D8800B5B600 /* spdylay_outbound_item.c */,
+				9AA3A72819529D8800B5B600 /* spdylay_outbound_item.h */,
+				9AA3A72919529D8800B5B600 /* spdylay_pq.c */,
+				9AA3A72A19529D8800B5B600 /* spdylay_pq.h */,
+				9AA3A72B19529D8800B5B600 /* spdylay_queue.c */,
+				9AA3A72C19529D8800B5B600 /* spdylay_queue.h */,
+				9AA3A72D19529D8800B5B600 /* spdylay_session.c */,
+				9AA3A72E19529D8800B5B600 /* spdylay_session.h */,
+				9AA3A72F19529D8800B5B600 /* spdylay_stream.c */,
+				9AA3A73019529D8800B5B600 /* spdylay_stream.h */,
+				9AA3A73119529D8800B5B600 /* spdylay_submit.c */,
+				9AA3A73219529D8800B5B600 /* spdylay_submit.h */,
+				9AA3A73319529D8800B5B600 /* spdylay_zlib.c */,
+				9AA3A73419529D8800B5B600 /* spdylay_zlib.h */,
+			);
+			name = lib;
+			path = ../spdylay/lib;
+			sourceTree = "<group>";
+		};
+		9AA3A70A19529D8800B5B600 /* includes */ = {
+			isa = PBXGroup;
+			children = (
+				9AA3A70E19529D8800B5B600 /* spdylay */,
+			);
+			path = includes;
+			sourceTree = "<group>";
+		};
+		9AA3A70E19529D8800B5B600 /* spdylay */ = {
+			isa = PBXGroup;
+			children = (
+				9AA3A70F19529D8800B5B600 /* spdylay.h */,
+				9AA3A71019529D8800B5B600 /* spdylayver.h */,
+			);
+			path = spdylay;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -239,13 +348,31 @@
 			buildActionMask = 2147483647;
 			files = (
 				38FFF69414E9A303001A974E /* SPDY.h in Headers */,
+				9AA3A74319529D8800B5B600 /* spdylay_int.h in Headers */,
+				9AA3A75619529D8800B5B600 /* spdylay_zlib.h in Headers */,
+				9AA3A75219529D8800B5B600 /* spdylay_stream.h in Headers */,
+				9AA3A74519529D8800B5B600 /* spdylay_map.h in Headers */,
+				9AA3A75019529D8800B5B600 /* spdylay_session.h in Headers */,
+				9AA3A73A19529D8800B5B600 /* spdylay_buffer.h in Headers */,
 				3800CAE414E48CAE00B85319 /* SpdyStream.h in Headers */,
+				9AA3A73E19529D8800B5B600 /* spdylay_frame.h in Headers */,
+				9AA3A74A19529D8800B5B600 /* spdylay_outbound_item.h in Headers */,
+				9AA3A74819529D8800B5B600 /* spdylay_npn.h in Headers */,
+				9AA3A74219529D8800B5B600 /* spdylay_helper.h in Headers */,
 				3800CAE214E48CAE00B85319 /* SpdySession.h in Headers */,
 				380A212814EC30F200262B13 /* SpdyStreamTests.h in Headers */,
+				9AA3A74E19529D8800B5B600 /* spdylay_queue.h in Headers */,
 				380A21A714F2FCBC00262B13 /* SpdySessionTests.h in Headers */,
+				9AA3A74619529D8800B5B600 /* spdylay_net.h in Headers */,
 				3889D68F14FEE41200DDED3F /* SpdyInputStream.h in Headers */,
+				9AA3A73C19529D8800B5B600 /* spdylay_client_cert_vector.h in Headers */,
+				9AA3A75419529D8800B5B600 /* spdylay_submit.h in Headers */,
+				9AA3A74C19529D8800B5B600 /* spdylay_pq.h in Headers */,
+				9AA3A73719529D8800B5B600 /* spdylayver.h in Headers */,
+				9AA3A73619529D8800B5B600 /* spdylay.h in Headers */,
 				38D935B8152A417E00383797 /* SpdyUrlConnection.h in Headers */,
 				03DA36AF1536446D00FB44AD /* SpdySessionKey.h in Headers */,
+				9AA3A74019529D8800B5B600 /* spdylay_gzip.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,7 +421,7 @@
 		3870AF4914E47F8E009D8118 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 3870AF4C14E47F8E009D8118 /* Build configuration list for PBXProject "SPDY" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -347,10 +474,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				3870AF5C14E47F8E009D8118 /* SPDY.m in Sources */,
+				9AA3A75519529D8800B5B600 /* spdylay_zlib.c in Sources */,
+				9AA3A74119529D8800B5B600 /* spdylay_helper.c in Sources */,
+				9AA3A73919529D8800B5B600 /* spdylay_buffer.c in Sources */,
+				9AA3A75319529D8800B5B600 /* spdylay_submit.c in Sources */,
 				3800CAE314E48CAE00B85319 /* SpdySession.m in Sources */,
 				3800CAE514E48CAE00B85319 /* SpdyStream.m in Sources */,
+				9AA3A74419529D8800B5B600 /* spdylay_map.c in Sources */,
+				9AA3A73D19529D8800B5B600 /* spdylay_frame.c in Sources */,
 				3889D69014FEE41200DDED3F /* SpdyInputStream.m in Sources */,
+				9AA3A74D19529D8800B5B600 /* spdylay_queue.c in Sources */,
+				9AA3A74719529D8800B5B600 /* spdylay_npn.c in Sources */,
 				38D935B9152A417E00383797 /* SpdyUrlConnection.m in Sources */,
+				9AA3A73B19529D8800B5B600 /* spdylay_client_cert_vector.c in Sources */,
+				9AA3A74919529D8800B5B600 /* spdylay_outbound_item.c in Sources */,
+				9AA3A74F19529D8800B5B600 /* spdylay_session.c in Sources */,
+				9AA3A73F19529D8800B5B600 /* spdylay_gzip.c in Sources */,
+				9AA3A74B19529D8800B5B600 /* spdylay_pq.c in Sources */,
+				9AA3A75119529D8800B5B600 /* spdylay_stream.c in Sources */,
 				03DA36B01536446D00FB44AD /* SpdySessionKey.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -396,8 +537,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				"ADDITIONAL_SDKS[arch=*]" = "";
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = "$(SRCROOT)/../build/lib";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -409,64 +555,97 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../spdylay/lib/includes",
+					"$(SRCROOT)/../../openssl-1.0.1h/include",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
+				SHARED_PRECOMPS_DIR = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = debugging;
 				TEST_AFTER_BUILD = YES;
-				VALID_ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
 		};
 		3870AF7514E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = "$(SRCROOT)/../build/lib";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../spdylay/lib/includes",
+					"$(SRCROOT)/../../openssl-1.0.1h/include",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
+				SHARED_PRECOMPS_DIR = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 				STRIP_STYLE = debugging;
 				TEST_AFTER_BUILD = YES;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
 		};
 		3870AF7714E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(SRCROOT)/../build/";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks\"",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../build/include",
+					"$(SRCROOT)/../OpenSSL-for-iPhone/include",
+					"$(SRCROOT)/../spdylay/lib/includes",
+					"$(SRCROOT)/../../openssl-1.0.1h/include",
+				);
 				INSTALL_PATH = /lib;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../build/lib\"",
+					"$(SRCROOT)/../build/lib",
+					"$(SRCROOT)/../OpenSSL-for-iPhone/lib",
+					"$(SRCROOT)/../OpenSSL-for-iPhone/results/lib",
 				);
+				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = ../include/SPDY;
+				SHARED_PRECOMPS_DIR = "";
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "";
 			};
@@ -475,25 +654,33 @@
 		3870AF7814E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CURRENT_PROJECT_VERSION = 0.1;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(SRCROOT)/../build/";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks\"",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../build/include";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../build/include",
+					"$(SRCROOT)/../OpenSSL-for-iPhone/include",
+					"$(SRCROOT)/../spdylay/lib/includes",
+					"$(SRCROOT)/../../openssl-1.0.1h/include",
+				);
 				INSTALL_PATH = /lib;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../build/lib\"",
+					"$(SRCROOT)/../build/lib",
+					"$(SRCROOT)/../OpenSSL-for-iPhone/lib",
+					"$(SRCROOT)/../OpenSSL-for-iPhone/results/lib",
 				);
+				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = ../include/SPDY;
+				SHARED_PRECOMPS_DIR = "";
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "";
 			};
@@ -502,11 +689,10 @@
 		3870AF7A14E47F8E009D8118 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
-					"\"$(DEVELOPER_DIR)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks\"",
+					"$(DEVELOPER_DIR)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
@@ -525,11 +711,10 @@
 		3870AF7B14E47F8E009D8118 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
-					"\"$(DEVELOPER_DIR)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks\"",
+					"$(DEVELOPER_DIR)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator4.3.sdk/System/Library/Frameworks",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";

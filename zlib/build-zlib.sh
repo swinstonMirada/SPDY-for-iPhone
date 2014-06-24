@@ -33,23 +33,23 @@ DEVELOPER=${DEVELOPER:-`xcode-select --print-path`}
 PLATFORM=${PLATFORM:-iPhoneOS}
 SDK=${SDK:-`xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//g' | tail -n 1`}
 MIN_IOS_VERSION=${MIN_IOS_VERSION:-4.3}
-if [ ! -e "zlib-${ZLIB_VERSION}.tar.gz" ]
-then
-  curl -O "http://zlib.net/zlib-${ZLIB_VERSION}.tar.gz"
-fi
+#if [ ! -e "zlib-${ZLIB_VERSION}.tar.gz" ]
+#then
+#  curl -O "http://zlib.net/zlib-${ZLIB_VERSION}.tar.gz"
+#fi
 
 # Extract source
-rm -rf "zlib-${ZLIB_VERSION}"
+rm -rf zlib-${ZLIB_VERSION}
 tar zxvf "zlib-${ZLIB_VERSION}.tar.gz"
 
 # Build
 pushd "zlib-${ZLIB_VERSION}"
 export DEVROOT="${DEVELOPER}/Platforms/${PLATFORM}.platform/Developer"
 export SDKROOT="${DEVROOT}/SDKs/${PLATFORM}${SDK}.sdk"
-export CC=${DEVROOT}/usr/bin/gcc
+export CC=${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
 export LD=${DEVROOT}/usr/bin/ld
-export CPP=${DEVROOT}/usr/bin/cpp
-export CXX=${DEVROOT}/usr/bin/g++
+export CPP=${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
+export CXX=${DEVELOPER}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 unset AR
 unset AS
 export NM=${DEVROOT}/usr/bin/nm

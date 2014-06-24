@@ -197,7 +197,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
 - (void)_cancelStream:(SpdyStream *)stream {
     [stream cancelStream];
     if (stream.streamId > 0) {
-        spdylay_submit_rst_stream([self session], stream.streamId, SPDYLAY_CANCEL);
+        spdylay_submit_rst_stream([self session], (int32_t)stream.streamId, SPDYLAY_CANCEL);
     }
 }
 
@@ -377,7 +377,7 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
     } else {
         int sysError = sslError;
         if (sslError == SSL_ERROR_SYSCALL) {
-            sysError = ERR_get_error();
+            sysError = (int)ERR_get_error();
             if (sysError == 0) {
                 if (r == 0)
                     sysError = -1;

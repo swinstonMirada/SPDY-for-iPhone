@@ -37,6 +37,7 @@
 + (BOOL)isRegistered;
 + (void)unregister;
 
++ (void)enableUrl:(NSURL *)url;
 + (void)disableUrl:(NSURL *)url;
 + (BOOL)canInitWithUrl:(NSURL *)url;
 

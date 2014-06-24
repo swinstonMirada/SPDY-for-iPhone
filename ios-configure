@@ -72,24 +72,32 @@ case $target in
         arch=armv7s
         platform=iPhoneOS
         host=arm-apple-darwin10
+	ARPATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar"
+	RANLIBPATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib"
         ;;
 
     iphone )
         arch=armv7
         platform=iPhoneOS
         host=arm-apple-darwin10
+	ARPATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar"
+	RANLIBPATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib"
         ;;
     
     ipad )
         arch=armv7
         platform=iPhoneOS
         host=arm-apple-darwin10
+	ARPATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar"
+	RANLIBPATH="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib"
         ;;
     
     simulator )
         arch=i686
         platform=iPhoneSimulator
         host=i686-apple-darwin9
+	ARPATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar"
+	RANLIBPATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib"
         ;;
     * )
         usage
@@ -119,16 +127,16 @@ export PKG_CONFIG_PATH="${extra_pkg_config}$SDKROOT/usr/lib/pkgconfig"
 export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
 export AS="$DEVROOT/usr/bin/as"
 export ASCPP="$DEVROOT/usr/bin/as"
-export AR="$DEVROOT/usr/bin/ar"
-export RANLIB="$DEVROOT/usr/bin/ranlib"
-export CPPFLAGS="-miphoneos-version-min=${MIN_IOS_VERSION} -pipe -no-cpp-precomp -I$SDKROOT/usr/include"
+export AR="$ARPATH"
+export RANLIB="$RANLIBPATH"
+export CPPFLAGS="-miphoneos-version-min=${MIN_IOS_VERSION} -pipe -no-cpp-precomp -I$SDKROOT/usr/include -arch ${arch}"
 export CFLAGS="$CPPFLAGS -g2 -std=c99 -arch ${arch} -isysroot $SDKROOT -isystem $SDKROOT/usr/include"
 export CXXFLAGS="$CPPFLAGS -g2 -arch ${arch} -isysroot $SDKROOT -isystem $SDKROOT/usr/include"
 export LDFLAGS="-miphoneos-version-min=${MIN_IOS_VERSION} -arch ${arch} -isysroot $SDKROOT -L$SDKROOT/usr/lib -L$DEVROOT/usr/lib"
-export CPP="$DEVROOT/usr/bin/llvm-cpp-${GCC_VERSION}"
-export CXXCPP="$DEVROOT/usr/bin/llvm-cpp-${GCC_VERSION}"
-export CC="$DEVROOT/usr/bin/llvm-gcc-${GCC_VERSION}"
-export CXX="$DEVROOT/usr/bin/llvm-g++-${GCC_VERSION}"
+export CPP="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -E"
+export CXXPP="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -E"
+export CC="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
+export CXX="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
 export LD="$DEVROOT/usr/bin/ld"
 export STRIP="$DEVROOT/usr/bin/strip"
 export ac_cv_func_malloc_0_nonnull=yes

@@ -80,7 +80,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@: %@, streamId=%d", [super description], self.url, self.streamId];
+    return [NSString stringWithFormat:@"%@: %@, streamId=%ld", [super description], self.url, (long)self.streamId];
 }
 
 - (CFHTTPMessageRef)newResponseMessage:(const char **)nameValuePairs {
@@ -174,7 +174,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
 
 - (void)fixArena:(NSInteger)length {
     if ([self.stringArena length] + length > arenaCapacity) {
-        SPDY_LOG(@"Adding an arena. %d > %d", [self.stringArena length] + length, arenaCapacity);
+        SPDY_LOG(@"Adding an arena. %u > %ld", (uint32_t)([self.stringArena length] + length), (long)arenaCapacity);
         if (arenas == nil) {
             arenas = [[NSMutableArray alloc] initWithCapacity:2];
         }
@@ -224,7 +224,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     nv[4] = ":path";
     const char* pathPlus = [self copyString:[url resourceSpecifier]];
     const char* host = [self copyString:[url host]];
-    int portLength = [url port] ? [[[url port] stringValue] length] + 1 : 0;
+    int portLength = [url port] ? (int)[[[url port] stringValue] length] + 1 : 0;
     nv[5] = pathPlus + strlen(host) + 2 + portLength;
     nv[6] = ":host";
     nv[7] = host;
@@ -295,7 +295,7 @@ NSString *kSpdyTimeoutHeader = @"x-spdy-timeout";
     NSDictionary *headers = [request allHTTPHeaderFields];
     stream.delegate = delegate;
     stream.stringArena = [stream createArena:2048];
-    int maxElements = [headers count]*2 + 6*2 + 1;
+    int maxElements = (int)[headers count]*2 + 6*2 + 1;
     stream.nameValues = malloc(sizeof(const char *) * maxElements);
     int nameValueIndex = [stream serializeUrl:[request URL] withMethod:[request HTTPMethod] withVersion:@"HTTP/1.1"];
     nameValueIndex = [stream serializeHeadersDict:headers fromIndex:nameValueIndex];

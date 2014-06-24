@@ -147,7 +147,7 @@ static int select_next_proto_cb(SSL *ssl,
             SPDY_LOG(@"Could not connect to %@ because %@", url, *error);
             return nil;
         }
-        SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, [self.sessions count] + 1);
+        SPDY_LOG(@"Adding %@ to sessions (size = %u)", key, (uint32_t)[self.sessions count] + 1);
         currentStatus = [self.class reachabilityStatusForHost:key.host];
         session.networkStatus = currentStatus;
         [self.sessions setObject:session forKey:key];

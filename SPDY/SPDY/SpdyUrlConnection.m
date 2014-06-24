@@ -23,6 +23,7 @@
 #include "zlib.h"
 
 // This is actually a dictionary of sets.  The first set is the host names, the second is a set of ports.
+static NSMutableDictionary *enabledHosts;
 static NSMutableDictionary *disabledHosts;
 
 // The delegate is called each time on a url to determine if a request should use spdy.
@@ -109,7 +110,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 }
 
 - (void)onRequestBytesSent:(NSInteger)bytesSend {
-    SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onRequestBytesSent: %d", self.protocol, bytesSend);
+    SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onRequestBytesSent: %d", self.protocol, (int32_t)bytesSend);
     // The updated byte count should be sent, but the URLProtocolClient doesn't have a method to do that.
     //[[self.protocol client] URLProtocol:self.protocol didSendBodyData:bytesSend];
     self.requestBytesSent += bytesSend;
@@ -130,7 +131,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
     SPDY_DEBUG_LOG(@"SpdyURLConnection: %@ onResponseData: %lu", self.protocol, length);
     if (self.needUnzip) {
-        _zlibContext.avail_in = length;
+        _zlibContext.avail_in = (int32_t)length;
         _zlibContext.next_in = (uint8_t *)bytes;
         while (self.zlibContext.avail_in > 0) {
             NSInteger bytesHad = self.zlibContext.total_out;
@@ -139,7 +140,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
             _zlibContext.avail_out = 4096;
             int inflateStatus = inflate(&_zlibContext, Z_SYNC_FLUSH);
             NSInteger inflatedBytes = self.zlibContext.total_out - bytesHad;
-            SPDY_LOG(@"Unzip status: %d, inflated %d bytes", inflateStatus, inflatedBytes);
+            SPDY_LOG(@"Unzip status: %d, inflated %d bytes", inflateStatus, (int32_t)inflatedBytes);
             NSData *data = [NSData dataWithBytes:[inflateData bytes] length:inflatedBytes];
             [[self.protocol client] URLProtocol:self.protocol didLoadData:data];
         }
@@ -173,6 +174,7 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 }
 
 + (void)registerSpdyWithCallback:(id <SpdyUrlConnectionCallback>)callback {
+    enabledHosts = [[NSMutableDictionary alloc] init];
     disabledHosts = [[NSMutableDictionary alloc] init];
     globalCallback = [callback retain];
     [NSURLProtocol registerClass:[SpdyUrlConnection class]];    
@@ -184,6 +186,8 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 
 + (void)unregister {
     [NSURLProtocol unregisterClass:[SpdyUrlConnection class]];
+    [enabledHosts release];
+    enabledHosts = nil;
     [disabledHosts release];
     disabledHosts = nil;
     [globalCallback release];
@@ -195,27 +199,38 @@ static id <SpdyUrlConnectionCallback> globalCallback;
 }
 
 + (BOOL)canInitWithUrl:(NSURL *)url {
-    BOOL isHttps = [[[url scheme] lowercaseString] isEqualToString:@"https"];
-    if (isHttps) {
-        NSSet *ports = [disabledHosts objectForKey:[url host]];
-        if (ports != nil) {
-            NSNumber *port = [url port];
-            if (port == nil)
-                port = [NSNumber numberWithInt:443];
-            if ([ports containsObject:port])
-                return NO;
-        }
-
-        if (globalCallback) {
-            BOOL useSpdy = [globalCallback shouldUseSpdyForUrl:url];
-            SPDY_LOG(@"Callback says %d for %@", useSpdy, url);
-            return useSpdy;
-        }
-        
-        SPDY_LOG(@"Can use spdy for: %@", url);
-        return YES;
+    NSSet *ports1 = [disabledHosts objectForKey:[url host]];
+    if(ports1 != nil) {
+        NSNumber *port = [url port];
+        if(port == nil)
+            port = [NSNumber numberWithInt:443];
+        if([ports1 containsObject:port])
+            return NO;
+    }
+    NSSet *ports = [enabledHosts objectForKey:[url host]];
+    if (ports != nil) {
+        NSNumber *port = [url port];
+        if (port == nil)
+            port = [NSNumber numberWithInt:443];
+        if ([ports containsObject:port])
+            return YES;
     }
     return NO;
+}
+
++ (void)enableUrl:(NSURL *)url {
+    NSMutableSet *ports = [enabledHosts objectForKey:[url host]];
+    if (ports == nil) {
+        ports = [NSMutableSet set];
+        [enabledHosts setObject:ports forKey:[url host]];
+    }
+    SPDY_LOG(@"Enabling spdy for %@", url);
+    if ([url port] == nil) {
+        [ports addObject:[NSNumber numberWithInt:80]];
+        [ports addObject:[NSNumber numberWithInt:443]];
+    } else {
+        [ports addObject:[url port]];
+    }
 }
 
 + (void)disableUrl:(NSURL *)url {

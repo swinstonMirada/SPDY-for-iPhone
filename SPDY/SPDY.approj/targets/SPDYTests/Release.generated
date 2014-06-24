@@ -1,0 +1,328 @@
+{
+    "assets": [
+        {
+            "asset": "SPDYTests/en.lproj/InfoPlist.strings", 
+            "target": "en.lproj/InfoPlist.strings"
+        }
+    ], 
+    "config": {
+        "APPLICATION_IDENTIFIER": "com.twist.SPDYTests", 
+        "LONG_VERSION": "1", 
+        "SHORT_VERSION": "1.0", 
+        "TEMPLATE_VALUES": {
+            "EXECUTABLE_NAME": "SPDYTests", 
+            "PRODUCT_NAME": "SPDYTests"
+        }
+    }, 
+    "defines": {
+        "__IPHONE_OS_VERSION_MIN_REQUIRED": 40000
+    }, 
+    "deps": [
+        "UIKit", 
+        "SenTestingKit", 
+        "SystemConfiguration", 
+        "MobileCoreServices", 
+        "Foundation", 
+        "CFNetwork"
+    ], 
+    "flags": [
+        "-fasm-blocks", 
+        {
+            "flag": "-std=gnu99", 
+            "not_type": "c++"
+        }, 
+        {
+            "flag": "-fgnu-keywords", 
+            "not_type": "c++"
+        }, 
+        "-fno-asm", 
+        "-fpascal-strings", 
+        "-Wempty-body", 
+        "-Wshorten-64-to-32", 
+        "-Wno-deprecated-declarations", 
+        "-Wmissing-prototypes", 
+        "-Wreturn-type", 
+        "-Wswitch", 
+        "-Wparentheses", 
+        "-Wformat", 
+        "-Wuninitialized", 
+        "-Wunused-function", 
+        "-Wunused-value", 
+        "-Wunused-variable", 
+        {
+            "flag": "-Winvalid-offsetof", 
+            "type": "c++"
+        }, 
+        {
+            "flag": "-Wprotocol", 
+            "type": "objc"
+        }, 
+        {
+            "flag": "-Wundeclared-selector", 
+            "type": "objc"
+        }
+    ], 
+    "header_paths": [
+        {
+            "header_path": "SPDYTests.hmap", 
+            "hmap": {
+                "EndToEndTests.h": {
+                    "key": "EndToEndTests.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "EndToEndTests.h"
+                }, 
+                "SPDY-Prefix.pch": {
+                    "key": "SPDY-Prefix.pch", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SPDY-Prefix.pch"
+                }, 
+                "SPDY.h": {
+                    "key": "SPDY.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SPDY.h"
+                }, 
+                "SPDY/SPDY.h": {
+                    "key": "SPDY/SPDY.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SPDY.h"
+                }, 
+                "SPDYTests.h": {
+                    "key": "SPDYTests.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "SPDYTests.h"
+                }, 
+                "SpdyInputStream.h": {
+                    "key": "SpdyInputStream.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SpdyInputStream.h"
+                }, 
+                "SpdyInputStreamTests.h": {
+                    "key": "SpdyInputStreamTests.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "SpdyInputStreamTests.h"
+                }, 
+                "SpdySession.h": {
+                    "key": "SpdySession.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SpdySession.h"
+                }, 
+                "SpdySessionKey.h": {
+                    "key": "SpdySessionKey.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SpdySessionKey.h"
+                }, 
+                "SpdySessionKeyTests.h": {
+                    "key": "SpdySessionKeyTests.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "SpdySessionKeyTests.h"
+                }, 
+                "SpdySessionTests.h": {
+                    "key": "SpdySessionTests.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "SpdySessionTests.h"
+                }, 
+                "SpdyStream.h": {
+                    "key": "SpdyStream.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SpdyStream.h"
+                }, 
+                "SpdyStreamTests.h": {
+                    "key": "SpdyStreamTests.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "SpdyStreamTests.h"
+                }, 
+                "SpdyUrlConnection.h": {
+                    "key": "SpdyUrlConnection.h", 
+                    "prefix": "SPDY/", 
+                    "suffix": "SpdyUrlConnection.h"
+                }, 
+                "SpdyUrlConnectionTest.h": {
+                    "key": "SpdyUrlConnectionTest.h", 
+                    "prefix": "SPDYTests/", 
+                    "suffix": "SpdyUrlConnectionTest.h"
+                }, 
+                "spdylay.h": {
+                    "key": "spdylay.h", 
+                    "prefix": "../spdylay/lib/includes/spdylay/", 
+                    "suffix": "spdylay.h"
+                }, 
+                "spdylay_buffer.h": {
+                    "key": "spdylay_buffer.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_buffer.h"
+                }, 
+                "spdylay_client_cert_vector.h": {
+                    "key": "spdylay_client_cert_vector.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_client_cert_vector.h"
+                }, 
+                "spdylay_frame.h": {
+                    "key": "spdylay_frame.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_frame.h"
+                }, 
+                "spdylay_gzip.h": {
+                    "key": "spdylay_gzip.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_gzip.h"
+                }, 
+                "spdylay_helper.h": {
+                    "key": "spdylay_helper.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_helper.h"
+                }, 
+                "spdylay_int.h": {
+                    "key": "spdylay_int.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_int.h"
+                }, 
+                "spdylay_map.h": {
+                    "key": "spdylay_map.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_map.h"
+                }, 
+                "spdylay_net.h": {
+                    "key": "spdylay_net.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_net.h"
+                }, 
+                "spdylay_npn.h": {
+                    "key": "spdylay_npn.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_npn.h"
+                }, 
+                "spdylay_outbound_item.h": {
+                    "key": "spdylay_outbound_item.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_outbound_item.h"
+                }, 
+                "spdylay_pq.h": {
+                    "key": "spdylay_pq.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_pq.h"
+                }, 
+                "spdylay_queue.h": {
+                    "key": "spdylay_queue.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_queue.h"
+                }, 
+                "spdylay_session.h": {
+                    "key": "spdylay_session.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_session.h"
+                }, 
+                "spdylay_stream.h": {
+                    "key": "spdylay_stream.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_stream.h"
+                }, 
+                "spdylay_submit.h": {
+                    "key": "spdylay_submit.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_submit.h"
+                }, 
+                "spdylay_zlib.h": {
+                    "key": "spdylay_zlib.h", 
+                    "prefix": "../spdylay/lib/", 
+                    "suffix": "spdylay_zlib.h"
+                }, 
+                "spdylayver.h": {
+                    "key": "spdylayver.h", 
+                    "prefix": "../spdylay/lib/includes/spdylay/", 
+                    "suffix": "spdylayver.h"
+                }
+            }, 
+            "type": "I"
+        }, 
+        {
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpyMkRCU/BUILT_PRODUCTS_DIR/include", 
+            "type": "I"
+        }, 
+        {
+            "header_path": "../build/include", 
+            "type": "I"
+        }, 
+        {
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpyMkRCU/DERIVED_FILE_DIR/armv7", 
+            "type": "I"
+        }, 
+        {
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpyMkRCU/DERIVED_FILE_DIR", 
+            "type": "I"
+        }
+    ], 
+    "infoplists": [
+        "./SPDYTests/SPDYTests-Info.plist"
+    ], 
+    "libs": [
+        "SPDY"
+    ], 
+    "modules": [], 
+    "pchs": [
+        "./SPDY/SPDY-Prefix.pch"
+    ], 
+    "sources": [
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/SpdySessionKey.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/EndToEndTests.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/SPDYTests.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/SpdyInputStreamTests.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/SpdySessionKeyTests.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/SpdySessionTests.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/SpdyStreamTests.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDYTests/SpdyUrlConnectionTest.m"
+        }
+    ], 
+    "storyboards": [], 
+    "type": "com.apple.product-type.bundle", 
+    "version": "3", 
+    "xcdatamodels": [], 
+    "xcode_project": "SPDY.xcodeproj", 
+    "xibs": []
+}
