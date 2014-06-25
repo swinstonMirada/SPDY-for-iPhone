@@ -1000,7 +1000,7 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../build/include",
+					"$(SRCROOT)/../install/include",
 					"$(OPENSSL_INCLUDE)",
 					"$(SPDYLAY_INCLUDE)",
 					"$(SRCROOT)/../spdylay/lib/includes",
@@ -1037,7 +1037,7 @@
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../build/include",
+					"$(SRCROOT)/../install/include",
 					"$(OPENSSL_INCLUDE)",
 					"$(SPDYLAY_INCLUDE)",
 					"$(SRCROOT)/../spdylay/lib/includes",
