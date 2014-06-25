@@ -1012,8 +1012,8 @@
 					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
-					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/build/lib",
-					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/install/lib",
+					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
+					"$(SRCROOT)/../install/lib"
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
@@ -1050,8 +1050,7 @@
 					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
-					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/build/lib",
-					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/install/lib",
+					"$(SRCROOT)/../install/lib"
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
