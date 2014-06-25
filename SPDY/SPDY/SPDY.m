@@ -161,7 +161,9 @@ static int select_next_proto_cb(SSL *ssl,
   SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
   SPDY_LOG(@"we have %lu sessions", (unsigned long)self.sessions.count);
   for(SpdySessionKey *sessionKey in self.sessions) {
-    SPDY_LOG(@"\tsession key %@", sessionKey);
+      NSString * msg = [[NSString alloc] initWithFormat:@"\tsession key %@", sessionKey];
+      [[SPDY sharedSPDY].logger writeSpdyLog:msg file:__FILE__ line:__LINE__];
+      if (0) NSLog(@"\tsession key %@", sessionKey);
   }
   SpdySession *session = [self.sessions objectForKey:key];
   SPDY_LOG(@"Looking up %@, found %p", key, session);
