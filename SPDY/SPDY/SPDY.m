@@ -160,11 +160,11 @@ static int select_next_proto_cb(SSL *ssl,
   assert(error != NULL);
   SpdySessionKey *key = [[SpdySessionKey alloc] initFromUrl:url];
   SPDY_LOG(@"we have %lu sessions", (unsigned long)self.sessions.count);
+#ifdef CONF_Debug
   for(SpdySessionKey *sessionKey in self.sessions) {
-      NSString * msg = [[NSString alloc] initWithFormat:@"\tsession key %@", sessionKey];
-      [[SPDY sharedSPDY].logger writeSpdyLog:msg file:__FILE__ line:__LINE__];
-      if (0) NSLog(@"\tsession key %@", sessionKey);
+    SPDY_LOG(@"\tsession key %@", sessionKey);
   }
+#endif
   SpdySession *session = [self.sessions objectForKey:key];
   SPDY_LOG(@"Looking up %@, found %p", key, session);
   SpdyNetworkStatus currentStatus = [self.class reachabilityStatusForHost:key.host];
