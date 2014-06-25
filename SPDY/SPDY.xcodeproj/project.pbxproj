@@ -104,8 +104,6 @@
 		84E6F68918A589FF0094BDDD /* SpdyDnsResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */; };
 		84E6F68A18A589FF0094BDDD /* SpdyDnsResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */; };
 		9A3951D2195A367500440EFE /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3951D1195A367500440EFE /* CFNetwork.framework */; };
-		9A3951DD195A372400440EFE /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3951DB195A372400440EFE /* libcrypto.a */; };
-		9A3951DE195A372400440EFE /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3951DC195A372400440EFE /* libssl.a */; };
 		9A3951FD195A376A00440EFE /* spdylay_buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A3951DF195A376900440EFE /* spdylay_buffer.c */; };
 		9A3951FE195A376A00440EFE /* spdylay_buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A3951DF195A376900440EFE /* spdylay_buffer.c */; };
 		9A3951FF195A376A00440EFE /* spdylay_buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A3951E0195A376900440EFE /* spdylay_buffer.h */; };
@@ -166,6 +164,8 @@
 		9A395236195A376A00440EFE /* spdylay_zlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A3951FB195A376A00440EFE /* spdylay_zlib.c */; };
 		9A395237195A376A00440EFE /* spdylay_zlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A3951FC195A376A00440EFE /* spdylay_zlib.h */; };
 		9A395238195A376A00440EFE /* spdylay_zlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A3951FC195A376A00440EFE /* spdylay_zlib.h */; };
+		9A39523C195B6FE600440EFE /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39523A195B6FE600440EFE /* libcrypto.a */; };
+		9A39523D195B6FE600440EFE /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39523B195B6FE600440EFE /* libssl.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -259,8 +259,6 @@
 		84E6F68418A589FF0094BDDD /* SpdyDnsResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpdyDnsResult.h; sourceTree = "<group>"; };
 		84E6F68618A589FF0094BDDD /* SpdyDnsResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpdyDnsResult.m; sourceTree = "<group>"; };
 		9A3951D1195A367500440EFE /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		9A3951DB195A372400440EFE /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../build/lib/libcrypto.a; sourceTree = "<group>"; };
-		9A3951DC195A372400440EFE /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../build/lib/libssl.a; sourceTree = "<group>"; };
 		9A3951DF195A376900440EFE /* spdylay_buffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = spdylay_buffer.c; path = ../spdylay/lib/spdylay_buffer.c; sourceTree = "<group>"; };
 		9A3951E0195A376900440EFE /* spdylay_buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = spdylay_buffer.h; path = ../spdylay/lib/spdylay_buffer.h; sourceTree = "<group>"; };
 		9A3951E1195A376900440EFE /* spdylay_client_cert_vector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = spdylay_client_cert_vector.c; path = ../spdylay/lib/spdylay_client_cert_vector.c; sourceTree = "<group>"; };
@@ -291,6 +289,8 @@
 		9A3951FA195A376A00440EFE /* spdylay_submit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = spdylay_submit.h; path = ../spdylay/lib/spdylay_submit.h; sourceTree = "<group>"; };
 		9A3951FB195A376A00440EFE /* spdylay_zlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = spdylay_zlib.c; path = ../spdylay/lib/spdylay_zlib.c; sourceTree = "<group>"; };
 		9A3951FC195A376A00440EFE /* spdylay_zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = spdylay_zlib.h; path = ../spdylay/lib/spdylay_zlib.h; sourceTree = "<group>"; };
+		9A39523A195B6FE600440EFE /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../install/lib/libcrypto.a; sourceTree = "<group>"; };
+		9A39523B195B6FE600440EFE /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../install/lib/libssl.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -300,8 +300,8 @@
 			files = (
 				9A3951D2195A367500440EFE /* CFNetwork.framework in Frameworks */,
 				3800CADD14E48BC800B85319 /* MobileCoreServices.framework in Frameworks */,
-				9A3951DE195A372400440EFE /* libssl.a in Frameworks */,
-				9A3951DD195A372400440EFE /* libcrypto.a in Frameworks */,
+				9A39523D195B6FE600440EFE /* libssl.a in Frameworks */,
+				9A39523C195B6FE600440EFE /* libcrypto.a in Frameworks */,
 				38D64AEE152244FB00EF9CB6 /* SystemConfiguration.framework in Frameworks */,
 				38D64AED152244F300EF9CB6 /* CFNetwork.framework in Frameworks */,
 				3870AF5614E47F8E009D8118 /* Foundation.framework in Frameworks */,
@@ -345,9 +345,9 @@
 		3870AF4714E47F8E009D8118 = {
 			isa = PBXGroup;
 			children = (
+				9A39523A195B6FE600440EFE /* libcrypto.a */,
+				9A39523B195B6FE600440EFE /* libssl.a */,
 				9A395239195A377900440EFE /* spdylay */,
-				9A3951DB195A372400440EFE /* libcrypto.a */,
-				9A3951DC195A372400440EFE /* libssl.a */,
 				3870AF5714E47F8E009D8118 /* SPDY */,
 				3870AF6B14E47F8E009D8118 /* SPDYTests */,
 				8412343618AD788B009B9BCE /* SPDY-MacOSX */,
@@ -1013,6 +1013,7 @@
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/build/lib",
+					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/install/lib",
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
@@ -1050,6 +1051,7 @@
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/build/lib",
+					"/Users/swinston/Mirada/lib/ios/SPDY-for-iPhone/install/lib",
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
