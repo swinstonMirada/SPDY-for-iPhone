@@ -1,6 +1,3 @@
-[submodule "spdylay"]
-	path = spdylay
-url=https://github.com/swinstonMirada/spdylay.git
 [submodule "OpenSSL-for-iPhone"]
 	path = OpenSSL-for-iPhone
 	url = https://github.com/sorced-jim/OpenSSL-for-iPhone.git
