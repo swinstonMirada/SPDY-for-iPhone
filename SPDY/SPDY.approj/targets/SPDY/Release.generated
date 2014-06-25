@@ -7,12 +7,17 @@
     ], 
     "config": {}, 
     "defines": {
+        "OPENSSL_NO_DEPRECATED": 1, 
+        "OPENSSL_NO_EC": 1, 
+        "OPENSSL_NO_ECDH": 1, 
+        "OPENSSL_NO_ECDSA": 1, 
         "__IPHONE_OS_VERSION_MIN_REQUIRED": 70100
     }, 
     "deps": [
         "UIKit"
     ], 
     "flags": [
+        "-fobjc-arc", 
         "-fasm-blocks", 
         {
             "flag": "-std=gnu99", 
@@ -24,7 +29,7 @@
         }, 
         "-fno-asm", 
         "-fpascal-strings", 
-        "-Wempty-body", 
+        "-Werror", 
         "-Wshorten-64-to-32", 
         "-Wno-deprecated-declarations", 
         "-Wmissing-prototypes", 
@@ -51,18 +56,13 @@
     ], 
     "header_paths": [
         {
-            "header_path": "SPDY.hmap", 
+            "header_path": "SPDY-generated-files.hmap", 
+            "hmap": {}, 
+            "type": "iquote"
+        }, 
+        {
+            "header_path": "SPDY-own-target-headers.hmap", 
             "hmap": {
-                "EndToEndTests.h": {
-                    "key": "EndToEndTests.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
-                    "suffix": "EndToEndTests.h"
-                }, 
-                "SPDY-Prefix.pch": {
-                    "key": "SPDY-Prefix.pch", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
-                    "suffix": "SPDY-Prefix.pch"
-                }, 
                 "SPDY.h": {
                     "key": "SPDY.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
@@ -73,10 +73,60 @@
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
                     "suffix": "SPDY.h"
                 }, 
+                "SPDY/SpdyBufferedCallback.h": {
+                    "key": "SPDY/SpdyBufferedCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyBufferedCallback.h"
+                }, 
+                "SPDY/SpdyCallback.h": {
+                    "key": "SPDY/SpdyCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyCallback.h"
+                }, 
+                "SPDY/SpdyDnsResolver.h": {
+                    "key": "SPDY/SpdyDnsResolver.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResolver.h"
+                }, 
+                "SPDY/SpdyDnsResult.h": {
+                    "key": "SPDY/SpdyDnsResult.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResult.h"
+                }, 
+                "SPDY/SpdyHTTPResponse.h": {
+                    "key": "SPDY/SpdyHTTPResponse.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyHTTPResponse.h"
+                }, 
                 "SPDY/SpdyInputStream.h": {
                     "key": "SPDY/SpdyInputStream.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
                     "suffix": "SpdyInputStream.h"
+                }, 
+                "SPDY/SpdyPersistentRequest.h": {
+                    "key": "SPDY/SpdyPersistentRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyPersistentRequest.h"
+                }, 
+                "SPDY/SpdyPushCallback.h": {
+                    "key": "SPDY/SpdyPushCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyPushCallback.h"
+                }, 
+                "SPDY/SpdyRequest+Private.h": {
+                    "key": "SPDY/SpdyRequest+Private.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest+Private.h"
+                }, 
+                "SPDY/SpdyRequest.h": {
+                    "key": "SPDY/SpdyRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest.h"
+                }, 
+                "SPDY/SpdyRequestCallback.h": {
+                    "key": "SPDY/SpdyRequestCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequestCallback.h"
                 }, 
                 "SPDY/SpdySession.h": {
                     "key": "SPDY/SpdySession.h", 
@@ -103,15 +153,15 @@
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
                     "suffix": "SpdyStreamTests.h"
                 }, 
+                "SPDY/SpdyTimer.h": {
+                    "key": "SPDY/SpdyTimer.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyTimer.h"
+                }, 
                 "SPDY/SpdyUrlConnection.h": {
                     "key": "SPDY/SpdyUrlConnection.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
                     "suffix": "SpdyUrlConnection.h"
-                }, 
-                "SPDY/spdylay.h": {
-                    "key": "SPDY/spdylay.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/includes/spdylay/", 
-                    "suffix": "spdylay.h"
                 }, 
                 "SPDY/spdylay_buffer.h": {
                     "key": "SPDY/spdylay_buffer.h", 
@@ -193,25 +243,60 @@
                     "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
                     "suffix": "spdylay_zlib.h"
                 }, 
-                "SPDY/spdylayver.h": {
-                    "key": "SPDY/spdylayver.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/includes/spdylay/", 
-                    "suffix": "spdylayver.h"
+                "SpdyBufferedCallback.h": {
+                    "key": "SpdyBufferedCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyBufferedCallback.h"
                 }, 
-                "SPDYTests.h": {
-                    "key": "SPDYTests.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
-                    "suffix": "SPDYTests.h"
+                "SpdyCallback.h": {
+                    "key": "SpdyCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyCallback.h"
+                }, 
+                "SpdyDnsResolver.h": {
+                    "key": "SpdyDnsResolver.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResolver.h"
+                }, 
+                "SpdyDnsResult.h": {
+                    "key": "SpdyDnsResult.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResult.h"
+                }, 
+                "SpdyHTTPResponse.h": {
+                    "key": "SpdyHTTPResponse.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyHTTPResponse.h"
                 }, 
                 "SpdyInputStream.h": {
                     "key": "SpdyInputStream.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
                     "suffix": "SpdyInputStream.h"
                 }, 
-                "SpdyInputStreamTests.h": {
-                    "key": "SpdyInputStreamTests.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
-                    "suffix": "SpdyInputStreamTests.h"
+                "SpdyPersistentRequest.h": {
+                    "key": "SpdyPersistentRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyPersistentRequest.h"
+                }, 
+                "SpdyPushCallback.h": {
+                    "key": "SpdyPushCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyPushCallback.h"
+                }, 
+                "SpdyRequest+Private.h": {
+                    "key": "SpdyRequest+Private.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest+Private.h"
+                }, 
+                "SpdyRequest.h": {
+                    "key": "SpdyRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest.h"
+                }, 
+                "SpdyRequestCallback.h": {
+                    "key": "SpdyRequestCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequestCallback.h"
                 }, 
                 "SpdySession.h": {
                     "key": "SpdySession.h", 
@@ -222,11 +307,6 @@
                     "key": "SpdySessionKey.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
                     "suffix": "SpdySessionKey.h"
-                }, 
-                "SpdySessionKeyTests.h": {
-                    "key": "SpdySessionKeyTests.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
-                    "suffix": "SpdySessionKeyTests.h"
                 }, 
                 "SpdySessionTests.h": {
                     "key": "SpdySessionTests.h", 
@@ -243,20 +323,15 @@
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
                     "suffix": "SpdyStreamTests.h"
                 }, 
+                "SpdyTimer.h": {
+                    "key": "SpdyTimer.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyTimer.h"
+                }, 
                 "SpdyUrlConnection.h": {
                     "key": "SpdyUrlConnection.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
                     "suffix": "SpdyUrlConnection.h"
-                }, 
-                "SpdyUrlConnectionTest.h": {
-                    "key": "SpdyUrlConnectionTest.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
-                    "suffix": "SpdyUrlConnectionTest.h"
-                }, 
-                "spdylay.h": {
-                    "key": "spdylay.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/includes/spdylay/", 
-                    "suffix": "spdylay.h"
                 }, 
                 "spdylay_buffer.h": {
                     "key": "spdylay_buffer.h", 
@@ -337,17 +412,414 @@
                     "key": "spdylay_zlib.h", 
                     "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
                     "suffix": "spdylay_zlib.h"
-                }, 
-                "spdylayver.h": {
-                    "key": "spdylayver.h", 
-                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/includes/spdylay/", 
-                    "suffix": "spdylayver.h"
                 }
             }, 
             "type": "I"
         }, 
         {
-            "header_path": "../../../../../../../var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpwzCY6h/BUILD_DIR/Release-iphoneos/include", 
+            "header_path": "SPDY-all-target-headers.hmap", 
+            "hmap": {
+                "SPDY/SPDY.h": {
+                    "key": "SPDY/SPDY.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SPDY.h"
+                }, 
+                "SPDY/SpdyBufferedCallback.h": {
+                    "key": "SPDY/SpdyBufferedCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyBufferedCallback.h"
+                }, 
+                "SPDY/SpdyCallback.h": {
+                    "key": "SPDY/SpdyCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyCallback.h"
+                }, 
+                "SPDY/SpdyDnsResolver.h": {
+                    "key": "SPDY/SpdyDnsResolver.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResolver.h"
+                }, 
+                "SPDY/SpdyDnsResult.h": {
+                    "key": "SPDY/SpdyDnsResult.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResult.h"
+                }, 
+                "SPDY/SpdyHTTPResponse.h": {
+                    "key": "SPDY/SpdyHTTPResponse.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyHTTPResponse.h"
+                }, 
+                "SPDY/SpdyInputStream.h": {
+                    "key": "SPDY/SpdyInputStream.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyInputStream.h"
+                }, 
+                "SPDY/SpdyPersistentRequest.h": {
+                    "key": "SPDY/SpdyPersistentRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyPersistentRequest.h"
+                }, 
+                "SPDY/SpdyPushCallback.h": {
+                    "key": "SPDY/SpdyPushCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyPushCallback.h"
+                }, 
+                "SPDY/SpdyRequest+Private.h": {
+                    "key": "SPDY/SpdyRequest+Private.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest+Private.h"
+                }, 
+                "SPDY/SpdyRequest.h": {
+                    "key": "SPDY/SpdyRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest.h"
+                }, 
+                "SPDY/SpdyRequestCallback.h": {
+                    "key": "SPDY/SpdyRequestCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequestCallback.h"
+                }, 
+                "SPDY/SpdySession.h": {
+                    "key": "SPDY/SpdySession.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdySession.h"
+                }, 
+                "SPDY/SpdySessionKey.h": {
+                    "key": "SPDY/SpdySessionKey.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdySessionKey.h"
+                }, 
+                "SPDY/SpdySessionTests.h": {
+                    "key": "SPDY/SpdySessionTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdySessionTests.h"
+                }, 
+                "SPDY/SpdyStream.h": {
+                    "key": "SPDY/SpdyStream.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyStream.h"
+                }, 
+                "SPDY/SpdyStreamTests.h": {
+                    "key": "SPDY/SpdyStreamTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdyStreamTests.h"
+                }, 
+                "SPDY/SpdyTimer.h": {
+                    "key": "SPDY/SpdyTimer.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyTimer.h"
+                }, 
+                "SPDY/SpdyUrlConnection.h": {
+                    "key": "SPDY/SpdyUrlConnection.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyUrlConnection.h"
+                }, 
+                "SPDY/spdylay_buffer.h": {
+                    "key": "SPDY/spdylay_buffer.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_buffer.h"
+                }, 
+                "SPDY/spdylay_client_cert_vector.h": {
+                    "key": "SPDY/spdylay_client_cert_vector.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_client_cert_vector.h"
+                }, 
+                "SPDY/spdylay_frame.h": {
+                    "key": "SPDY/spdylay_frame.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_frame.h"
+                }, 
+                "SPDY/spdylay_gzip.h": {
+                    "key": "SPDY/spdylay_gzip.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_gzip.h"
+                }, 
+                "SPDY/spdylay_helper.h": {
+                    "key": "SPDY/spdylay_helper.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_helper.h"
+                }, 
+                "SPDY/spdylay_int.h": {
+                    "key": "SPDY/spdylay_int.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_int.h"
+                }, 
+                "SPDY/spdylay_map.h": {
+                    "key": "SPDY/spdylay_map.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_map.h"
+                }, 
+                "SPDY/spdylay_net.h": {
+                    "key": "SPDY/spdylay_net.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_net.h"
+                }, 
+                "SPDY/spdylay_npn.h": {
+                    "key": "SPDY/spdylay_npn.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_npn.h"
+                }, 
+                "SPDY/spdylay_outbound_item.h": {
+                    "key": "SPDY/spdylay_outbound_item.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_outbound_item.h"
+                }, 
+                "SPDY/spdylay_pq.h": {
+                    "key": "SPDY/spdylay_pq.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_pq.h"
+                }, 
+                "SPDY/spdylay_queue.h": {
+                    "key": "SPDY/spdylay_queue.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_queue.h"
+                }, 
+                "SPDY/spdylay_session.h": {
+                    "key": "SPDY/spdylay_session.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_session.h"
+                }, 
+                "SPDY/spdylay_stream.h": {
+                    "key": "SPDY/spdylay_stream.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_stream.h"
+                }, 
+                "SPDY/spdylay_submit.h": {
+                    "key": "SPDY/spdylay_submit.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_submit.h"
+                }, 
+                "SPDY/spdylay_zlib.h": {
+                    "key": "SPDY/spdylay_zlib.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_zlib.h"
+                }
+            }, 
+            "type": "I"
+        }, 
+        {
+            "header_path": "SPDY-project-headers.hmap", 
+            "hmap": {
+                "EndToEndTests.h": {
+                    "key": "EndToEndTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "EndToEndTests.h"
+                }, 
+                "SPDY-MacOSX-Prefix.pch": {
+                    "key": "SPDY-MacOSX-Prefix.pch", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY-MacOSX/", 
+                    "suffix": "SPDY-MacOSX-Prefix.pch"
+                }, 
+                "SPDY-Prefix.pch": {
+                    "key": "SPDY-Prefix.pch", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SPDY-Prefix.pch"
+                }, 
+                "SPDY.h": {
+                    "key": "SPDY.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SPDY.h"
+                }, 
+                "SPDYTests.h": {
+                    "key": "SPDYTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SPDYTests.h"
+                }, 
+                "SPDY_MacOSX.h": {
+                    "key": "SPDY_MacOSX.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY-MacOSX/", 
+                    "suffix": "SPDY_MacOSX.h"
+                }, 
+                "SpdyBufferedCallback.h": {
+                    "key": "SpdyBufferedCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyBufferedCallback.h"
+                }, 
+                "SpdyCallback.h": {
+                    "key": "SpdyCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyCallback.h"
+                }, 
+                "SpdyDnsResolver.h": {
+                    "key": "SpdyDnsResolver.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResolver.h"
+                }, 
+                "SpdyDnsResult.h": {
+                    "key": "SpdyDnsResult.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyDnsResult.h"
+                }, 
+                "SpdyHTTPResponse.h": {
+                    "key": "SpdyHTTPResponse.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyHTTPResponse.h"
+                }, 
+                "SpdyInputStream.h": {
+                    "key": "SpdyInputStream.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyInputStream.h"
+                }, 
+                "SpdyInputStreamTests.h": {
+                    "key": "SpdyInputStreamTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdyInputStreamTests.h"
+                }, 
+                "SpdyPersistentRequest.h": {
+                    "key": "SpdyPersistentRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyPersistentRequest.h"
+                }, 
+                "SpdyPushCallback.h": {
+                    "key": "SpdyPushCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyPushCallback.h"
+                }, 
+                "SpdyRequest+Private.h": {
+                    "key": "SpdyRequest+Private.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest+Private.h"
+                }, 
+                "SpdyRequest.h": {
+                    "key": "SpdyRequest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequest.h"
+                }, 
+                "SpdyRequestCallback.h": {
+                    "key": "SpdyRequestCallback.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyRequestCallback.h"
+                }, 
+                "SpdySession.h": {
+                    "key": "SpdySession.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdySession.h"
+                }, 
+                "SpdySessionKey.h": {
+                    "key": "SpdySessionKey.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdySessionKey.h"
+                }, 
+                "SpdySessionKeyTests.h": {
+                    "key": "SpdySessionKeyTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdySessionKeyTests.h"
+                }, 
+                "SpdySessionTests.h": {
+                    "key": "SpdySessionTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdySessionTests.h"
+                }, 
+                "SpdyStream.h": {
+                    "key": "SpdyStream.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyStream.h"
+                }, 
+                "SpdyStreamTests.h": {
+                    "key": "SpdyStreamTests.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdyStreamTests.h"
+                }, 
+                "SpdyTimer.h": {
+                    "key": "SpdyTimer.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/async/", 
+                    "suffix": "SpdyTimer.h"
+                }, 
+                "SpdyUrlConnection.h": {
+                    "key": "SpdyUrlConnection.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDY/", 
+                    "suffix": "SpdyUrlConnection.h"
+                }, 
+                "SpdyUrlConnectionTest.h": {
+                    "key": "SpdyUrlConnectionTest.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/SPDY/SPDYTests/", 
+                    "suffix": "SpdyUrlConnectionTest.h"
+                }, 
+                "spdylay_buffer.h": {
+                    "key": "spdylay_buffer.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_buffer.h"
+                }, 
+                "spdylay_client_cert_vector.h": {
+                    "key": "spdylay_client_cert_vector.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_client_cert_vector.h"
+                }, 
+                "spdylay_frame.h": {
+                    "key": "spdylay_frame.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_frame.h"
+                }, 
+                "spdylay_gzip.h": {
+                    "key": "spdylay_gzip.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_gzip.h"
+                }, 
+                "spdylay_helper.h": {
+                    "key": "spdylay_helper.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_helper.h"
+                }, 
+                "spdylay_int.h": {
+                    "key": "spdylay_int.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_int.h"
+                }, 
+                "spdylay_map.h": {
+                    "key": "spdylay_map.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_map.h"
+                }, 
+                "spdylay_net.h": {
+                    "key": "spdylay_net.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_net.h"
+                }, 
+                "spdylay_npn.h": {
+                    "key": "spdylay_npn.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_npn.h"
+                }, 
+                "spdylay_outbound_item.h": {
+                    "key": "spdylay_outbound_item.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_outbound_item.h"
+                }, 
+                "spdylay_pq.h": {
+                    "key": "spdylay_pq.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_pq.h"
+                }, 
+                "spdylay_queue.h": {
+                    "key": "spdylay_queue.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_queue.h"
+                }, 
+                "spdylay_session.h": {
+                    "key": "spdylay_session.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_session.h"
+                }, 
+                "spdylay_stream.h": {
+                    "key": "spdylay_stream.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_stream.h"
+                }, 
+                "spdylay_submit.h": {
+                    "key": "spdylay_submit.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_submit.h"
+                }, 
+                "spdylay_zlib.h": {
+                    "key": "spdylay_zlib.h", 
+                    "prefix": "../../lib/ios/SPDY-for-iPhone/spdylay/lib/", 
+                    "suffix": "spdylay_zlib.h"
+                }
+            }, 
+            "type": "iquote"
+        }, 
+        {
+            "header_path": "../../../../../../../var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpS00bqA/BUILD_DIR/Release-iphoneos/include", 
             "type": "I"
         }, 
         {
@@ -355,23 +827,15 @@
             "type": "I"
         }, 
         {
-            "header_path": "../OpenSSL-for-iPhone/include", 
-            "type": "I"
-        }, 
-        {
             "header_path": "../spdylay/lib/includes", 
             "type": "I"
         }, 
         {
-            "header_path": "../OpenSSL-for-iPhone/openssl-1.0.1h/include", 
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpS00bqA/DERIVED_FILE_DIR/armv7", 
             "type": "I"
         }, 
         {
-            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpwzCY6h/DERIVED_FILE_DIR/armv7", 
-            "type": "I"
-        }, 
-        {
-            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpwzCY6h/DERIVED_FILE_DIR", 
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpS00bqA/DERIVED_FILE_DIR", 
             "type": "I"
         }
     ], 
@@ -493,7 +957,49 @@
             "flags": [], 
             "header_paths": [], 
             "language": "objc", 
+            "source": "SPDY/SpdyBufferedCallback.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/SpdyCallback.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/SpdyDnsResolver.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/SpdyDnsResult.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/SpdyHTTPResponse.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
             "source": "SPDY/SpdyInputStream.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/SpdyPushCallback.m"
         }, 
         {
             "defines": {}, 
@@ -522,6 +1028,41 @@
             "header_paths": [], 
             "language": "objc", 
             "source": "SPDY/SpdyUrlConnection.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/async/SpdyPersistentRequest.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/async/SpdyRequest+Private.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/async/SpdyRequest.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/async/SpdyRequestCallback.m"
+        }, 
+        {
+            "defines": {}, 
+            "flags": [], 
+            "header_paths": [], 
+            "language": "objc", 
+            "source": "SPDY/async/SpdyTimer.m"
         }
     ], 
     "storyboards": [], 

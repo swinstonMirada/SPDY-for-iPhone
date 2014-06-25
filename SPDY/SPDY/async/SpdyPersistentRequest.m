@@ -201,7 +201,11 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 #if TARGET_OS_IPHONE
 -(SpdyRadioAccessTechnology)radioAccessTechnology {
+#ifndef APPORTABLE
   return [self radioAccessTechnology:[[CTTelephonyNetworkInfo alloc] init].currentRadioAccessTechnology];
+#else
+    return SpdyRadioAccessTechnologyLTE;
+#endif
 }
 
 -(SpdyRadioAccessTechnology)radioAccessTechnology:(id)object {
@@ -220,7 +224,8 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 }
 
 - (void) startRadioAccessNotifier {
-  radioAccessObserver = 
+#ifndef APPORTABLE
+  radioAccessObserver =
     [[NSNotificationCenter defaultCenter] 
       addObserverForName:CTRadioAccessTechnologyDidChangeNotification
       object:nil queue:nil usingBlock:^(NSNotification*notification) {
@@ -261,6 +266,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 				       self.radioAccessCallback(srat);
 				     });
   }
+#endif
 }
 
 - (void) stopRadioAccessNotifier {
@@ -735,6 +741,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
 
 -(void)setup {
 #if TARGET_OS_IPHONE
+#ifndef APPORTABLE
   if(radioAccessMap == nil) {
     radioAccessMap = @{
       CTRadioAccessTechnologyGPRS : @(SpdyRadioAccessTechnologyGPRS),
@@ -750,6 +757,7 @@ DONT_CALL_ME(setErrorCallback,SpdyErrorCallback);
       CTRadioAccessTechnologyLTE : @(SpdyRadioAccessTechnologyLTE)
     };
   }
+#endif
 #endif
   [self resetState];
   super.voip = YES;

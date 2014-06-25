@@ -883,6 +883,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
 }
 
 -(void)maybeEnableVoip {
+#ifndef APPORTABLE
   if(self.voip) {
     // these streams are only used for wakeup, all acutal i/o 
     // happens via the socket and openssl.
@@ -916,6 +917,7 @@ static void before_ctrl_send_callback(spdylay_session *session, spdylay_frame_ty
       [self sendVoipError];
     }
   }
+#endif
 }
 
 -(BOOL)sessionConnect {
