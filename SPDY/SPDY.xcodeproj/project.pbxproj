@@ -997,13 +997,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../install/include",
 					"$(OPENSSL_INCLUDE)",
 					"$(SPDYLAY_INCLUDE)",
-					"$(SRCROOT)/../spdylay/lib/includes",
 				);
 				INSTALL_PATH = /lib;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
@@ -1013,7 +1012,7 @@
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
-					"$(SRCROOT)/../install/lib"
+					"$(SRCROOT)/../install/lib",
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
@@ -1035,13 +1034,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPDY/SPDY-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "CONF_$(CONFIGURATION)";
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../install/include",
 					"$(OPENSSL_INCLUDE)",
 					"$(SPDYLAY_INCLUDE)",
-					"$(SRCROOT)/../spdylay/lib/includes",
 				);
 				INSTALL_PATH = /lib;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
@@ -1050,7 +1048,7 @@
 					"$(SPDYLAY_LIB)",
 					"\"$(SRCROOT)/../build/$(PLATFORM_NAME)-lib\"",
 					"\"$(SRCROOT)/../build/$(CURRENT_ARCH)/lib\"",
-					"$(SRCROOT)/../install/lib"
+					"$(SRCROOT)/../install/lib",
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
