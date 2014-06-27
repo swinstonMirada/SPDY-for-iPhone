@@ -32,9 +32,6 @@ static NSMutableDictionary * cache = NULL;
   SPDY_LOG(@"content for url %@:\n%@", url, STRING_FROM_URL(url));      \
 
 +(void)checkConnectivity {
-  SPDY_LOG(@"checking connectivity..");
-  CHECK_URL(@"http://ota.locationlabs.com");
-  CHECK_URL(@"http://www.yahoo.com/mobile");
 }
 
 +(SpdyDnsResult *)lookup:(const char*)host port:(const char*)service {
