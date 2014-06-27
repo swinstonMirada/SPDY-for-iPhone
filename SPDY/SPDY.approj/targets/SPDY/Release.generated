@@ -29,7 +29,6 @@
         }, 
         "-fno-asm", 
         "-fpascal-strings", 
-        "-Werror", 
         "-Wshorten-64-to-32", 
         "-Wno-deprecated-declarations", 
         "-Wmissing-prototypes", 
@@ -819,23 +818,19 @@
             "type": "iquote"
         }, 
         {
-            "header_path": "../../../../../../../var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpS00bqA/BUILD_DIR/Release-iphoneos/include", 
+            "header_path": "../../../../../../../var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpbaDUc3/BUILD_DIR/Release-iphoneos/include", 
             "type": "I"
         }, 
         {
-            "header_path": "../build/include", 
+            "header_path": "../install/include", 
             "type": "I"
         }, 
         {
-            "header_path": "../spdylay/lib/includes", 
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpbaDUc3/DERIVED_FILE_DIR/armv7", 
             "type": "I"
         }, 
         {
-            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpS00bqA/DERIVED_FILE_DIR/armv7", 
-            "type": "I"
-        }, 
-        {
-            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpS00bqA/DERIVED_FILE_DIR", 
+            "header_path": "/var/folders/cf/y99l5j9d27z7x99zwpqqw8yr0000gq/T/tmpbaDUc3/DERIVED_FILE_DIR", 
             "type": "I"
         }
     ], 
