@@ -29,6 +29,6 @@
  * @macro
  * Version number of the Spdylay library release
  */
-#define SPDYLAY_VERSION "0.3.0"
+#define SPDYLAY_VERSION "1.2.6-DEV"
 
 #endif /* SPDYLAYVER_H */

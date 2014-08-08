@@ -32,7 +32,6 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include <zlib.h>
 
 #include <spdylay/spdylayver.h>
 
@@ -59,7 +58,11 @@ typedef enum {
   /**
    * SPDY protocol version 3
    */
-  SPDYLAY_PROTO_SPDY3 = 3
+  SPDYLAY_PROTO_SPDY3 = 3,
+  /**
+   * SPDY protocol version 3.1
+   */
+  SPDYLAY_PROTO_SPDY3_1 = 4
 } spdylay_proto_version;
 
 /**
@@ -112,7 +115,7 @@ typedef enum {
    */
   SPDYLAY_ERR_STREAM_ID_NOT_AVAILABLE = -509,
   /**
-   *  The stream is already closed; or the stream ID is invalid.
+   * The stream is already closed; or the stream ID is invalid.
    */
   SPDYLAY_ERR_STREAM_CLOSED = -510,
   /**
@@ -168,6 +171,10 @@ typedef enum {
    * The user callback function failed due to the temporal error.
    */
   SPDYLAY_ERR_TEMPORAL_CALLBACK_FAILURE = -521,
+  /**
+   * The length of the frame is too large.
+   */
+  SPDYLAY_ERR_FRAME_TOO_LARGE = -522,
   /**
    * The errors < :enum:`SPDYLAY_ERR_FATAL` mean that the library is
    * under unexpected condition and cannot process any further data
@@ -352,7 +359,15 @@ typedef enum {
  * @macro
  * Default maximum concurrent streams.
  */
-#define SPDYLAY_INITIAL_MAX_CONCURRENT_STREAMS 100
+#define SPDYLAY_INITIAL_MAX_CONCURRENT_STREAMS ((1U << 31) - 1)
+
+/**
+ * @macro
+ *
+ * Initial window size for both connection-level and stream-level flow
+ * control.
+ */
+#define SPDYLAY_INITIAL_WINDOW_SIZE 65536
 
 /**
  * @enum
@@ -427,7 +442,7 @@ typedef enum {
   /**
    * INTERNAL_ERROR
    */
-  SPDYLAY_GOAWAY_INTERNAL_ERROR = 11
+  SPDYLAY_GOAWAY_INTERNAL_ERROR = 2
 } spdylay_goaway_status_code;
 
 /**
@@ -823,11 +838,11 @@ typedef union {
  *
  * Callback function invoked when |session| wants to send data to the
  * remote peer. The implementation of this function must send at most
- * |length| bytes of data stored in |data|. It must return the number
- * of bytes sent if it succeeds.  If it cannot send any single byte
- * without blocking, it must return
- * :enum:`SPDYLAY_ERR_WOULDBLOCK`. For other errors, it must return
- * :enum:`SPDYLAY_ERR_CALLBACK_FAILURE`.
+ * |length| bytes of data stored in |data|. The |flags| is currently
+ * not used and always 0. It must return the number of bytes sent if
+ * it succeeds.  If it cannot send any single byte without blocking,
+ * it must return :enum:`SPDYLAY_ERR_WOULDBLOCK`. For other errors, it
+ * must return :enum:`SPDYLAY_ERR_CALLBACK_FAILURE`.
  */
 typedef ssize_t (*spdylay_send_callback)
 (spdylay_session *session,
@@ -838,12 +853,13 @@ typedef ssize_t (*spdylay_send_callback)
  *
  * Callback function invoked when |session| wants to receive data from
  * the remote peer. The implementation of this function must read at
- * most |length| bytes of data and store it in |buf|. It must return
- * the number of bytes written in |buf| if it succeeds. If it cannot
- * read any single byte without blocking, it must return
- * :enum:`SPDYLAY_ERR_WOULDBLOCK`. If it gets EOF before it reads any
- * single byte, it must return :enum:`SPDYLAY_ERR_EOF`. For other
- * errors, it must return :enum:`SPDYLAY_ERR_CALLBACK_FAILURE`.
+ * most |length| bytes of data and store it in |buf|. The |flags| is
+ * currently not used and always 0. It must return the number of bytes
+ * written in |buf| if it succeeds. If it cannot read any single byte
+ * without blocking, it must return :enum:`SPDYLAY_ERR_WOULDBLOCK`. If
+ * it gets EOF before it reads any single byte, it must return
+ * :enum:`SPDYLAY_ERR_EOF`. For other errors, it must return
+ * :enum:`SPDYLAY_ERR_CALLBACK_FAILURE`.
  */
 typedef ssize_t (*spdylay_recv_callback)
 (spdylay_session *session,
@@ -865,8 +881,8 @@ typedef void (*spdylay_on_ctrl_recv_callback)
  * Callback function invoked by `spdylay_session_recv()` when an
  * invalid control frame is received. The |status_code| is one of the
  * :enum:`spdylay_status_code` and indicates the error. When this
- * callback function is invoked, either RST_STREAM or GOAWAY will be
- * sent.
+ * callback function is invoked, the library automatically submits
+ * either RST_STREAM or GOAWAY frame.
  */
 typedef void (*spdylay_on_invalid_ctrl_recv_callback)
 (spdylay_session *session, spdylay_frame_type type, spdylay_frame *frame,
@@ -1415,41 +1431,41 @@ int spdylay_session_send(spdylay_session *session);
  *    or more times to receive frame header.
  * 2. If the frame is DATA frame:
  *
- *   2.1. :member:`spdylay_session_callbacks.recv_callback` is invoked
- *        to receive DATA payload. For each chunk of data,
- *        :member:`spdylay_session_callbacks.on_data_chunk_recv_callback`
- *        is invoked.
- *   2.2. If one DATA frame is completely received,
- *        :member:`spdylay_session_callbacks.on_data_recv_callback` is
- *        invoked.  If the frame is the final frame of the request,
- *        :member:`spdylay_session_callbacks.on_request_recv_callback`
- *        is invoked.  If the reception of the frame triggers the
- *        closure of the stream,
- *        :member:`spdylay_session_callbacks.on_stream_close_callback`
- *        is invoked.
+ *    1. :member:`spdylay_session_callbacks.recv_callback` is invoked
+ *       to receive DATA payload. For each chunk of data,
+ *       :member:`spdylay_session_callbacks.on_data_chunk_recv_callback`
+ *       is invoked.
+ *    2. If one DATA frame is completely received,
+ *       :member:`spdylay_session_callbacks.on_data_recv_callback` is
+ *       invoked.  If the frame is the final frame of the request,
+ *       :member:`spdylay_session_callbacks.on_request_recv_callback`
+ *       is invoked.  If the reception of the frame triggers the
+ *       closure of the stream,
+ *       :member:`spdylay_session_callbacks.on_stream_close_callback`
+ *       is invoked.
  *
  * 3. If the frame is the control frame:
  *
- *   3.1. :member:`spdylay_session_callbacks.recv_callback` is invoked
- *        one or more times to receive whole frame.
- *   3.2. If the received frame is valid,
- *        :member:`spdylay_session_callbacks.on_ctrl_recv_callback` is
- *        invoked.  If the frame is the final frame of the request,
- *        :member:`spdylay_session_callbacks.on_request_recv_callback`
- *        is invoked.  If the reception of the frame triggers the
- *        closure of the stream,
- *        :member:`spdylay_session_callbacks.on_stream_close_callback`
- *        is invoked.
- *   3.3. If the received frame is unpacked but is interpreted as
- *        invalid,
- *        :member:`spdylay_session_callbacks.on_invalid_ctrl_recv_callback`
- *        is invoked.
- *   3.4. If the received frame could not be unpacked correctly,
- *        :member:`spdylay_session_callbacks.on_ctrl_recv_parse_error_callback`
- *        is invoked.
- *   3.5. If the received frame type is unknown,
- *        :member:`spdylay_session_callbacks.on_unknown_ctrl_recv_callback`
- *        is invoked.
+ *    1. :member:`spdylay_session_callbacks.recv_callback` is invoked
+ *       one or more times to receive whole frame.
+ *    2. If the received frame is valid,
+ *       :member:`spdylay_session_callbacks.on_ctrl_recv_callback` is
+ *       invoked.  If the frame is the final frame of the request,
+ *       :member:`spdylay_session_callbacks.on_request_recv_callback`
+ *       is invoked.  If the reception of the frame triggers the
+ *       closure of the stream,
+ *       :member:`spdylay_session_callbacks.on_stream_close_callback`
+ *       is invoked.
+ *    3. If the received frame is unpacked but is interpreted as
+ *       invalid,
+ *       :member:`spdylay_session_callbacks.on_invalid_ctrl_recv_callback`
+ *       is invoked.
+ *    4. If the received frame could not be unpacked correctly,
+ *       :member:`spdylay_session_callbacks.on_ctrl_recv_parse_error_callback`
+ *       is invoked.
+ *    5. If the received frame type is unknown,
+ *       :member:`spdylay_session_callbacks.on_unknown_ctrl_recv_callback`
+ *       is invoked.
  *
  * This function returns 0 if it succeeds, or one of the following
  * negative error codes:
@@ -1561,6 +1577,33 @@ uint8_t spdylay_session_get_pri_lowest(spdylay_session *session);
 /**
  * @function
  *
+ * Returns the number of DATA payload in bytes received without
+ * WINDOW_UPDATE transmission for the stream |stream_id|.
+ *
+ * If the flow control is disabled by the protocol, this function
+ * returns 0.
+ *
+ * This function returns -1 if it fails.
+ */
+int32_t spdylay_session_get_stream_recv_data_length(spdylay_session *session,
+                                                    int32_t stream_id);
+
+/**
+ * @function
+ *
+ * Returns the number of DATA payload in bytes received without
+ * WINDOW_UPDATE transmission for a connection.
+ *
+ * If flow control is disabled by the protocol, this function returns
+ * 0.
+ *
+ * This function returns -1 if it fails.
+ */
+int32_t spdylay_session_get_recv_data_length(spdylay_session *session);
+
+/**
+ * @function
+ *
  * Submits GOAWAY frame.  The status code |status_code| is ignored if
  * the protocol version is :macro:`SPDYLAY_PROTO_SPDY2`.
  *
@@ -1593,7 +1636,8 @@ const char* spdylay_strerror(int error_code);
  *
  * The |pri| is priority of this request. 0 is the highest priority
  * value. Use `spdylay_session_get_pri_lowest()` to know the lowest
- * priority value for this |session|.
+ * priority value for this |session|. If the |pri| is larger than the
+ * lowest value, the lowest value is used silently.
  *
  * The |nv| contains the name/value pairs. For i >= 0, ``nv[2*i]``
  * contains a pointer to the name string and ``nv[2*i+1]`` contains a
@@ -1653,8 +1697,7 @@ const char* spdylay_strerror(int error_code);
  * negative error codes:
  *
  * :enum:`SPDYLAY_ERR_INVALID_ARGUMENT`
- *     The |pri| is invalid; or the Associated-To-Stream-ID is
- *     invalid.
+ *     The |nv| includes empty name or NULL value.
  * :enum:`SPDYLAY_ERR_NOMEM`
  *     Out of memory.
  */
@@ -1698,6 +1741,8 @@ int spdylay_submit_request(spdylay_session *session, uint8_t pri,
  * This function returns 0 if it succeeds, or one of the following
  * negative error codes:
  *
+ * :enum:`SPDYLAY_ERR_INVALID_ARGUMENT`
+ *     The |nv| includes empty name or NULL value.
  * :enum:`SPDYLAY_ERR_NOMEM`
  *     Out of memory.
  */
@@ -1717,12 +1762,14 @@ int spdylay_submit_response(spdylay_session *session,
  * If |flags| includes :enum:`SPDYLAY_CTRL_FLAG_FIN`, this frame has
  * FLAG_FIN flag set.
  *
- * The |assoc_stream_id| is used for server-push. If |session| is
- * initialized for client use, |assoc_stream_id| is ignored.
+ * The |assoc_stream_id| is used for server-push. Specify 0 if this
+ * stream is not server-push. If |session| is initialized for client
+ * use, |assoc_stream_id| is ignored.
  *
  * The |pri| is priority of this request. 0 is the highest priority
  * value. Use `spdylay_session_get_pri_lowest()` to know the lowest
- * priority value for this |session|.
+ * priority value for this |session|. If the |pri| is larger than the
+ * lowest value, the lowest value is used silently.
  *
  * The |nv| contains the name/value pairs. For i >= 0, ``nv[2*i]``
  * contains a pointer to the name string and ``nv[2*i+1]`` contains a
@@ -1744,8 +1791,8 @@ int spdylay_submit_response(spdylay_session *session,
  * negative error codes:
  *
  * :enum:`SPDYLAY_ERR_INVALID_ARGUMENT`
- *     The |pri| is invalid; or the Associated-To-Stream-ID is
- *     invalid.
+ *     The |assoc_stream_id| is invalid; or
+ *     the |nv| includes empty name or NULL value.
  * :enum:`SPDYLAY_ERR_NOMEM`
  *     Out of memory.
  */
@@ -1779,6 +1826,8 @@ int spdylay_submit_syn_stream(spdylay_session *session, uint8_t flags,
  * This function returns 0 if it succeeds, or one of the following
  * negative error codes:
  *
+ * :enum:`SPDYLAY_ERR_INVALID_ARGUMENT`
+ *     The |nv| includes empty name or NULL value.
  * :enum:`SPDYLAY_ERR_NOMEM`
  *     Out of memory.
  */
@@ -1811,6 +1860,8 @@ int spdylay_submit_syn_reply(spdylay_session *session, uint8_t flags,
  * This function returns 0 if it succeeds, or one of the following
  * negative error codes:
  *
+ * :enum:`SPDYLAY_ERR_INVALID_ARGUMENT`
+ *     The |nv| includes empty name or NULL value.
  * :enum:`SPDYLAY_ERR_NOMEM`
  *     Out of memory.
  */
@@ -1855,7 +1906,9 @@ int spdylay_submit_rst_stream(spdylay_session *session, int32_t stream_id,
 /**
  * @function
  *
- * Submits PING frame.
+ * Submits PING frame. You don't have to send PING back when you
+ * received PING frame. The library automatically submits PING frame
+ * in this case.
  *
  * This function returns 0 if it succeeds, or one of the following
  * negative error codes:
@@ -1909,6 +1962,9 @@ int spdylay_submit_settings(spdylay_session *session, uint8_t flags,
  * |delta_window_size| is [1, (1 << 31)-1], inclusive. But the
  * application must be responsible to keep the resulting window size
  * <= (1 << 31)-1.
+ *
+ * To send connection-level WINDOW_UPDATE, specify 0 to the
+ * |stream_id| if the negotiated protocol supports it.
  *
  * This function returns 0 if it succeeds, or one of the following
  * negative error codes:
@@ -1986,12 +2042,47 @@ int spdylay_select_next_protocol(unsigned char **out, unsigned char *outlen,
                                  const unsigned char *in, unsigned int inlen);
 
 /**
+ * @struct
+ *
+ * This struct contains SPDY version information this library
+ * supports.
+ */
+typedef struct {
+  /**
+   * SPDY protocol version name which can be used as TLS NPN protocol
+   * string.
+   */
+  const unsigned char *proto;
+  /**
+   * The length of proto member.
+   */
+  uint8_t len;
+  /**
+   * The corresponding SPDY version constant which can be passed to
+   * `spdylay_session_client_new()` and `spdylay_session_server_new()`
+   * as version argument.
+   */
+  uint16_t version;
+} spdylay_npn_proto;
+
+/**
+ * @function
+ *
+ * Returns a pointer to the supported SPDY version list. The number of
+ * elements in the list will be assigned to the |*len_ptr|. It
+ * contains all SPDY version information this library supports. The
+ * application can use this information to configure NPN protocol
+ * offerings/selection.
+ */
+const spdylay_npn_proto* spdylay_npn_get_proto_list(size_t *len_ptr);
+
+/**
  * @function
  *
  * Returns spdy version which spdylay library supports from the given
  * protocol name. The |proto| is the pointer to the protocol name and
- * |protolen| is its length. Currently, ``spdy/2`` and ``spdy/3`` are
- * supported.
+ * |protolen| is its length. Currently, ``spdy/2``, ``spdy/3`` and
+ * ``spdy/3.1`` are supported.
  *
  * This function returns nonzero spdy version if it succeeds, or 0.
  */
