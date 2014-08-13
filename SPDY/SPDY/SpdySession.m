@@ -491,13 +491,13 @@ static ssize_t read_from_data_callback(spdylay_session *session, int32_t stream_
   if(self.readStream != NULL) {
     SPDY_LOG(@"%p closing and releasing read stream", self); 
     CFReadStreamClose(self.readStream);
-    CFRelease(self.readStream);
+    CFRelease(_readStream);
     self.readStream = NULL;
     SPDY_LOG(@"%p done with read stream", self); 
   }
   if(self.writeStream != NULL) {
     CFWriteStreamClose(self.writeStream);
-    CFRelease(self.writeStream);
+    CFRelease(_writeStream);
     self.writeStream = NULL;
   }
 }

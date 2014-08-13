@@ -55,10 +55,10 @@
 }
 
 - (size_t)onResponseData:(const uint8_t *)bytes length:(size_t)length {
-  if(self.body == NULL) 
-    self.body = CFDataCreateMutable(NULL, 0);
+  if(_body == NULL)
+    _body = CFDataCreateMutable(NULL, 0);
 
-  CFDataAppendBytes(self.body, bytes, length);
+  CFDataAppendBytes(_body, bytes, length);
   //SPDY_LOG(@"appended %zd bytes", length);
 
   //SPDY_LOG(@"headers are %p", self.headers);
@@ -66,7 +66,9 @@
   if(self.headers == NULL) {
     SPDY_LOG(@"headers are null");
   } else {
-    NSString* length_str = (NSString*)CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(self.headers, CFStringCreateWithCString(NULL,"content-length",kCFStringEncodingUTF8)));
+      CFStringRef contentString = CFStringCreateWithCString(NULL,"content-length",kCFStringEncodingUTF8);
+    NSString* length_str = (NSString*)CFBridgingRelease(CFHTTPMessageCopyHeaderFieldValue(self.headers, contentString));
+      CFRelease(contentString);
     if(length_str != nil) {
       int content_length = 0;
       sscanf([length_str UTF8String], "%d", &content_length);
@@ -74,10 +76,10 @@
 
       CFIndex current_data_size = CFDataGetLength(self.body);
       if(current_data_size == content_length) {
-	//SPDY_LOG(@"got all the data, doing response callback before stream close");
-	CFHTTPMessageSetBody(self.headers, self.body);
-	[self onResponse:self.headers];
-        self.body = NULL;
+          //SPDY_LOG(@"got all the data, doing response callback before stream close");
+          CFHTTPMessageSetBody(self.headers, self.body);
+          [self onResponse:self.headers];
+          self.body = NULL;
       }
     } else {
       //SPDY_LOG(@"did not get content-length");

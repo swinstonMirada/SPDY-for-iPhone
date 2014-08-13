@@ -62,7 +62,6 @@ void __spdy_dispatchAsyncOnMainThread(void(^block)()) {
 -(void)doCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId andCompletion:(SpdySuccessCallback)callback {
   CFDataRef b = CFHTTPMessageCopyBody(message);
   NSData * body = (__bridge NSData *)b;
-  CFRelease(b);
   SpdyHTTPResponse * spdy_message = [SpdyHTTPResponse responseWithURL:self.URL
 						      andMessage:message];
 
@@ -72,6 +71,7 @@ void __spdy_dispatchAsyncOnMainThread(void(^block)()) {
   } else {
     SPDY_LOG(@"dropping response w/ nil callback");
   }
+  CFRelease(b);
 }
 
 -(void)doSpdyPushCallbackWithMessage:(CFHTTPMessageRef)message andStreamId:(int32_t)streamId {
