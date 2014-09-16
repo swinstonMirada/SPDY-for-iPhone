@@ -3,6 +3,7 @@ CONFIGURATION ?= Release
 CURRENT_ARCH ?= armv7
 SDK_NAME ?= iphoneos7.0
 PLATFORM_NAME ?= iphoneos
+BUILD=.
 
 LATEST_SDK=$(shell xcodebuild -showsdks | grep iphoneos | sed -e 's/.*iphoneos//g' | tail -n 1)
 
